@@ -5,6 +5,9 @@ import '../../utils/constants.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/appbar.dart';
 import '../../widgets/shams_bottom_nav_bar.dart';
+import 'add_workshop_screen.dart';
+import 'privacy_security_screen.dart';
+import 'about_shams_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UserProfileScreen — شاشة الملف الشخصي للمستخدم
@@ -220,64 +223,75 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         _buildSectionHeader('إدارة أعمالي', Icons.storefront_rounded),
         const SizedBox(height: 15),
         // كارد إضافة ورشة
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 25),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: const Color(0xFFF2F4F7)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.02),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AddWorkshopScreen(),
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              // 1. أيقونة الزائد (يمين في RTL)
-              Container(
-                width: 45,
-                height: 45,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF9E7),
-                  borderRadius: BorderRadius.circular(12),
+            );
+          },
+          borderRadius: BorderRadius.circular(15),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 25),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: const Color(0xFFF2F4F7)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-                child: const Icon(
-                  Icons.add,
-                  color: ShamsColors.solarYellow,
-                  size: 24,
+              ],
+            ),
+            child: Row(
+              children: [
+                // 1. أيقونة الزائد (يمين في RTL)
+                Container(
+                  width: 45,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF9E7),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.add,
+                    color: ShamsColors.solarYellow,
+                    size: 24,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 15),
-              // 2. النصوص (في المنتصف محاذاة لليمين)
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'إضافة ورشة جديدة',
-                      style: GoogleFonts.tajawal(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: ShamsColors.textGray,
+                const SizedBox(width: 15),
+                // 2. النصوص (في المنتصف محاذاة لليمين)
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'إضافة ورشة جديدة',
+                        style: GoogleFonts.tajawal(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: ShamsColors.textGray,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'انقر هنا لإضافة تفاصيل الورشة',
-                      style: GoogleFonts.tajawal(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
+                      Text(
+                        'انقر هنا لإضافة تفاصيل الورشة',
+                        style: GoogleFonts.tajawal(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              // 3. سهم التنقل (يسار في RTL)
-              const Icon(Icons.chevron_left, color: Colors.grey, size: 20),
-            ],
+                // 3. سهم التنقل (يسار في RTL)
+                const Icon(Icons.chevron_left, color: Colors.grey, size: 20),
+              ],
+            ),
           ),
         ),
       ],
@@ -324,7 +338,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 icon: Icons.shield_outlined,
                 title: 'الخصوصية والأمان',
                 showDivider: true,
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const PrivacySecurityScreen(),
+                    ),
+                  );
+                },
               ),
               _buildSettingTile(
                 icon: Icons.language_rounded,
@@ -343,7 +364,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 icon: Icons.info_outline_rounded,
                 title: 'عن شمس',
                 showDivider: false,
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AboutShamsScreen(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
