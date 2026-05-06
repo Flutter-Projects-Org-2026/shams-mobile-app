@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 // استدعاءات "المكعبات" الجاهزة
 import '../../utils/constants.dart';
 import '../../widgets/appbar.dart';
-import '../../widgets/shams_bottom_nav_bar.dart';
 import '../../widgets/city_filter.dart';
 import '../../widgets/workshop_card.dart';
 import 'workshop_profile_screen.dart';
@@ -19,42 +18,41 @@ class WorkshopsListScreen extends StatefulWidget {
 class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
   // 1. ذاكرة الشاشة: المدن المختارة حالياً
   List<String> _selectedCities = [];
-  int _currentNavIndex = 1; // تبويب الورش
 
   // 2. البيانات الوهمية المحدثة لتطابق التصميم الجديد للبطاقة
   final List<Map<String, dynamic>> _dummyWorkshops = [
     {
-      'username': 'تيك زون للإلكترونيات',
-      'userHandle': '@techzone_sa',
+      'username': 'مركز المجد للطاقة الشمسية',
+      'userHandle': '@al_majd_solar',
       'imagePath': 'assets/images/logo/shams logo.png',
-      'coverImagePath': 'assets/images/post image.png',
+      'coverImagePath': 'assets/images/post image.jpg',
       'cityName': 'تعز',
       'rating': 4.5,
       'isFollowing': true,
     },
     {
-      'username': 'أزياء العصر',
-      'userHandle': '@modern_fashion',
+      'username': 'نور المستقبل لأنظمة الطاقة',
+      'userHandle': '@future_light_energy',
       'imagePath': 'assets/images/logo/shams logo.png',
-      'coverImagePath': 'assets/images/post image.png',
+      'coverImagePath': 'assets/images/post image.jpg',
       'cityName': 'تعز',
       'rating': 4.8,
       'isFollowing': false,
     },
     {
-      'username': 'بيت القهوة المختصة',
-      'userHandle': '@coffee_house',
+      'username': 'رواد الطاقة البديلة',
+      'userHandle': '@alt_energy_pioneers',
       'imagePath': 'assets/images/logo/shams logo.png',
-      'coverImagePath': 'assets/images/post image.png',
+      'coverImagePath': 'assets/images/post image.jpg',
       'cityName': 'صنعاء',
       'rating': 4.9,
       'isFollowing': false,
     },
     {
       'username': 'عدن للطاقة المتجددة',
-      'userHandle': '@aden_energy',
+      'userHandle': '@aden_renewable',
       'imagePath': 'assets/images/logo/shams logo.png',
-      'coverImagePath': 'assets/images/post image.png',
+      'coverImagePath': 'assets/images/post image.jpg',
       'cityName': 'عدن',
       'rating': 3.9,
       'isFollowing': false,
@@ -81,12 +79,6 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
           onMenuTap: () {},
           onNotificationTap: () {},
           onDarkModeTap: () {},
-        ),
-
-        // ── شريط التنقل السفلي ──
-        bottomNavigationBar: ShamsBottomNavBar(
-          currentIndex: _currentNavIndex,
-          onTap: (index) => setState(() => _currentNavIndex = index),
         ),
 
         body: Column(

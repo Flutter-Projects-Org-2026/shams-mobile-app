@@ -157,7 +157,7 @@ class _CityMultiSelectFilterState extends State<CityMultiSelectFilter> {
                       city,
                       style: GoogleFonts.tajawal(fontSize: 13, color: ShamsColors.textGray, fontWeight: FontWeight.w500),
                     ),
-                    backgroundColor: ShamsColors.solarYellow.withOpacity(0.15),
+                    backgroundColor: ShamsColors.solarYellow.withValues(alpha: 0.15),
                     deleteIconColor: ShamsColors.textGray,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),

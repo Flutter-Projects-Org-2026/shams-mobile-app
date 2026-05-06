@@ -138,12 +138,12 @@ class _PostCardState extends State<PostCard>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: ShamsColors.primaryBlue.withOpacity(0.07),
+            color: ShamsColors.primaryBlue.withValues(alpha: 0.07),
             blurRadius: 20,
             offset: const Offset(0, 6),
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -326,13 +326,13 @@ class _PostCardState extends State<PostCard>
                           path,
                           fit: BoxFit.cover,
                           width: double.infinity,
-                          errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                          errorBuilder: (_, _, _) => _imagePlaceholder(),
                         )
                       : Image.asset(
                           path,
                           fit: BoxFit.cover,
                           width: double.infinity,
-                          errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                          errorBuilder: (_, _, _) => _imagePlaceholder(),
                         );
                 },
               ),
@@ -360,7 +360,7 @@ class _PostCardState extends State<PostCard>
         child: Icon(
           Icons.image_not_supported_rounded,
           size: 48,
-          color: ShamsColors.primaryBlue.withOpacity(0.3),
+          color: ShamsColors.primaryBlue.withValues(alpha: 0.3),
         ),
       ),
     );
@@ -378,7 +378,7 @@ class _PostCardState extends State<PostCard>
           _ActionChip(
             icon: Icons.reply_rounded,
             count: widget.sharesCount,
-            color: ShamsColors.textGray.withOpacity(0.7),
+            color: ShamsColors.textGray.withValues(alpha: 0.7),
             onTap: widget.onShareTap,
           ),
 
@@ -388,7 +388,7 @@ class _PostCardState extends State<PostCard>
               _ActionChip(
                 icon: Icons.chat_bubble_outline_rounded,
                 count: widget.commentsCount,
-                color: ShamsColors.textGray.withOpacity(0.7),
+                color: ShamsColors.textGray.withValues(alpha: 0.7),
                 onTap: widget.onCommentTap,
               ),
 
@@ -404,7 +404,7 @@ class _PostCardState extends State<PostCard>
                   count: _likesCount,
                   color: _isLiked
                       ? const Color(0xFFE53935)
-                      : ShamsColors.textGray.withOpacity(0.7),
+                      : ShamsColors.textGray.withValues(alpha: 0.7),
                   onTap: _handleLikeTap,
                   isAnimated: true,
                 ),
@@ -440,12 +440,12 @@ class _Avatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: ShamsColors.primaryBlue.withOpacity(0.2),
+          color: ShamsColors.primaryBlue.withValues(alpha: 0.2),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: ShamsColors.primaryBlue.withOpacity(0.15),
+            color: ShamsColors.primaryBlue.withValues(alpha: 0.15),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -456,12 +456,12 @@ class _Avatar extends StatelessWidget {
             ? Image.network(
                 imagePath,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _fallback(),
+                errorBuilder: (_, _, _) => _fallback(),
               )
             : Image.asset(
                 imagePath,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _fallback(),
+                errorBuilder: (_, _, _) => _fallback(),
               ),
       ),
     );
@@ -530,7 +530,7 @@ class _PageIndicatorBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.55),
+        color: Colors.black.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(

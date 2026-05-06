@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/constants.dart';
 import '../../widgets/primary_button.dart';
-import '../../widgets/appbar.dart';
-import '../../widgets/shams_bottom_nav_bar.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UserProfileScreen — شاشة الملف الشخصي للمستخدم
@@ -35,12 +33,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
-        bottomNavigationBar: ShamsBottomNavBar(
-          currentIndex: 3, // تبويب الملف الشخصي
-          onTap: (index) {
-            // التنقل بين الصفحات سيتم إعداده لاحقاً
-          },
-        ),
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -124,7 +116,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: ShamsColors.solarYellow.withOpacity(0.2),
+                    color: ShamsColors.solarYellow.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Row(
@@ -229,7 +221,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             border: Border.all(color: const Color(0xFFF2F4F7)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.02),
+                color: Colors.black.withValues(alpha: 0.02),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -314,7 +306,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       value: _isNotificationsEnabled,
                       onChanged: (v) =>
                           setState(() => _isNotificationsEnabled = v),
-                      activeColor: Colors.white, // الي بالصورة لون الزر أبيض
+                      activeThumbColor: Colors.white, // الي بالصورة لون الزر أبيض
                       activeTrackColor: ShamsColors.solarYellow, // والمسار أصفر
                     ),
                   ),
@@ -417,7 +409,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             padding: const EdgeInsets.symmetric(
               horizontal: 25,
             ), // زيادة البادينج للفواصل
-            child: Divider(height: 1, color: Colors.grey.withOpacity(0.1)),
+            child: Divider(height: 1, color: Colors.grey.withValues(alpha: 0.1)),
           ),
       ],
     );

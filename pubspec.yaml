@@ -32,7 +32,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/post image.png
+    - assets/images/post image.jpg
     - assets/images/logo/shams texial logo for light mode.png
     - assets/images/logo/shams logo.png
     - assets/images/logo/shams texial logo light mode.png

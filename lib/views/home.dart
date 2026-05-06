@@ -3,8 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
 import '../widgets/appbar.dart';
 import '../widgets/post_card.dart';
-import '../widgets/shams_bottom_nav_bar.dart';
 import '../widgets/search_bar.dart';
+import 'posts/post_detail_screen.dart';
+import '../widgets/comments_component.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // بيانات تجريبية للمنشورات
@@ -13,28 +14,67 @@ import '../widgets/search_bar.dart';
 const _kPostContent =
     'تم الانتهاء اليوم من تركيب منظومة طاقة شمسية بقدرة 5 كيلو واط مع عاكس [مكس/JA] قياسي واط في صنعاء، تم استخدام الألواح الأداء ممتازة من غاز عبر.';
 
+final List<CommentData> _kSampleComments = [
+  CommentData(
+    userName: 'م. سارة الهاشمي',
+    userHandle: '@sara_energy',
+    avatarPath: 'assets/images/logo/shams logo.png',
+    text: 'ممتاز! هذا النوع من المنظومات يعطي كفاءة عالية جداً في الصيف.',
+    timeAgo: 'منذ ٥ دقائق',
+    likesCount: 4,
+  ),
+  CommentData(
+    userName: 'م. خالد السهيل',
+    userHandle: '@khalid_solar',
+    avatarPath: 'assets/images/logo/shams logo.png',
+    text:
+        'هل استخدمت عاكس JA أم نوع آخر؟ أنا شخصياً أفضل Growatt للمنظومات الصغيرة.',
+    timeAgo: 'منذ ١٢ دقيقة',
+    likesCount: 2,
+    isLiked: true,
+  ),
+  CommentData(
+    userName: 'أبو عبدالله',
+    userHandle: '@abuabdullah_sa',
+    avatarPath: 'assets/images/logo/shams logo.png',
+    text: 'كم تكلف المنظومة كاملة؟ أفكر في تركيب مشابه في منزلي.',
+    timeAgo: 'منذ ٣٠ دقيقة',
+    likesCount: 0,
+  ),
+  CommentData(
+    userName: 'م. يوسف الغامدي',
+    userHandle: '@yusuf_solar',
+    avatarPath: 'assets/images/logo/shams logo.png',
+    text: 'شغل نظيف ومتقن. بالتوفيق دائماً أستاذ أحمد!',
+    timeAgo: 'منذ ساعة',
+    likesCount: 7,
+  ),
+];
+
 final List<Map<String, dynamic>> _kPosts = [
   {
     'username': 'م. أحمد العمودي',
     'userHandle': '@ahmed_solar',
     'avatarPath': 'assets/images/logo/shams logo.png',
     'content': _kPostContent,
-    'imagePaths': ['assets/images/post image.png'],
+    'imagePaths': ['assets/images/post image.jpg'],
     'likesCount': 124,
     'commentsCount': 18,
     'sharesCount': 5,
     'isLiked': false,
+    'comments': List<CommentData>.from(_kSampleComments),
   },
   {
     'username': 'م. أحمد العمودي',
     'userHandle': '@ahmed_solar',
     'avatarPath': 'assets/images/logo/shams logo.png',
     'content': _kPostContent,
-    'imagePaths': ['assets/images/post image.png'],
+    'imagePaths': ['assets/images/post image.jpg'],
     'likesCount': 124,
     'commentsCount': 18,
     'sharesCount': 5,
     'isLiked': true,
+    'comments': List<CommentData>.from(_kSampleComments),
   },
   {
     'username': 'م. سارة الهاشمي',
@@ -42,11 +82,12 @@ final List<Map<String, dynamic>> _kPosts = [
     'avatarPath': 'assets/images/logo/shams logo.png',
     'content':
         'مشروع جديد في الرياض! تركيب ألواح شمسية على مبنى تجاري بقدرة 20 كيلو واط. النتائج مبهرة والكفاءة عالية جداً.',
-    'imagePaths': ['assets/images/post image.png'],
+    'imagePaths': ['assets/images/post image.jpg'],
     'likesCount': 89,
     'commentsCount': 12,
     'sharesCount': 3,
     'isLiked': false,
+    'comments': List<CommentData>.from(_kSampleComments),
   },
   {
     'username': 'م. خالد السهيل',
@@ -59,6 +100,7 @@ final List<Map<String, dynamic>> _kPosts = [
     'commentsCount': 7,
     'sharesCount': 10,
     'isLiked': false,
+    'comments': List<CommentData>.from(_kSampleComments),
   },
 ];
 
@@ -74,8 +116,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentNavIndex = 0;
-
   final List<String> _searchSuggestions = [
     'طاقة شمسية',
     'ألواح كهروضوئية',
@@ -92,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F7FF),
+        backgroundColor: ShamsColors.backgroundLight,
         // ── AppBar المُعاد استخدامه من widgets/appbar.dart ──────────
         appBar: ShamsPlatformAppBar(
           hasUnreadNotifications: true,
@@ -101,10 +141,6 @@ class _HomeScreenState extends State<HomeScreen> {
           onDarkModeTap: () {},
         ),
         body: _buildBody(context),
-        bottomNavigationBar: ShamsBottomNavBar(
-          currentIndex: _currentNavIndex,
-          onTap: (index) => setState(() => _currentNavIndex = index),
-        ),
       ),
     );
   }
@@ -130,10 +166,10 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 height: 46,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F7FF),
+                  color: ShamsColors.backgroundLight,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: const Color(0xFFEEF0F4),
+                    color: ShamsColors.borderLight,
                     width: 1.2,
                   ),
                 ),
@@ -144,14 +180,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Icon(
                       Icons.search_rounded,
                       size: 20,
-                      color: Color(0xFF9EA3B0),
+                      color: ShamsColors.textHint,
                     ),
                     const SizedBox(width: 10),
                     Text(
                       'ابحث عن قبليات، مشاريع أو قطع غيار...',
                       style: GoogleFonts.tajawal(
                         fontSize: 13.5,
-                        color: const Color(0xFF9EA3B0),
+                        color: ShamsColors.textHint,
                       ),
                     ),
                   ],
@@ -159,7 +195,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFF0F4FF)),
+          const Divider(
+            height: 1,
+            thickness: 1,
+            color: ShamsColors.dividerLight,
+          ),
         ],
       ),
     );
@@ -183,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen> {
         SliverList(
           delegate: SliverChildBuilderDelegate((context, index) {
             final post = _kPosts[index];
-            return PostCard(
+            final postData = PostDetailData(
               username: post['username'] as String,
               userHandle: post['userHandle'] as String,
               avatarPath: post['avatarPath'] as String,
@@ -193,19 +233,44 @@ class _HomeScreenState extends State<HomeScreen> {
               commentsCount: post['commentsCount'] as int,
               sharesCount: post['sharesCount'] as int,
               isLiked: post['isLiked'] as bool,
-              onLikeToggle: (liked) {
-                debugPrint('Post $index liked: $liked');
-              },
-              onCommentTap: () {
-                debugPrint('Comment tapped on post $index');
-              },
-              onShareTap: () {
-                debugPrint('Share tapped on post $index');
-              },
-              onMenuTap: () => _showPostMenu(context),
-              onUserTap: () {
-                debugPrint('User tapped on post $index');
-              },
+              comments: post['comments'] as List<CommentData>,
+            );
+            return GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PostDetailScreen(post: postData),
+                ),
+              ),
+              child: PostCard(
+                username: postData.username,
+                userHandle: postData.userHandle,
+                avatarPath: postData.avatarPath,
+                content: postData.content,
+                imagePaths: postData.imagePaths,
+                likesCount: postData.likesCount,
+                commentsCount: postData.comments.length,
+                sharesCount: postData.sharesCount,
+                isLiked: postData.isLiked,
+                onLikeToggle: (liked) {
+                  debugPrint('Post $index liked: $liked');
+                },
+                onCommentTap: () => showCommentsSheet(
+                  context,
+                  comments: postData.comments,
+                  commentsCount: postData.comments.length,
+                ),
+                onShareTap: () => _onShare(context),
+                onMenuTap: () => _showPostMenu(context),
+                onUserTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PostDetailScreen(post: postData),
+                    ),
+                  );
+                },
+              ),
             );
           }, childCount: _kPosts.length),
         ),
@@ -216,6 +281,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _onShare(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'تمت مشاركة المنشور',
+          style: GoogleFonts.tajawal(color: ShamsColors.bgWhite),
+        ),
+        backgroundColor: ShamsColors.primaryBlue,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
   // ─── قائمة خيارات المنشور ─────────────────────────────────────────────────
 
   void _showPostMenu(BuildContext context) {
@@ -239,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDDE0E8),
+                  color: ShamsColors.handleBar,
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
@@ -256,7 +335,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _MenuOption(
                 icon: Icons.flag_outlined,
                 label: 'الإبلاغ عن المنشور',
-                color: const Color(0xFFBA1A1A),
+                color: ShamsColors.dangerDark,
                 onTap: () => Navigator.pop(context),
               ),
             ],

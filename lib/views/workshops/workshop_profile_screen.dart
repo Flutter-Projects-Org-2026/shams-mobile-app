@@ -24,7 +24,7 @@ class WorkshopProfile extends StatefulWidget {
     this.location = 'صنعاء، اليمن',
     this.rating = 4.8,
     this.logoPath = 'assets/images/logo/shams logo.png',
-    this.coverImagePath = 'assets/images/post image.png',
+    this.coverImagePath = 'assets/images/post image.',
     this.reviewCount = 1250,
     this.description =
         'نبذة عن الورشة وخدماتها المتميزة في مجال حلول الطاقة المتجددة وصيانة الأنظمة الشمسية.',
@@ -145,7 +145,10 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.black.withOpacity(0.3), Colors.transparent],
+                colors: [
+                  Colors.black.withValues(alpha: 0.3),
+                  Colors.transparent,
+                ],
               ),
             ),
           ),
@@ -326,18 +329,18 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
         const SizedBox(height: 10),
         _buildWorkLogCard(
           'منذ يومين',
-          'إصلاح شامل لمحرك سيارة دفع رباعي مع تنظيف الأجزاء الداخلية وزيادة كفاءة الأداء بنسبة 20%',
-          ['assets/images/post image.png', 'assets/images/post image.png'],
+          'صيانة شاملة لنظام ألواح شمسية بقدرة 10 كيلوواط مع تنظيف الألواح لزيادة الكفاءة',
+          ['assets/images/post image.jpg', 'assets/images/post image.jpg'],
         ),
         _buildWorkLogCard(
           'الأسبوع الماضي',
-          'مع تبديل S-Class فحص شامل لسيارة مرسيدس الزيوت والفلاتر الأصلية',
-          ['assets/images/post image.png', 'assets/images/post image.png'],
+          'فحص وتبديل محول العاكس (Inverter) لنظام طاقة شمسية منزلي واستعادة النظام للعمل',
+          ['assets/images/post image.jpg', 'assets/images/post image.jpg'],
         ),
         _buildWorkLogCard(
           'منذ أسبوعين',
-          'حل مشكلة تسريب الكهرباء في نظام الإضاءة الذكي لسيارة تسلا',
-          ['assets/images/post image.png', 'assets/images/post image.png'],
+          'حل مشكلة ضعف شحن البطاريات وتغيير التوصيلات التالفة لنظام الطاقة الشمسية',
+          ['assets/images/post image.jpg', 'assets/images/post image.jpg'],
         ),
       ],
     );
@@ -352,7 +355,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -429,7 +432,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.6),
+                              color: Colors.black.withValues(alpha: 0.6),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(

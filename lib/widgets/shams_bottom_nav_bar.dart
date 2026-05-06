@@ -90,12 +90,12 @@ class ShamsBottomNavBar extends StatelessWidget {
         color: ShamsColors.bgWhite,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
           BoxShadow(
-            color: ShamsColors.primaryBlue.withOpacity(0.04),
+            color: ShamsColors.primaryBlue.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),

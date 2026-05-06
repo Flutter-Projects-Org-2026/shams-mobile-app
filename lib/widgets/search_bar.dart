@@ -109,7 +109,7 @@ class ShamsSearchDelegate extends SearchDelegate<String?> {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 6),
+      separatorBuilder: (_, _) => const SizedBox(height: 6),
       itemBuilder: (context, index) {
         return _SearchTile(
           label: items[index],
@@ -134,7 +134,7 @@ class ShamsSearchDelegate extends SearchDelegate<String?> {
           Icon(
             Icons.search_off_rounded,
             size: 64,
-            color: ShamsColors.primaryBlue.withOpacity(0.25),
+            color: ShamsColors.primaryBlue.withValues(alpha: 0.25),
           ),
           const SizedBox(height: 16),
           Text(
@@ -192,7 +192,7 @@ class _SearchTile extends StatelessWidget {
             border: Border.all(color: const Color(0xFFEEF0F4)),
             boxShadow: [
               BoxShadow(
-                color: ShamsColors.primaryBlue.withOpacity(0.05),
+                color: ShamsColors.primaryBlue.withValues(alpha: 0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -204,7 +204,7 @@ class _SearchTile extends StatelessWidget {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  color: ShamsColors.primaryBlue.withOpacity(0.08),
+                  color: ShamsColors.primaryBlue.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(icon, size: 18, color: ShamsColors.primaryBlue),
@@ -260,7 +260,7 @@ class _SearchTile extends StatelessWidget {
               fontSize: 15,
               fontWeight: FontWeight.w700,
               color: ShamsColors.primaryBlue,
-              backgroundColor: ShamsColors.solarYellow.withOpacity(0.25),
+              backgroundColor: ShamsColors.solarYellow.withValues(alpha: 0.25),
             ),
           ),
           if (matchIndex + query.length < text.length)

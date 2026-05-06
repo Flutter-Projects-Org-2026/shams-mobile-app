@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../widgets/message_bubble.dart'; 
 import '../../widgets/chat_input_field.dart';
-import '../../utils/constants.dart';
 
 class ChatConversationScreen extends StatefulWidget {
   final String workshopName;
