@@ -1,8 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../models/workshop_data.dart';
 import '../../utils/constants.dart';
+import '../../widgets/image_source_sheet.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/scrollable_image_picker.dart';
+import '../../widgets/username_field.dart';
 
 class AddWorkshopScreen extends StatefulWidget {
   const AddWorkshopScreen({super.key});
@@ -12,34 +20,107 @@ class AddWorkshopScreen extends StatefulWidget {
 }
 
 class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
-  // ── Controllers ─────────────────────────────────────────────────────────────
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _yearsController = TextEditingController();
+  // ── Controllers ──────────────────────────────────────────────────────────────
+  final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _yearsController = TextEditingController();
 
-  // ── Dropdown State ───────────────────────────────────────────────────────────
+  // ── Dropdown ─────────────────────────────────────────────────────────────────
   String? _selectedCity;
 
+  // ── Images ───────────────────────────────────────────────────────────────────
+  File? _coverImage;
+  File? _profileImage;
+  final List<File> _images = []; // unlimited extra images
+
+  final _picker = ImagePicker();
+
   final List<String> _cities = [
-    'الرياض',
-    'جدة',
-    'مكة المكرمة',
-    'المدينة المنورة',
-    'الدمام',
-    'الخبر',
-    'أبها',
-    'تبوك',
-    'القصيم',
-    'حائل',
+    'الرياض', 'جدة', 'مكة المكرمة', 'المدينة المنورة',
+    'الدمام', 'الخبر', 'أبها', 'تبوك', 'القصيم', 'حائل',
   ];
 
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose();
     _descriptionController.dispose();
     _yearsController.dispose();
     super.dispose();
   }
+
+  // ── Image picking helpers ────────────────────────────────────────────────────
+
+  Future<File?> _pick() async {
+    final source = await showImageSourceSheet(context);
+    if (source == null) return null;
+    final xf = await _picker.pickImage(source: source, imageQuality: 85);
+    return xf != null ? File(xf.path) : null;
+  }
+
+  Future<void> _pickCoverImage() async {
+    final f = await _pick();
+    if (f != null) setState(() => _coverImage = f);
+  }
+
+  Future<void> _pickProfileImage() async {
+    final f = await _pick();
+    if (f != null) setState(() => _profileImage = f);
+  }
+
+  Future<void> _pickAndAddImage() async {
+    final f = await _pick();
+    if (f != null) setState(() => _images.add(f));
+  }
+
+  // ── Submit ───────────────────────────────────────────────────────────────────
+
+  void _onCreateTapped() {
+    final name = _nameController.text.trim();
+    final username = _usernameController.text.trim();
+    final description = _descriptionController.text.trim();
+
+    // Validate required text fields
+    if (name.isEmpty || description.isEmpty || _selectedCity == null) {
+      _showError('يرجى تعبئة جميع الحقول المطلوبة');
+      return;
+    }
+
+    // Validate username
+    final usernameError = UsernameValidator.validate(username);
+    if (usernameError != null) {
+      _showError(usernameError);
+      return;
+    }
+
+    Navigator.pop(
+      context,
+      WorkshopData(
+        name: name,
+        username: username,
+        city: _selectedCity!,
+        description: description,
+        yearsOfExperience: int.tryParse(_yearsController.text.trim()) ?? 0,
+        profileImage: _profileImage,
+        coverImage: _coverImage,
+        extraImages: List.unmodifiable(_images),
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.tajawal()),
+        backgroundColor: ShamsColors.dangerRed,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  // ── UI ───────────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -47,57 +128,44 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
-
-        // ── AppBar ─────────────────────────────────────────────────────────────
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
           automaticallyImplyLeading: false,
-          // إضافة خط رفيع أسفل الـ AppBar كما في الصورة
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1.0),
-            child: Container(color: Colors.grey.withOpacity(0.1), height: 1.0),
+            preferredSize: const Size.fromHeight(1),
+            child: Container(
+              color: Colors.grey.withValues(alpha: 0.1),
+              height: 1,
+            ),
           ),
           title: Text(
-            'إضافة ورشة صيانة',
+            'إضافة ورشة',
             style: GoogleFonts.tajawal(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF2D2D2D), // لون داكن مطابق للصورة
+              color: const Color(0xFF2D2D2D),
             ),
           ),
           actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: IconButton(
-                icon: const Icon(
-                  Icons.arrow_forward,
-                  color: Color(0xFF2D2D2D),
-                  size: 26,
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
+            IconButton(
+              icon: const Icon(Icons.arrow_forward, color: Color(0xFF2D2D2D)),
+              onPressed: () => Navigator.pop(context),
             ),
           ],
         ),
-
-        // ── Body ───────────────────────────────────────────────────────────────
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Cover Image Placeholder
-              _buildCoverImagePlaceholder(),
-              const SizedBox(height: 16),
-
-              // 2. Extra Photos Row
-              _buildExtraPhotosRow(),
+              // 1. Cover + Profile image header
+              _buildMediaHeader(),
               const SizedBox(height: 24),
 
-              // 3. Workshop Name
-              _buildFieldLabel('اسم الورشة'),
+              // 2. Workshop Name
+              _buildFieldLabel('اسم الورشة *'),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: _nameController,
@@ -106,11 +174,16 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
               ),
               const SizedBox(height: 20),
 
-              // 4. Years of Experience + City — side by side
+              // 3. Username
+              _buildFieldLabel('اسم المستخدم *'),
+              const SizedBox(height: 8),
+              UsernameField(controller: _usernameController),
+              const SizedBox(height: 20),
+
+              // 4. Years + City
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Years of Experience
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,12 +202,11 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // City Dropdown
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildFieldLabel('المحافظة'),
+                        _buildFieldLabel('المحافظة *'),
                         const SizedBox(height: 8),
                         _buildCityDropdown(),
                       ],
@@ -144,21 +216,43 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
               ),
               const SizedBox(height: 20),
 
-              // 5. Service Description
-              _buildFieldLabel('وصف مختصر للخدمات'),
+              // 5. Description
+              _buildFieldLabel('وصف مختصر للخدمات *'),
               const SizedBox(height: 8),
               _buildTextField(
                 controller: _descriptionController,
                 hintText: 'اكتب وصفاً موجزاً للخدمات التي تقدمها الورشة...',
-                maxLines: 5,
+                maxLines: 4,
+              ),
+              const SizedBox(height: 24),
+
+              // 6. Unlimited extra images
+              Row(
+                children: [
+                  _buildFieldLabel('صور الورشة'),
+                  const SizedBox(width: 8),
+                  Text(
+                    '(${_images.length})',
+                    style: GoogleFonts.tajawal(
+                      fontSize: 13,
+                      color: ShamsColors.textHint,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ScrollableImagePicker(
+                images: _images,
+                onAddTap: _pickAndAddImage,
+                onRemoveTap: (i) => setState(() => _images.removeAt(i)),
               ),
               const SizedBox(height: 32),
 
-              // 6. Create Button
+              // 7. Create button
               SizedBox(
                 width: double.infinity,
                 child: CustomSolidButton(
-                  title: 'إنشاء',
+                  title: 'إنشاء الورشة',
                   onPressed: _onCreateTapped,
                 ),
               ),
@@ -170,118 +264,158 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Cover Image Placeholder
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ─── Media Header: cover image + centred profile avatar ─────────────────────
 
-  Widget _buildCoverImagePlaceholder() {
-    return GestureDetector(
-      onTap: () {
-        // TODO: open image picker
-      },
-      child: Container(
-        width: double.infinity,
-        height: 160,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFAFAFA),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300, width: 1.5),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: ShamsColors.solarYellow.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.camera_alt_outlined,
-                color: ShamsColors.solarYellow,
-                size: 28,
+  Widget _buildMediaHeader() {
+    return SizedBox(
+      height: 210,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Cover image — full width, 165 px tall
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: _pickCoverImage,
+              child: Container(
+                height: 165,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F7FF),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: _coverImage != null
+                        ? ShamsColors.solarYellow
+                        : Colors.grey.shade300,
+                    width: 1.5,
+                  ),
+                ),
+                clipBehavior: Clip.hardEdge,
+                child: _coverImage != null
+                    ? Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.file(_coverImage!, fit: BoxFit.cover),
+                          Positioned(
+                            bottom: 8,
+                            left: 8,
+                            child: _editBadge('تغيير الغلاف'),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_photo_alternate_outlined,
+                            color: ShamsColors.solarYellow.withValues(alpha: 0.7),
+                            size: 34,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'اضغط لإضافة صورة الغلاف',
+                            style: GoogleFonts.tajawal(
+                              fontSize: 13,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              'إضافة صورة الغلاف',
-              style: GoogleFonts.tajawal(
-                fontSize: 14,
-                color: Colors.grey.shade500,
-                fontWeight: FontWeight.w500,
+          ),
+
+          // Profile avatar — centred, overlaps the bottom edge of the cover
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: GestureDetector(
+                onTap: _pickProfileImage,
+                child: Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    border: Border.all(color: Colors.white, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 10,
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: _profileImage != null
+                        ? Image.file(_profileImage!, fit: BoxFit.cover)
+                        : Container(
+                            color: const Color(0xFFF5F7FF),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.camera_alt_outlined,
+                                  color: ShamsColors.solarYellow,
+                                  size: 22,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'صورة',
+                                  style: GoogleFonts.tajawal(
+                                    fontSize: 10,
+                                    color: ShamsColors.solarYellow,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                  ),
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Extra Photos Row
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ── Reusable helpers ─────────────────────────────────────────────────────────
 
-  Widget _buildExtraPhotosRow() {
-    return Row(
-      children: [
-        // "أضف + المزيد" label
-        GestureDetector(
-          onTap: () {
-            // TODO: add more photos
-          },
-          child: Text(
-            'أضف +\nالمزيد',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.tajawal(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: ShamsColors.solarYellow,
-            ),
+  Widget _editBadge(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.edit, color: Colors.white, size: 12),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: GoogleFonts.tajawal(fontSize: 11, color: Colors.white),
           ),
-        ),
-        const SizedBox(width: 10),
-        // Three extra photo placeholders
-        Expanded(
-          child: Row(
-            children: List.generate(3, (index) {
-              return Expanded(
-                child: Container(
-                  margin: const EdgeInsets.only(left: 8),
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFAFAFA),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.grey.shade300, width: 1.5),
-                  ),
-                  child: const Icon(Icons.add, color: Colors.grey, size: 22),
-                ),
-              );
-            }),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Field Label
-  // ─────────────────────────────────────────────────────────────────────────────
 
   Widget _buildFieldLabel(String label) {
     return Text(
       label,
       style: GoogleFonts.tajawal(
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: FontWeight.w700,
         color: ShamsColors.textGray,
       ),
     );
   }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Reusable Text Field
-  // ─────────────────────────────────────────────────────────────────────────────
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -331,10 +465,6 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // City Dropdown
-  // ─────────────────────────────────────────────────────────────────────────────
-
   Widget _buildCityDropdown() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -355,47 +485,23 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
             ),
           ),
           icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-          items: _cities.map((city) {
-            return DropdownMenuItem<String>(
-              value: city,
-              child: Text(
-                city,
-                style: GoogleFonts.tajawal(
-                  fontSize: 14,
-                  color: ShamsColors.textGray,
+          items: _cities
+              .map(
+                (city) => DropdownMenuItem<String>(
+                  value: city,
+                  child: Text(
+                    city,
+                    style: GoogleFonts.tajawal(
+                      fontSize: 14,
+                      color: ShamsColors.textGray,
+                    ),
+                  ),
                 ),
-              ),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() => _selectedCity = value);
-          },
+              )
+              .toList(),
+          onChanged: (v) => setState(() => _selectedCity = v),
         ),
       ),
     );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Create Button Handler
-  // ─────────────────────────────────────────────────────────────────────────────
-
-  void _onCreateTapped() {
-    final name = _nameController.text.trim();
-    final description = _descriptionController.text.trim();
-
-    if (name.isEmpty || description.isEmpty || _selectedCity == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'يرجى تعبئة جميع الحقول المطلوبة',
-            style: GoogleFonts.tajawal(),
-          ),
-          backgroundColor: Colors.red.shade400,
-        ),
-      );
-      return;
-    }
-
-    // TODO: submit form data
   }
 }

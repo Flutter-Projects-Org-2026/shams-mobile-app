@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../models/workshop_data.dart';
 import '../../utils/constants.dart';
 import '../../widgets/primary_button.dart';
-import '../../widgets/appbar.dart';
-import '../../widgets/shams_bottom_nav_bar.dart';
 import 'add_workshop_screen.dart';
 import 'privacy_security_screen.dart';
 import 'about_shams_screen.dart';
+import '../workshops/workshop_dashboard_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UserProfileScreen — شاشة الملف الشخصي للمستخدم
@@ -23,6 +23,11 @@ class UserProfileScreen extends StatefulWidget {
 class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isNotificationsEnabled = true;
   String _selectedLanguage = 'ar';
+
+  /// Tracks whether the user has an active workshop.
+  /// Populated when AddWorkshopScreen returns a WorkshopData object.
+  bool _hasWorkshop = false;
+  WorkshopData? _workshopData;
 
   @override
   Widget build(BuildContext context) {
@@ -216,79 +221,132 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       children: [
         _buildSectionHeader('إدارة أعمالي', Icons.storefront_rounded),
         const SizedBox(height: 15),
-        // كارد إضافة ورشة
-        InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AddWorkshopScreen(),
-              ),
-            );
-          },
+        // Workshop tile — toggles between Add and Manage based on _hasWorkshop
+        _buildWorkshopTile(),
+      ],
+    );
+  }
+
+  // ─── Dynamic Workshop Tile ───────────────────────────────────────────
+
+  Widget _buildWorkshopTile() {
+    final bool hasWorkshop = _hasWorkshop;
+
+    return InkWell(
+      onTap: hasWorkshop ? _openWorkshopDashboard : _openAddWorkshop,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 25),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(15),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 25),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: const Color(0xFFF2F4F7)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+          border: Border.all(
+            color: hasWorkshop
+                ? ShamsColors.solarYellow.withValues(alpha: 0.35)
+                : const Color(0xFFF2F4F7),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: Row(
-              children: [
-                // 1. أيقونة الزائد (يمين في RTL)
-                Container(
-                  width: 45,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF9E7),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.add,
-                    color: ShamsColors.solarYellow,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 15),
-                // 2. النصوص (في المنتصف محاذاة لليمين)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'إضافة ورشة جديدة',
-                        style: GoogleFonts.tajawal(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: ShamsColors.textGray,
-                        ),
-                      ),
-                      Text(
-                        'انقر هنا لإضافة تفاصيل الورشة',
-                        style: GoogleFonts.tajawal(
-                          fontSize: 12,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // 3. سهم التنقل (يسار في RTL)
-                const Icon(Icons.chevron_left, color: Colors.grey, size: 20),
-              ],
+          ],
+        ),
+        child: Row(
+          children: [
+            // Leading icon container
+            Container(
+              width: 45,
+              height: 45,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF9E7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                hasWorkshop ? Icons.dashboard_customize_rounded : Icons.add,
+                color: ShamsColors.solarYellow,
+                size: 24,
+              ),
             ),
+            const SizedBox(width: 15),
+            // Text column
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hasWorkshop ? 'لوحة تحكم الورشة' : 'إضافة ورشة جديدة',
+                    style: GoogleFonts.tajawal(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: ShamsColors.textGray,
+                    ),
+                  ),
+                  Text(
+                    hasWorkshop
+                        ? 'إدارة منشوراتك وإحصاءات ورشتك'
+                        : 'انقر هنا لإضافة تفاصيل الورشة',
+                    style: GoogleFonts.tajawal(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Trailing arrow
+            const Icon(Icons.chevron_left, color: Colors.grey, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Navigates to AddWorkshopScreen and stores [WorkshopData] on success.
+  Future<void> _openAddWorkshop() async {
+    final WorkshopData? data = await Navigator.push<WorkshopData>(
+      context,
+      MaterialPageRoute(builder: (_) => const AddWorkshopScreen()),
+    );
+
+    if (data != null) {
+      setState(() {
+        _hasWorkshop = true;
+        _workshopData = data;
+      });
+      if (mounted) _showWorkshopCreatedSnackBar();
+    }
+  }
+
+  /// Navigates to the workshop dashboard, passing the stored [WorkshopData].
+  void _openWorkshopDashboard() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => WorkshopDashboardScreen(workshopData: _workshopData),
+      ),
+    );
+  }
+
+  /// Floating success SnackBar shown after a workshop is created.
+  void _showWorkshopCreatedSnackBar() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'تم إنشاء الورشة بنجاح! 🎉',
+          style: GoogleFonts.tajawal(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
           ),
         ),
-      ],
+        backgroundColor: ShamsColors.verifiedGreen,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 3),
+      ),
     );
   }
 
@@ -322,7 +380,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       value: _isNotificationsEnabled,
                       onChanged: (v) =>
                           setState(() => _isNotificationsEnabled = v),
-                      activeThumbColor: Colors.white, // الي بالصورة لون الزر أبيض
+                      activeThumbColor:
+                          Colors.white, // الي بالصورة لون الزر أبيض
                       activeTrackColor: ShamsColors.solarYellow, // والمسار أصفر
                     ),
                   ),
@@ -439,7 +498,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             padding: const EdgeInsets.symmetric(
               horizontal: 25,
             ), // زيادة البادينج للفواصل
-            child: Divider(height: 1, color: Colors.grey.withValues(alpha: 0.1)),
+            child: Divider(
+              height: 1,
+              color: Colors.grey.withValues(alpha: 0.1),
+            ),
           ),
       ],
     );
