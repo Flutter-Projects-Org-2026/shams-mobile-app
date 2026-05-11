@@ -37,8 +37,27 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
   final _picker = ImagePicker();
 
   final List<String> _cities = [
-    'الرياض', 'جدة', 'مكة المكرمة', 'المدينة المنورة',
-    'الدمام', 'الخبر', 'أبها', 'تبوك', 'القصيم', 'حائل',
+    'صنعاء',
+    'عدن',
+    'تعز',
+    'الحديدة',
+    'إب',
+    'حضرموت',
+    'ذمار',
+    'عمران',
+    'الضالع',
+    'لحج',
+    'أبين',
+    'المهرة',
+    'شبوة',
+    'البيضاء',
+    'مأرب',
+    'الجوف',
+    'صعدة',
+    'المحويت',
+    'حجة',
+    'ريمة',
+    'سقطرى',
   ];
 
   @override
@@ -309,7 +328,9 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
                         children: [
                           Icon(
                             Icons.add_photo_alternate_outlined,
-                            color: ShamsColors.solarYellow.withValues(alpha: 0.7),
+                            color: ShamsColors.solarYellow.withValues(
+                              alpha: 0.7,
+                            ),
                             size: 34,
                           ),
                           const SizedBox(height: 8),

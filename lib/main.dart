@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-// import 'package:provider/provider.dart';
+import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shams_mobile_app/views/main_screen.dart';
 
+import 'providers/workshop_provider.dart';
 import 'utils/theme.dart';
 
 Future<void> main() async {
@@ -28,7 +29,12 @@ Future<void> main() async {
     debugPrint('Continuing in offline mode for UI testing.');
   }
 
-  runApp(const ShamsApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => WorkshopProvider(),
+      child: const ShamsApp(),
+    ),
+  );
 }
 
 /// Root widget of the Shams Platform application.

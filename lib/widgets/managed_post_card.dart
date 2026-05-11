@@ -30,6 +30,17 @@ class ManagedPostCard extends StatefulWidget {
 class _ManagedPostCardState extends State<ManagedPostCard> {
   int _currentPage = 0;
 
+  /// Returns true when [path] has a common video file extension.
+  static bool _isVideoPath(String path) {
+    final lower = path.toLowerCase();
+    return lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.avi') ||
+        lower.endsWith('.mkv') ||
+        lower.endsWith('.webm') ||
+        lower.endsWith('.3gp');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -138,21 +149,29 @@ class _ManagedPostCardState extends State<ManagedPostCard> {
                   width: double.infinity,
                   child: Stack(
                     children: [
-                      PageView.builder(
+                       PageView.builder(
                         itemCount: widget.imagePaths.length,
                         onPageChanged: (index) {
                           setState(() => _currentPage = index);
                         },
                         itemBuilder: (context, index) {
-                          return widget.isLocalFile
+                          final path = widget.imagePaths[index];
+                          // فيديو — نعرض thumbnail مميز بدلاً من الصورة
+                          if (_isVideoPath(path)) {
+                            return _buildVideoPlaceholder();
+                          }
+                          // صورة محلية من الجهاز (مسار يبدأ بـ /)
+                          final isLocal = path.startsWith('/') ||
+                              path.startsWith('file://');
+                          return isLocal
                               ? Image.file(
-                                  File(widget.imagePaths[index]),
+                                  File(path),
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, __, ___) =>
                                       _buildPlaceholder(),
                                 )
                               : Image.asset(
-                                  widget.imagePaths[index],
+                                  path,
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, __, ___) =>
                                       _buildPlaceholder(),
@@ -236,4 +255,90 @@ class _ManagedPostCardState extends State<ManagedPostCard> {
       child: const Icon(Icons.image, color: Colors.grey, size: 50),
     );
   }
+
+  /// واجهة مميزة لعرض مكان الفيديو — بدون حزمة video_player
+  Widget _buildVideoPlaceholder() {
+    return Container(
+      color: const Color(0xFF1A1A2E),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // نمط خطوط شبكي خفيف
+          CustomPaint(painter: _GridPainter()),
+          // أيقونة التشغيل في المنتصف
+          Center(
+            child: Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  width: 2,
+                ),
+              ),
+              child: const Icon(
+                Icons.play_arrow_rounded,
+                color: Colors.white,
+                size: 38,
+              ),
+            ),
+          ),
+          // بطاقة "فيديو" في الأسفل يسار
+          Positioned(
+            bottom: 10,
+            left: 10,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.65),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.videocam_rounded,
+                    color: Colors.white,
+                    size: 13,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'فيديو',
+                    style: GoogleFonts.tajawal(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── خلفية شبكية للفيديو ──────────────────────────────────────────────────────
+
+class _GridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.04)
+      ..strokeWidth = 1;
+    const step = 30.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GridPainter oldDelegate) => false;
 }

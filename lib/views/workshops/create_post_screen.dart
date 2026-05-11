@@ -2,6 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import '../../models/post_model.dart';
+import '../../providers/workshop_provider.dart';
 import '../../utils/constants.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -138,24 +141,30 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   void _publish() {
-    if (_contentController.text.isEmpty && _attachments.isEmpty) {
+    if (_contentController.text.trim().isEmpty && _attachments.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء إضافة محتوى أو صورة للمنشور')),
+        SnackBar(
+          content: Text(
+            'الرجاء إضافة محتوى أو صورة للمنشور',
+            style: GoogleFonts.tajawal(),
+          ),
+        ),
       );
       return;
     }
 
-    // تجهيز بيانات المنشور الجديد لإعادتها للشاشة السابقة
-    final newPost = {
-      'id': DateTime.now().millisecondsSinceEpoch.toString(),
-      'content': _contentController.text,
-      'timeAgo': 'الآن',
-      'viewsCount': '0',
-      'imagePaths': _attachments.map((a) => a.path).toList(),
-      'isLocalFile': _attachments.isNotEmpty && !_attachments.first.isAsset,
-    };
+    final newPost = PostModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      textDetails: _contentController.text.trim(),
+      images: _attachments.map((a) => a.path).toList(),
+      isLocalFile: _attachments.isNotEmpty && !_attachments.first.isAsset,
+      viewsCount: '0',
+      createdAt: 'الآن',
+      isHighlighted: _isHighlighted,
+    );
 
-    Navigator.pop(context, newPost);
+    context.read<WorkshopProvider>().addPost(newPost);
+    Navigator.pop(context);
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
@@ -503,50 +512,67 @@ class _AttachmentThumbnail extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Container(
+          child: SizedBox(
             width: 85,
             height: 85,
-            color: Colors.grey.shade100,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // عرض الصورة أو أيقونة الفيديو
-                media.isVideo
-                    ? const Center(
-                        child: Icon(
-                          Icons.play_circle_fill_rounded,
-                          color: Colors.purple,
-                          size: 40,
+            child: media.isVideo
+                // ── مصغّرة الفيديو ──────────────────────────────────────────
+                ? Container(
+                    color: const Color(0xFF1A1A2E),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        const Center(
+                          child: Icon(
+                            Icons.play_arrow_rounded,
+                            color: Colors.white,
+                            size: 36,
+                          ),
                         ),
-                      )
-                    : Image.file(
-                        File(media.path),
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.broken_image),
-                      ),
-                // ملصق صغير إذا كان فيديو
-                if (media.isVideo)
-                  Positioned(
-                    bottom: 4,
-                    left: 4,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'فيديو',
-                        style: TextStyle(color: Colors.white, fontSize: 8),
-                      ),
+                        Positioned(
+                          bottom: 4,
+                          left: 4,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.65),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.videocam_rounded,
+                                    color: Colors.white, size: 10),
+                                const SizedBox(width: 2),
+                                Text(
+                                  'فيديو',
+                                  style: GoogleFonts.tajawal(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  )
+                // ── مصغّرة الصورة ────────────────────────────────────────────
+                : Image.file(
+                    File(media.path),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        Container(
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.broken_image,
+                              color: Colors.grey),
+                        ),
                   ),
-              ],
-            ),
           ),
         ),
         Positioned(

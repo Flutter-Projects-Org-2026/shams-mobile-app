@@ -2,6 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import '../../models/post_model.dart';
+import '../../providers/workshop_provider.dart';
 import '../../utils/constants.dart';
 import 'create_post_screen.dart'; // إعادة استخدام MediaFile و _AttachmentThumbnail
 
@@ -10,8 +13,8 @@ import 'create_post_screen.dart'; // إعادة استخدام MediaFile و _Att
 // ─────────────────────────────────────────────────────────────────────────────
 
 class EditPostScreen extends StatefulWidget {
-  /// بيانات المنشور الأصلي المراد تعديله
-  final Map<String, dynamic> post;
+  /// بيانات المنشور الأصلي المراد تعديله (PostModel)
+  final PostModel post;
 
   const EditPostScreen({super.key, required this.post});
 
@@ -36,17 +39,14 @@ class _EditPostScreenState extends State<EditPostScreen> {
   void initState() {
     super.initState();
     _contentController = TextEditingController(
-      text: widget.post['content'] ?? '',
+      text: widget.post.textDetails,
     );
-    _isHighlighted = widget.post['isHighlighted'] ?? false;
+    _isHighlighted = widget.post.isHighlighted;
 
-    // تحميل الصور الأصلية
-    final List<String> existingPaths = widget.post['imagePaths'] != null 
-        ? List<String>.from(widget.post['imagePaths']) 
-        : (widget.post['imagePath'] != null ? [widget.post['imagePath']] : []);
-        
-    final isLocal = widget.post['isLocalFile'] ?? false;
-    _attachments = existingPaths.map((p) => MediaFile(path: p, isAsset: !isLocal)).toList();
+    // تحميل الصور الأصلية من PostModel
+    _attachments = widget.post.images
+        .map((path) => MediaFile(path: path, isAsset: !widget.post.isLocalFile))
+        .toList();
   }
 
   // ── Dispose ────────────────────────────────────────────────────────────────
@@ -120,9 +120,10 @@ class _EditPostScreenState extends State<EditPostScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
               'عذراً، هذه الميزة غير مدعومة على هذا الجهاز حالياً.',
+              style: GoogleFonts.tajawal(),
             ),
           ),
         );
@@ -135,23 +136,30 @@ class _EditPostScreenState extends State<EditPostScreen> {
   }
 
   void _save() {
-    if (_contentController.text.isEmpty && _attachments.isEmpty) {
+    if (_contentController.text.trim().isEmpty && _attachments.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('الرجاء إضافة محتوى أو صورة للمنشور')),
+        SnackBar(
+          content: Text(
+            'الرجاء إضافة محتوى أو صورة للمنشور',
+            style: GoogleFonts.tajawal(),
+          ),
+        ),
       );
       return;
     }
 
-    // تجهيز بيانات المنشور المعدَّل لإعادتها للشاشة السابقة
-    final updatedPost = {
-      ...widget.post, // الاحتفاظ بجميع الحقول القديمة (ID، وقت النشر...إلخ)
-      'content': _contentController.text,
-      'isHighlighted': _isHighlighted,
-      'imagePaths': _attachments.map((a) => a.path).toList(),
-      'isLocalFile': _attachments.isNotEmpty && !_attachments.first.isAsset,
-    };
+    final hasNewLocalFile =
+        _attachments.isNotEmpty && !_attachments.first.isAsset;
 
-    Navigator.pop(context, updatedPost);
+    final updatedPost = widget.post.copyWith(
+      textDetails: _contentController.text.trim(),
+      isHighlighted: _isHighlighted,
+      images: _attachments.map((a) => a.path).toList(),
+      isLocalFile: hasNewLocalFile,
+    );
+
+    context.read<WorkshopProvider>().updatePost(updatedPost);
+    Navigator.pop(context);
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
@@ -194,13 +202,13 @@ class _EditPostScreenState extends State<EditPostScreen> {
 
                     const SizedBox(height: 24),
 
-                    // 3. خيار التمييز
+                    // 4. خيار التمييز
                     _buildHighlightToggle(),
                   ],
                 ),
               ),
             ),
-            // 4. زر الحفظ السفلي الثابت
+            // زر الحفظ السفلي الثابت
             _buildSaveButton(),
           ],
         ),
@@ -224,7 +232,6 @@ class _EditPostScreenState extends State<EditPostScreen> {
           color: ShamsColors.textGray,
         ),
       ),
-      // أيقونة إغلاق X (يمين في RTL)
       leading: IconButton(
         onPressed: () => Navigator.pop(context),
         icon: const Icon(Icons.close_rounded, color: ShamsColors.textGray),
@@ -233,7 +240,6 @@ class _EditPostScreenState extends State<EditPostScreen> {
     );
   }
 
-  /// قسم الوسائط: الصور الحالية
   Widget _buildAttachmentsList() {
     return SizedBox(
       height: 90,
@@ -292,7 +298,11 @@ class _EditPostScreenState extends State<EditPostScreen> {
                         color: ShamsColors.solarYellow,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.add, size: 14, color: Colors.black),
+                      child: const Icon(
+                        Icons.add,
+                        size: 14,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                 ],
@@ -441,7 +451,6 @@ class _EditAttachmentThumbnail extends StatelessWidget {
             child: _buildMediaPreview(),
           ),
         ),
-        // أيقونة حذف حمراء في الزاوية العلوية
         Positioned(
           top: -5,
           right: -5,
@@ -463,11 +472,47 @@ class _EditAttachmentThumbnail extends StatelessWidget {
 
   Widget _buildMediaPreview() {
     if (media.isVideo) {
-      return const Center(
-        child: Icon(
-          Icons.play_circle_fill_rounded,
-          color: Colors.purple,
-          size: 40,
+      // مصغّرة فيديو: خلفية داكنة + أيقونة تشغيل + بطاقة
+      return Container(
+        color: const Color(0xFF1A1A2E),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            const Center(
+              child: Icon(
+                Icons.play_arrow_rounded,
+                color: Colors.white,
+                size: 36,
+              ),
+            ),
+            Positioned(
+              bottom: 4,
+              left: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.65),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.videocam_rounded,
+                        color: Colors.white, size: 10),
+                    const SizedBox(width: 2),
+                    Text(
+                      'فيديو',
+                      style: GoogleFonts.tajawal(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
