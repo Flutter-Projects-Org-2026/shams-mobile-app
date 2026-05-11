@@ -7,6 +7,8 @@ import '../../models/workshop_data.dart';
 import '../../utils/constants.dart';
 import '../../widgets/managed_post_card.dart';
 import '../../widgets/primary_button.dart';
+import 'create_post_screen.dart';
+import 'edit_post_screen.dart';
 
 class WorkshopDashboardScreen extends StatefulWidget {
   /// Optional workshop data passed from the Add Workshop form.
@@ -26,18 +28,26 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
     {
       'id': '1',
       'content':
-          'تم تركيب منظومة طاقة شمسية بقدرة 5 كيلو واط في مشروع جديد. الأداء ممتاز والكفاءة عالية.',
+          'إصلاح شامل لمحرك سيارة دفع رباعي مع تنظيف الأجزاء الداخلية وزيادة كفاءة الأداء بنسبة 20%',
       'timeAgo': 'منذ يومين',
       'viewsCount': '45.8K',
-      'imagePath': null,
+      'imagePaths': ['assets/images/engine1.jpg'],
     },
     {
       'id': '2',
       'content':
-          'صيانة دورية لأنظمة الطاقة الشمسية وتنظيف الألواح لزيادة الكفاءة بنسبة 20%.',
+          'تغيير فلاتر الزيت والهواء لسيارة تويوتا كامري في وقت قياسي لضمان راحة العميل.',
       'timeAgo': 'منذ 4 أيام',
       'viewsCount': '12.3K',
-      'imagePath': null,
+      'imagePaths': ['assets/images/engine2.jpg'],
+    },
+    {
+      'id': '3',
+      'content':
+          'فحص كمبيوتر شامل لبرمجة السيارة وتحديد الأعطال الكهربائية بدقة متناهية.',
+      'timeAgo': 'منذ أسبوع',
+      'viewsCount': '8.1K',
+      'imagePaths': ['assets/images/engine3.jpg'],
     },
   ];
 
@@ -99,14 +109,101 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              // ── 1. Header ──────────────────────────────────────────────────
-              _buildHeader(),
+              // ── 1. الرأس (صورة الغلاف، الصورة الشخصية، والمعلومات) ──
+              SizedBox(
+                height: 250,
+                child: Stack(
+                  alignment: Alignment.topCenter,
+                  children: [
+                    // صورة الغلاف + أيقونة الكاميرا
+                    Stack(
+                      children: [
+                        Container(
+                          height: 150,
+                          width: double.infinity,
+                          color: ShamsColors.primaryBlue.withOpacity(0.1),
+                          child: const Icon(
+                            Icons.image,
+                            size: 50,
+                            color: Colors.grey,
+                          ), // استبدلها بصورة الغلاف لاحقاً
+                        ),
+                        Positioned(
+                          top: 16,
+                          right: 16,
+                          child: _buildCameraBadge(),
+                        ),
+                      ],
+                    ),
 
-              // ── 2. Workshop info ───────────────────────────────────────────
-              _buildWorkshopInfo(),
+                    // الصورة الشخصية + أيقونة الكاميرا
+                    Positioned(
+                      top: 100,
+                      child: Stack(
+                        alignment: Alignment.bottomLeft,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const CircleAvatar(
+                              radius: 45,
+                              backgroundColor: Color(0xFFF0F2F5),
+                              child: Icon(
+                                Icons.person,
+                                size: 40,
+                                color: Colors.grey,
+                              ), // استبدلها بصورة الورشة
+                            ),
+                          ),
+                          _buildCameraBadge(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // معلومات الورشة
+              Text(
+                'كراج المجد التقني',
+                style: GoogleFonts.tajawal(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: ShamsColors.textGray,
+                ),
+              ),
+              Text(
+                '@al_majd_tech',
+                style: GoogleFonts.tajawal(
+                  fontSize: 13,
+                  color: const Color(0xFF9EA3B0),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 16,
+                    color: ShamsColors.textGray,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'صنعاء، اليمن - شارع الستين',
+                    style: GoogleFonts.tajawal(
+                      fontSize: 12,
+                      color: ShamsColors.textGray,
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 16),
 
-              // ── 3. Edit button ─────────────────────────────────────────────
+              // زر تعديل ملف الورشة
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: SizedBox(
@@ -135,44 +232,78 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                       width: 1,
                       thickness: 1,
                     ),
-                    _buildStatColumn(
-                      '${_posts.length}',
-                      'المنشورات',
-                      Icons.article_outlined,
-                    ),
-                    if (_yearsExp > 0) ...[
-                      VerticalDivider(
-                        color: Colors.grey.shade200,
-                        width: 1,
-                        thickness: 1,
-                      ),
-                      _buildStatColumn(
-                        '$_yearsExp',
-                        'سنوات الخبرة',
-                        Icons.workspace_premium_outlined,
-                      ),
-                    ],
+                    _buildStatColumn('89', 'المنشورات', Icons.article_outlined),
                   ],
                 ),
               ),
               Divider(color: Colors.grey.shade200, height: 1),
               const SizedBox(height: 24),
 
-              // ── 5. Description (if provided) ───────────────────────────────
-              if (_workshopDescription.isNotEmpty) ...[
-                _buildDescriptionSection(),
-                const SizedBox(height: 24),
-              ],
+              // ── 3. سجل الأعمال المنشور (ديناميكي) ──
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'سجل الأعمال المنشور',
+                      style: GoogleFonts.tajawal(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: ShamsColors.textGray,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
 
-              // ── 6. Extra images (if any) ───────────────────────────────────
-              if (_extraImages.isNotEmpty) ...[
-                _buildExtraImagesSection(),
-                const SizedBox(height: 24),
-              ],
-
-              // ── 7. Published posts ─────────────────────────────────────────
-              _buildPostsSection(),
-              const SizedBox(height: 80),
+                    if (_posts.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Text(
+                            'لا توجد أعمال منشورة حالياً.',
+                            style: GoogleFonts.tajawal(color: Colors.grey),
+                          ),
+                        ),
+                      )
+                    else
+                      ListView.builder(
+                        shrinkWrap: true, // مهم جداً داخل SingleChildScrollView
+                        physics:
+                            const NeverScrollableScrollPhysics(), // تعطيل سكرول القائمة الداخلية
+                        itemCount: _posts.length,
+                        itemBuilder: (context, index) {
+                          final post = _posts[index];
+                          return ManagedPostCard(
+                            content: post['content'],
+                            timeAgo: post['timeAgo'],
+                            viewsCount: post['viewsCount'],
+                            imagePaths: List<String>.from(
+                              post['imagePaths'] ?? [],
+                            ),
+                            isLocalFile: post['isLocalFile'] ?? false,
+                            onEdit: () async {
+                              final updated = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditPostScreen(post: post),
+                                ),
+                              );
+                              if (updated != null &&
+                                  updated is Map<String, dynamic>) {
+                                setState(() => _posts[index] = updated);
+                              }
+                            },
+                            onDelete: () =>
+                                _deletePost(index), // استدعاء دالة الحذف
+                          );
+                        },
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(
+                height: 80,
+              ), // مساحة إضافية لكي لا يغطي الزر السفلي المحتوى
             ],
           ),
         ),
@@ -185,7 +316,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -4),
                 ),
@@ -194,7 +325,20 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
             child: SizedBox(
               height: 50,
               child: ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CreatePostScreen(),
+                    ),
+                  );
+
+                  if (result != null && result is Map<String, dynamic>) {
+                    setState(() {
+                      _posts.insert(0, result);
+                    });
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: ShamsColors.solarYellow,
                   foregroundColor: Colors.white,
@@ -508,10 +652,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
         color: Colors.white,
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 4,
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4),
         ],
       ),
       child: const Icon(
@@ -547,7 +688,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
               label,
               style: GoogleFonts.tajawal(
                 fontSize: 12,
-                color: ShamsColors.textHint,
+                color: const Color(0xFF9EA3B0),
               ),
             ),
           ],
