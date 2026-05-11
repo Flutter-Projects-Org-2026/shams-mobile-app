@@ -365,6 +365,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
 
   // ─── Header: cover image + avatar ──────────────────────────────────────────
 
+
   Widget _buildHeader() {
     return SizedBox(
       height: 250,
@@ -632,7 +633,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                   content: post['content'],
                   timeAgo: post['timeAgo'],
                   viewsCount: post['viewsCount'],
-                  imagePath: post['imagePath'],
+                  imagePaths: post['imagePath'],
                   onEdit: () {},
                   onDelete: () => _deletePost(index),
                 );
