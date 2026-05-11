@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:shams_mobile_app/views/workshops/workshop_dashboard_screen.dart';
 // import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shams_mobile_app/views/main_screen.dart';
-import 'views/auth/welcome.dart';
-import 'package:shams_mobile_app/views/workshops/workshop_dashboard_screen.dart';
 
 import 'utils/theme.dart';
 
