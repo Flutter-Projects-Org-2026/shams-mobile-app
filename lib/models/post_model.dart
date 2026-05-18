@@ -53,4 +53,28 @@ class PostModel {
       isHighlighted: isHighlighted ?? this.isHighlighted,
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'textDetails': textDetails,
+      'images': images,
+      'isLocalFile': isLocalFile,
+      'viewsCount': viewsCount,
+      'createdAt': createdAt,
+      'isHighlighted': isHighlighted,
+    };
+  }
+
+  factory PostModel.fromMap(Map<String, dynamic> map) {
+    return PostModel(
+      id: map['id'] ?? '',
+      textDetails: map['textDetails'] ?? '',
+      images: List<String>.from(map['images'] ?? []),
+      isLocalFile: map['isLocalFile'] ?? false,
+      viewsCount: map['viewsCount'] ?? '0',
+      createdAt: map['createdAt'] ?? '',
+      isHighlighted: map['isHighlighted'] ?? false,
+    );
+  }
 }
