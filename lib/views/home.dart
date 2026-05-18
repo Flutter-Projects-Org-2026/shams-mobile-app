@@ -6,104 +6,13 @@ import '../widgets/post_card.dart';
 import '../widgets/inline_search_bar.dart';
 import 'posts/post_detail_screen.dart';
 import '../widgets/comments_component.dart';
+import 'package:provider/provider.dart';
+import '../providers/feed_provider.dart';
 import 'notifications/notifications_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// بيانات تجريبية للمنشورات
+// (أُزيلت البيانات الوهمية، يتم جلبها الآن من FeedProvider)
 // ─────────────────────────────────────────────────────────────────────────────
-
-const _kPostContent =
-    'تم الانتهاء اليوم من تركيب منظومة طاقة شمسية بقدرة 5 كيلو واط مع عاكس [مكس/JA] قياسي واط في صنعاء، تم استخدام الألواح الأداء ممتازة من غاز عبر.';
-
-final List<CommentData> _kSampleComments = [
-  CommentData(
-    userName: 'م. سارة الهاشمي',
-    userHandle: '@sara_energy',
-    avatarPath: 'assets/images/logo/shams logo.png',
-    text: 'ممتاز! هذا النوع من المنظومات يعطي كفاءة عالية جداً في الصيف.',
-    timeAgo: 'منذ ٥ دقائق',
-    likesCount: 4,
-  ),
-  CommentData(
-    userName: 'م. خالد السهيل',
-    userHandle: '@khalid_solar',
-    avatarPath: 'assets/images/logo/shams logo.png',
-    text:
-        'هل استخدمت عاكس JA أم نوع آخر؟ أنا شخصياً أفضل Growatt للمنظومات الصغيرة.',
-    timeAgo: 'منذ ١٢ دقيقة',
-    likesCount: 2,
-    isLiked: true,
-  ),
-  CommentData(
-    userName: 'أبو عبدالله',
-    userHandle: '@abuabdullah_sa',
-    avatarPath: 'assets/images/logo/shams logo.png',
-    text: 'كم تكلف المنظومة كاملة؟ أفكر في تركيب مشابه في منزلي.',
-    timeAgo: 'منذ ٣٠ دقيقة',
-    likesCount: 0,
-  ),
-  CommentData(
-    userName: 'م. يوسف الغامدي',
-    userHandle: '@yusuf_solar',
-    avatarPath: 'assets/images/logo/shams logo.png',
-    text: 'شغل نظيف ومتقن. بالتوفيق دائماً أستاذ أحمد!',
-    timeAgo: 'منذ ساعة',
-    likesCount: 7,
-  ),
-];
-
-final List<Map<String, dynamic>> _kPosts = [
-  {
-    'username': 'م. أحمد العمودي',
-    'userHandle': '@ahmed_solar',
-    'avatarPath': 'assets/images/logo/shams logo.png',
-    'content': _kPostContent,
-    'imagePaths': ['assets/images/post image.jpg'],
-    'likesCount': 124,
-    'commentsCount': 18,
-    'sharesCount': 5,
-    'isLiked': false,
-    'comments': List<CommentData>.from(_kSampleComments),
-  },
-  {
-    'username': 'م. أحمد العمودي',
-    'userHandle': '@ahmed_solar',
-    'avatarPath': 'assets/images/logo/shams logo.png',
-    'content': _kPostContent,
-    'imagePaths': ['assets/images/post image.jpg'],
-    'likesCount': 124,
-    'commentsCount': 18,
-    'sharesCount': 5,
-    'isLiked': true,
-    'comments': List<CommentData>.from(_kSampleComments),
-  },
-  {
-    'username': 'م. سارة الهاشمي',
-    'userHandle': '@sara_energy',
-    'avatarPath': 'assets/images/logo/shams logo.png',
-    'content':
-        'مشروع جديد في الرياض! تركيب ألواح شمسية على مبنى تجاري بقدرة 20 كيلو واط. النتائج مبهرة والكفاءة عالية جداً.',
-    'imagePaths': ['assets/images/post image.jpg'],
-    'likesCount': 89,
-    'commentsCount': 12,
-    'sharesCount': 3,
-    'isLiked': false,
-    'comments': List<CommentData>.from(_kSampleComments),
-  },
-  {
-    'username': 'م. خالد السهيل',
-    'userHandle': '@khalid_solar',
-    'avatarPath': 'assets/images/logo/shams logo.png',
-    'content':
-        'طرحت اليوم تصميمًا جديدًا لنظام إدارة الطاقة الذكي الذي يعمل مع جميع أنواع الألواح الشمسية. تواصل معي للمزيد!',
-    'imagePaths': null,
-    'likesCount': 56,
-    'commentsCount': 7,
-    'sharesCount': 10,
-    'isLiked': false,
-    'comments': List<CommentData>.from(_kSampleComments),
-  },
-];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomeScreen — الشاشة الرئيسية لمنصة شمس
@@ -183,11 +92,14 @@ class _HomeScreenState extends State<HomeScreen> {
   // ─── محتوى الصفحة: بحث ثابت + قائمة المنشورات ───────────────────────────
 
   Widget _buildBody(BuildContext context) {
+    final feedProvider = context.watch<FeedProvider>();
+    final allPosts = feedProvider.posts;
+
     final filteredPosts = _searchQuery.isEmpty 
-        ? _kPosts 
-        : _kPosts.where((p) => 
-            (p['content'] as String).toLowerCase().contains(_searchQuery.toLowerCase()) || 
-            (p['username'] as String).toLowerCase().contains(_searchQuery.toLowerCase())
+        ? allPosts 
+        : allPosts.where((p) => 
+            p.textDetails.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+            (p.author?.name ?? '').toLowerCase().contains(_searchQuery.toLowerCase())
           ).toList();
 
     return CustomScrollView(
@@ -215,43 +127,45 @@ class _HomeScreenState extends State<HomeScreen> {
           SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
               final post = filteredPosts[index];
-            final postData = PostDetailData(
-              username: post['username'] as String,
-              userHandle: post['userHandle'] as String,
-              avatarPath: post['avatarPath'] as String,
-              content: post['content'] as String,
-              imagePaths: post['imagePaths'] as List<String>?,
-              likesCount: post['likesCount'] as int,
-              commentsCount: post['commentsCount'] as int,
-              sharesCount: post['sharesCount'] as int,
-              isLiked: post['isLiked'] as bool,
-              comments: post['comments'] as List<CommentData>,
-            );
-            return GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => PostDetailScreen(post: postData),
-                ),
-              ),
-              child: PostCard(
-                username: postData.username,
-                userHandle: postData.userHandle,
-                avatarPath: postData.avatarPath,
-                content: postData.content,
-                imagePaths: postData.imagePaths,
-                likesCount: postData.likesCount,
-                commentsCount: postData.comments.length,
-                sharesCount: postData.sharesCount,
-                isLiked: postData.isLiked,
-                onLikeToggle: (liked) {
-                  debugPrint('Post $index liked: $liked');
-                },
-                onCommentTap: () => showCommentsSheet(
+              final postData = PostDetailData(
+                postId: post.id,
+                username: post.author?.name ?? 'مستخدم غير معروف',
+                userHandle: post.author?.email != null ? '@${post.author!.email.split('@').first}' : '@unknown',
+                avatarPath: post.author?.profileImageUrl ?? 'assets/images/logo/shams logo.png',
+                content: post.textDetails,
+                imagePaths: post.images.isNotEmpty ? post.images : null,
+                likesCount: post.likesCount,
+                commentsCount: post.comments.length,
+                sharesCount: 0, // Placeholder
+                isLiked: post.isLiked,
+                comments: post.comments,
+              );
+              return GestureDetector(
+                onTap: () => Navigator.push(
                   context,
-                  comments: postData.comments,
-                  commentsCount: postData.comments.length,
+                  MaterialPageRoute(
+                    builder: (_) => PostDetailScreen(post: postData),
+                  ),
                 ),
+                child: PostCard(
+                  username: postData.username,
+                  userHandle: postData.userHandle,
+                  avatarPath: postData.avatarPath,
+                  content: postData.content,
+                  imagePaths: postData.imagePaths,
+                  likesCount: postData.likesCount,
+                  commentsCount: postData.comments.length,
+                  sharesCount: postData.sharesCount,
+                  isLiked: postData.isLiked,
+                  onLikeToggle: (liked) {
+                    context.read<FeedProvider>().toggleLike(post.id);
+                  },
+                  onCommentTap: () => showCommentsSheet(
+                    context,
+                    postId: post.id,
+                    comments: postData.comments,
+                    commentsCount: postData.comments.length,
+                  ),
                 onShareTap: () => _onShare(context),
                 onMenuTap: () => _showPostMenu(context),
                 onUserTap: () {

@@ -5,6 +5,10 @@ import '../../widgets/chat_tile.dart';
 import '../../widgets/search_bar.dart';
 import '../../widgets/inline_search_bar.dart';
 import 'chat_conversation_screen.dart'; // مسار شاشة الدردشة
+import 'package:provider/provider.dart';
+import '../../providers/chat_provider.dart';
+import '../../providers/user_provider.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -14,65 +18,7 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  // البيانات الوهمية المطابقة لملف التكليف
-  final List<Map<String, dynamic>> _chats = [
-    {
-      'name': 'متجر التقنية الحديثة',
-      'lastMessage': 'لقد تم تأكيد طلبك رقم 4321 بنجاح.',
-      'time': 'منذ 2 د',
-      'isOnline': true,
-      'unreadCount': 2,
-    },
-    {
-      'name': 'ورشة الأمل للصيانة',
-      'lastMessage': 'هل يمكنك إرسال صورة للعطل؟',
-      'time': '10:45 ص',
-      'isOnline': true,
-      'unreadCount': 0,
-    },
-    {
-      'name': 'أحمد محمود',
-      'lastMessage': 'تم الانتهاء من فحص المحرك، كل شيء يعمل.',
-      'time': 'أمس',
-      'isOnline': false,
-      'unreadCount': 0,
-    },
-    {
-      'name': 'شركة شمس للخدمات',
-      'lastMessage': 'عروض حصرية لمتابعينا اليوم.',
-      'time': 'أمس',
-      'isOnline': false,
-      'unreadCount': 1,
-    },
-    {
-      'name': 'سارة خالد',
-      'lastMessage': 'متى سيتوفر الشاحن القادم؟',
-      'time': '15 مارس',
-      'isOnline': false,
-      'unreadCount': 0,
-    },
-    {
-      'name': 'سارة خالد',
-      'lastMessage': 'متى سيتوفر الشاحن القادم؟',
-      'time': '15 مارس',
-      'isOnline': false,
-      'unreadCount': 0,
-    },
-    {
-      'name': 'سارة خالد',
-      'lastMessage': 'متى سيتوفر الشاحن القادم؟',
-      'time': '15 مارس',
-      'isOnline': false,
-      'unreadCount': 0,
-    },
-    {
-      'name': 'سارة خالد',
-      'lastMessage': 'متى سيتوفر الشاحن القادم؟',
-      'time': '15 مارس',
-      'isOnline': false,
-      'unreadCount': 0,
-    },
-  ];
+  // البيانات ستأتي من ChatProvider
 
   // int _currentIndex = 2; // مؤشر شريط التنقل السفلي لقسم "المحادثات"
 
@@ -80,9 +26,16 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final chatProvider = context.watch<ChatProvider>();
+    final currentUser = context.watch<UserProvider>().currentUser;
+    final allChats = chatProvider.chats;
+
     final filteredChats = _searchQuery.isEmpty 
-        ? _chats 
-        : _chats.where((c) => (c['name'] as String).toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+        ? allChats 
+        : allChats.where((c) {
+            final otherParticipant = c.participants.firstWhere((p) => p.id != currentUser.id, orElse: () => c.participants.first);
+            return otherParticipant.name.toLowerCase().contains(_searchQuery.toLowerCase());
+          }).toList();
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -136,24 +89,32 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           Divider(color: Colors.grey.shade100, height: 1),
                       itemBuilder: (context, index) {
                         final chat = filteredChats[index];
+                        final otherParticipant = chat.participants.firstWhere(
+                          (p) => p.id != currentUser.id, 
+                          orElse: () => chat.participants.first
+                        );
+                        final lastMessage = chat.messages.isNotEmpty ? chat.messages.first.text : 'لا توجد رسائل';
+                        final unreadCount = chat.messages.where((m) => !m.isRead && m.senderId != currentUser.id).length;
+
                         return ChatTile(
-                          name: chat['name'],
-                          lastMessage: chat['lastMessage'],
-                          time: chat['time'],
-                          isOnline: chat['isOnline'],
-                          unreadCount: chat['unreadCount'],
-                          avatarPath: '', // المسار وهمي حالياً
+                          name: otherParticipant.name,
+                          lastMessage: lastMessage,
+                          time: timeago.format(chat.lastMessageTime, locale: 'ar'),
+                          isOnline: false, // Dummy online status
+                          unreadCount: unreadCount,
+                          avatarPath: otherParticipant.profileImageUrl ?? 'assets/images/logo/shams logo.png',
                           onTap: () {
-                            // 💡 الانتقال لشاشة المحادثة الفردية مع تمرير اسم الورشة
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ChatConversationScreen(
-                                  workshopName:
-                                      chat['name'], // نرسل الاسم ليظهر في الـ AppBar
+                                  chatId: chat.chatId,
                                 ),
                               ),
-                            );
+                            ).then((_) {
+                              // Mark messages as read when returning
+                              context.read<ChatProvider>().markAsRead(chat.chatId);
+                            });
                           },
                         );
                       },
