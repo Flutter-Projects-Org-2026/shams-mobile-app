@@ -6,6 +6,7 @@ import '../widgets/post_card.dart';
 import '../widgets/search_bar.dart';
 import 'posts/post_detail_screen.dart';
 import '../widgets/comments_component.dart';
+import 'notifications/notifications_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // بيانات تجريبية للمنشورات
@@ -137,7 +138,12 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: ShamsPlatformAppBar(
           hasUnreadNotifications: true,
           onMenuTap: () {},
-          onNotificationTap: () {},
+          onNotificationTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+            );
+          },
           onDarkModeTap: () {},
         ),
         body: _buildBody(context),

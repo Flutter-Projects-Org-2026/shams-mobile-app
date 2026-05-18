@@ -7,6 +7,7 @@ import '../../widgets/appbar.dart';
 import '../../widgets/city_filter.dart';
 import '../../widgets/workshop_card.dart';
 import 'workshop_profile_screen.dart';
+import '../notifications/notifications_screen.dart';
 
 class WorkshopsListScreen extends StatefulWidget {
   const WorkshopsListScreen({super.key});
@@ -77,7 +78,12 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
         appBar: ShamsPlatformAppBar(
           hasUnreadNotifications: false,
           onMenuTap: () {},
-          onNotificationTap: () {},
+          onNotificationTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+            );
+          },
           onDarkModeTap: () {},
         ),
 
