@@ -3,12 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../utils/constants.dart';
 import '../../widgets/post_card.dart';
 import '../../widgets/comments_component.dart';
+import '../../models/comment_model.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // نموذج بيانات المنشور لشاشة التفاصيل
 // ─────────────────────────────────────────────────────────────────────────────
 
 class PostDetailData {
+  final String postId;
   final String username;
   final String userHandle;
   final String avatarPath;
@@ -18,9 +21,10 @@ class PostDetailData {
   final int commentsCount;
   final int sharesCount;
   final bool isLiked;
-  final List<CommentData> comments;
+  final List<CommentModel> comments;
 
   const PostDetailData({
+    required this.postId,
     required this.username,
     required this.userHandle,
     required this.avatarPath,
@@ -82,6 +86,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 onCommentTap: () async {
                   await showCommentsSheet(
                     context,
+                    postId: widget.post.postId,
                     comments: widget.post.comments,
                     commentsCount: widget.post.comments.length,
                   );
@@ -256,6 +261,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                   onTap: () async {
                     await showCommentsSheet(
                       context,
+                      postId: widget.post.postId,
                       comments: widget.post.comments,
                       commentsCount: widget.post.comments.length,
                     );
@@ -281,10 +287,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             ...widget.post.comments.take(2).expand((comment) {
               return [
                 _PreviewComment(
-                  avatarPath: comment.avatarPath,
-                  userName: comment.userName,
+                  avatarPath: comment.user.profileImageUrl ?? 'assets/images/logo/shams logo.png',
+                  userName: comment.user.name,
                   text: comment.text,
-                  timeAgo: comment.timeAgo,
+                  timeAgo: timeago.format(comment.timestamp, locale: 'ar'),
                 ),
                 if (comment != widget.post.comments.take(2).last)
                   const Divider(
@@ -301,6 +307,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             onTap: () async {
               await showCommentsSheet(
                 context,
+                postId: widget.post.postId,
                 comments: widget.post.comments,
                 commentsCount: widget.post.comments.length,
               );

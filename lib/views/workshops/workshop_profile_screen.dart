@@ -114,9 +114,8 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ChatConversationScreen(
-                    workshopName: widget.workshopName,
-                    workshopAvatar: widget.logoPath,
+                  builder: (context) => const ChatConversationScreen(
+                    chatId: 'chat_1',
                   ),
                 ),
               );

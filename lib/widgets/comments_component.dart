@@ -3,29 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../utils/constants.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// بيانات تجريبية للتعليقات
-// ─────────────────────────────────────────────────────────────────────────────
-
-class CommentData {
-  final String userName;
-  final String userHandle;
-  final String avatarPath;
-  final String text;
-  final String timeAgo;
-  bool isLiked;
-  int likesCount;
-
-  CommentData({
-    required this.userName,
-    required this.userHandle,
-    required this.avatarPath,
-    required this.text,
-    required this.timeAgo,
-    this.isLiked = false,
-    this.likesCount = 0,
-  });
-}
+import 'package:provider/provider.dart';
+import '../models/comment_model.dart';
+import '../providers/feed_provider.dart';
+import '../providers/user_provider.dart';
+import 'package:timeago/timeago.dart' as timeago; // For timeAgo logic
 
 // ─────────────────────────────────────────────────────────────────────────────
 // دالة مساعدة لعرض التعليقات كـ Modal Bottom Sheet
@@ -33,7 +15,8 @@ class CommentData {
 
 Future<void> showCommentsSheet(
   BuildContext context, {
-  required List<CommentData> comments,
+  required String postId,
+  required List<CommentModel> comments,
   int commentsCount = 0,
 }) {
   return showModalBottomSheet(
@@ -41,7 +24,7 @@ Future<void> showCommentsSheet(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) =>
-        CommentsComponent(comments: comments, commentsCount: commentsCount),
+        CommentsComponent(postId: postId, comments: comments, commentsCount: commentsCount),
   );
 }
 
@@ -50,11 +33,13 @@ Future<void> showCommentsSheet(
 // ─────────────────────────────────────────────────────────────────────────────
 
 class CommentsComponent extends StatefulWidget {
-  final List<CommentData> comments;
+  final String postId;
+  final List<CommentModel> comments;
   final int commentsCount;
 
   const CommentsComponent({
     super.key,
+    required this.postId,
     required this.comments,
     this.commentsCount = 0,
   });
@@ -66,14 +51,10 @@ class CommentsComponent extends StatefulWidget {
 class _CommentsComponentState extends State<CommentsComponent> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  late List<CommentData> _comments;
 
   @override
   void initState() {
     super.initState();
-    // نستخدم نفس القائمة الأصلية بدلاً من أخذ نسخة منها (List.from)
-    // لكي ينعكس أي تعليق جديد على الشاشة الرئيسية وشاشة التفاصيل
-    _comments = widget.comments;
   }
 
   @override
@@ -86,20 +67,18 @@ class _CommentsComponentState extends State<CommentsComponent> {
   void _sendComment() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    setState(() {
-      _comments.insert(
-        0,
-        CommentData(
-          userName: 'أنت',
-          userHandle: '@me',
-          avatarPath: 'assets/images/logo/shams logo.png',
-          text: text,
-          timeAgo: 'الآن',
-          likesCount: 0,
-        ),
-      );
-      _controller.clear();
-    });
+
+    final currentUser = context.read<UserProvider>().currentUser;
+    final newComment = CommentModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      postId: widget.postId,
+      text: text,
+      timestamp: DateTime.now(),
+      user: currentUser,
+    );
+
+    context.read<FeedProvider>().addComment(widget.postId, newComment);
+    _controller.clear();
     _focusNode.unfocus();
   }
 
@@ -123,37 +102,46 @@ class _CommentsComponentState extends State<CommentsComponent> {
             _buildHandle(),
 
             // ── عنوان ─────────────────────────────────────────────
-            _buildTitle(),
+            Consumer<FeedProvider>(
+              builder: (context, feed, child) {
+                final post = feed.posts.firstWhere((p) => p.id == widget.postId, 
+                    orElse: () => feed.posts.first);
+                final currentComments = post.comments;
 
-            const Divider(height: 1, thickness: 1, color: ShamsColors.borderLight),
-
-            // ── قائمة التعليقات ─────────────────────────────────
-            Expanded(
-              child: _comments.isEmpty
-                  ? _buildEmpty()
-                  : ListView.separated(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: _comments.length,
-                      separatorBuilder: (_, _) => const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: ShamsColors.dividerLight,
-                        indent: 70,
+                return Expanded(
+                  child: Column(
+                    children: [
+                      _buildTitle(currentComments.length),
+                      const Divider(height: 1, thickness: 1, color: ShamsColors.borderLight),
+                      Expanded(
+                        child: currentComments.isEmpty
+                            ? _buildEmpty()
+                            : ListView.separated(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                itemCount: currentComments.length,
+                                separatorBuilder: (_, _) => const Divider(
+                                  height: 1,
+                                  thickness: 1,
+                                  color: ShamsColors.dividerLight,
+                                  indent: 70,
+                                ),
+                                itemBuilder: (context, index) {
+                                  return InkWell(
+                                    onTap: () => _showCommentMenu(context, index, currentComments),
+                                    child: _CommentTile(
+                                      comment: currentComments[index],
+                                      onLikeTap: () {
+                                        // TODO: Implement comment like toggle in FeedProvider
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
                       ),
-                      itemBuilder: (context, index) {
-                        return InkWell(
-                          onTap: () => _showCommentMenu(context, index),
-                          child: _CommentTile(
-                            comment: _comments[index],
-                            onLikeTap: () => setState(() {
-                              final c = _comments[index];
-                              c.isLiked = !c.isLiked;
-                              c.likesCount += c.isLiked ? 1 : -1;
-                            }),
-                          ),
-                        );
-                      },
-                    ),
+                    ],
+                  ),
+                );
+              },
             ),
 
             const Divider(height: 1, thickness: 1, color: ShamsColors.borderLight),
@@ -178,7 +166,7 @@ class _CommentsComponentState extends State<CommentsComponent> {
     );
   }
 
-  Widget _buildTitle() {
+  Widget _buildTitle(int count) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: Row(
@@ -199,7 +187,7 @@ class _CommentsComponentState extends State<CommentsComponent> {
               borderRadius: BorderRadius.circular(99),
             ),
             child: Text(
-              '${_comments.length}',
+              '$count',
               style: GoogleFonts.tajawal(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -318,7 +306,7 @@ class _CommentsComponentState extends State<CommentsComponent> {
     );
   }
 
-  void _showCommentMenu(BuildContext context, int index) {
+  void _showCommentMenu(BuildContext context, int index, List<CommentModel> currentComments) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -347,7 +335,7 @@ class _CommentsComponentState extends State<CommentsComponent> {
                 title: Text('نسخ النص', style: GoogleFonts.tajawal(fontSize: 16)),
                 onTap: () async {
                   Navigator.pop(context);
-                  await Clipboard.setData(ClipboardData(text: _comments[index].text));
+                  await Clipboard.setData(ClipboardData(text: currentComments[index].text));
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -368,9 +356,7 @@ class _CommentsComponentState extends State<CommentsComponent> {
                 title: Text('حذف التعليق', style: GoogleFonts.tajawal(fontSize: 16, color: ShamsColors.dangerRed)),
                 onTap: () {
                   Navigator.pop(context);
-                  setState(() {
-                    _comments.removeAt(index);
-                  });
+                  // TODO: Implement deleteComment in FeedProvider
                 },
               ),
             ],
@@ -386,14 +372,15 @@ class _CommentsComponentState extends State<CommentsComponent> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _CommentTile extends StatelessWidget {
-  final CommentData comment;
+  final CommentModel comment;
   final VoidCallback onLikeTap;
 
   const _CommentTile({required this.comment, required this.onLikeTap});
 
   @override
   Widget build(BuildContext context) {
-    final bool isNetwork = comment.avatarPath.startsWith('http');
+    final avatarPath = comment.user.profileImageUrl ?? 'assets/images/logo/shams logo.png';
+    final bool isNetwork = avatarPath.startsWith('http');
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -414,12 +401,12 @@ class _CommentTile extends StatelessWidget {
             child: ClipOval(
               child: isNetwork
                   ? Image.network(
-                      comment.avatarPath,
+                      avatarPath,
                       fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => _avatarFallback(),
                     )
                   : Image.asset(
-                      comment.avatarPath,
+                      avatarPath,
                       fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => _avatarFallback(),
                     ),
@@ -437,7 +424,7 @@ class _CommentTile extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      comment.userName,
+                      comment.user.name,
                       style: GoogleFonts.tajawal(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
@@ -446,7 +433,7 @@ class _CommentTile extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      comment.timeAgo,
+                      timeago.format(comment.timestamp, locale: 'ar'),
                       style: GoogleFonts.tajawal(
                         fontSize: 11.5,
                         color: ShamsColors.textHint,
@@ -476,11 +463,11 @@ class _CommentTile extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        comment.isLiked
+                        false // comment.isLiked
                             ? Icons.favorite_rounded
                             : Icons.favorite_border_rounded,
                         size: 15,
-                        color: comment.isLiked
+                        color: false // comment.isLiked
                             ? ShamsColors.dangerRed
                             : ShamsColors.textHint,
                       ),
@@ -492,7 +479,7 @@ class _CommentTile extends StatelessWidget {
                         style: GoogleFonts.tajawal(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: comment.isLiked
+                          color: false // comment.isLiked
                               ? ShamsColors.dangerRed
                               : ShamsColors.textHint,
                         ),
@@ -513,7 +500,7 @@ class _CommentTile extends StatelessWidget {
       color: ShamsColors.avatarFallbackBg,
       child: Center(
         child: Text(
-          comment.userName.isNotEmpty ? comment.userName[0] : '؟',
+          comment.user.name.isNotEmpty ? comment.user.name[0] : '؟',
           style: GoogleFonts.tajawal(
             fontSize: 16,
             fontWeight: FontWeight.w700,

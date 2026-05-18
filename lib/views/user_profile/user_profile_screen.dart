@@ -11,6 +11,8 @@ import '../workshops/workshop_dashboard_screen.dart';
 import '../auth/welcome.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:provider/provider.dart';
+import '../../providers/user_provider.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UserProfileScreen — شاشة الملف الشخصي للمستخدم
@@ -69,6 +71,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   // ─── Header — تصميم مطابق تماماً للصورة ─────────────────────────────
 
   Widget _buildHeader() {
+    final currentUser = context.watch<UserProvider>().currentUser;
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -87,36 +90,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // الصورة الشخصية مع الحالة (يمين في RTL)
-              Stack(
-                children: [
-                  Container(
-                    width: 85,
-                    height: 85,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                    ),
-                    child: const CircleAvatar(
-                      radius: 40,
-                      backgroundImage: AssetImage(
-                        'assets/images/logo/shams logo.png',
-                      ),
-                    ),
+              Container(
+                width: 85,
+                height: 85,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 4),
+                ),
+                child: CircleAvatar(
+                  radius: 40,
+                  backgroundImage: AssetImage(
+                    currentUser.profileImageUrl ?? 'assets/images/logo/shams logo.png',
                   ),
-                  Positioned(
-                    bottom: 4,
-                    left: 4, // تحويل النقطة لجهة اليسار لتطابق الصورة
-                    child: Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF27AE60),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
               // زر تعديل الملف (يسار)
               Container(
@@ -165,19 +151,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      'أحمد منصور',
+                      currentUser.name,
                       style: GoogleFonts.tajawal(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: ShamsColors.textGray,
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    // const Icon(Icons.verified, color: Colors.blue, size: 18),
                   ],
                 ),
                 Text(
-                  '@ahmed_mansour',
+                  '@${currentUser.email.split('@').first}',
                   style: GoogleFonts.tajawal(
                     fontSize: 14,
                     color: Colors.grey.shade600,
@@ -187,25 +171,39 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    const Icon(
-                      Icons.location_on_rounded,
-                      size: 14,
-                      color: ShamsColors.solarYellow,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'الرياض، المملكة العربية السعودية',
-                      style: GoogleFonts.tajawal(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
+                    if (currentUser.bio != null) ...[
+                      const Icon(
+                        Icons.info_outline_rounded,
+                        size: 14,
+                        color: ShamsColors.solarYellow,
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.location_on_rounded,
-                      size: 14,
-                      color: ShamsColors.solarYellow,
-                    ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          currentUser.bio!,
+                          style: GoogleFonts.tajawal(
+                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ] else ...[
+                      const Icon(
+                        Icons.location_on_rounded,
+                        size: 14,
+                        color: ShamsColors.solarYellow,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'الرياض، المملكة العربية السعودية',
+                        style: GoogleFonts.tajawal(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ],

@@ -6,6 +6,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shams_mobile_app/views/main_screen.dart';
 
 import 'providers/workshop_provider.dart';
+import 'providers/user_provider.dart';
+import 'providers/feed_provider.dart';
+import 'providers/chat_provider.dart';
 import 'utils/theme.dart';
 
 Future<void> main() async {
@@ -30,8 +33,13 @@ Future<void> main() async {
   }
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => WorkshopProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => WorkshopProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => FeedProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+      ],
       child: const ShamsApp(),
     ),
   );
