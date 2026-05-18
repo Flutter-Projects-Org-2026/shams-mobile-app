@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../widgets/message_bubble.dart'; 
 import '../../widgets/chat_input_field.dart';
+import '../../widgets/inline_search_bar.dart';
+import '../../utils/constants.dart';
 
 class ChatConversationScreen extends StatefulWidget {
   final String workshopName;
@@ -18,6 +20,9 @@ class ChatConversationScreen extends StatefulWidget {
 }
 
 class _ChatConversationScreenState extends State<ChatConversationScreen> {
+  bool _isSearching = false;
+  String _searchQuery = '';
+
   // قائمة الرسائل (الموقع 0 هو الأحدث ويظهر بالأسفل)
   final List<Map<String, dynamic>> _messages = [
     {
@@ -88,28 +93,109 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             ],
           ),
           actions: [
-            IconButton(icon: const Icon(Icons.more_vert_rounded, color: Colors.black87), onPressed: () {}),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_rounded, color: Colors.black87),
+              onSelected: (value) {
+                if (value == 'search') {
+                  setState(() {
+                    _isSearching = true;
+                  });
+                } else if (value == 'clear') {
+                  setState(() {
+                    _messages.clear();
+                  });
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'search',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search_rounded, size: 20),
+                      const SizedBox(width: 8),
+                      Text('بحث', style: GoogleFonts.tajawal()),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'mute',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.notifications_off_rounded, size: 20),
+                      const SizedBox(width: 8),
+                      Text('كتم الإشعارات', style: GoogleFonts.tajawal()),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'clear',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.delete_outline_rounded, size: 20, color: ShamsColors.dangerRed),
+                      const SizedBox(width: 8),
+                      Text('مسح المحادثة', style: GoogleFonts.tajawal(color: ShamsColors.dangerRed)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
         body: Column(
           children: [
-            Expanded(
-              child: ListView.builder(
-                reverse: true, // قلب القائمة لتبدأ من الأسفل
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  final msg = _messages[index];
-                  if (msg['isDivider'] == true) {
-                    return _buildDateDivider(msg['text']);
-                  }
-                  return MessageBubble(
-                    message: msg['text'],
-                    time: msg['time'],
-                    isMe: msg['isMe'],
-                    isRead: msg['isRead'] ?? false,
-                  );
+            if (_isSearching)
+              InlineSearchBar(
+                hintText: 'ابحث في المحادثة...',
+                onChanged: (val) {
+                  setState(() {
+                    _searchQuery = val;
+                  });
                 },
+                onClose: () {
+                  setState(() {
+                    _isSearching = false;
+                    _searchQuery = '';
+                  });
+                },
+              ),
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  final filteredMessages = _searchQuery.isEmpty
+                      ? _messages
+                      : _messages.where((msg) {
+                          if (msg['isDivider'] == true) return false;
+                          final text = msg['text'] as String;
+                          return text.toLowerCase().contains(_searchQuery.toLowerCase());
+                        }).toList();
+
+                  if (filteredMessages.isEmpty && _searchQuery.isNotEmpty) {
+                    return Center(
+                      child: Text(
+                        'لا توجد نتائج لـ "$_searchQuery"',
+                        style: GoogleFonts.tajawal(color: ShamsColors.textHint, fontSize: 16),
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    reverse: true, // قلب القائمة لتبدأ من الأسفل
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    itemCount: filteredMessages.length,
+                    itemBuilder: (context, index) {
+                      final msg = filteredMessages[index];
+                      if (msg['isDivider'] == true) {
+                        return _buildDateDivider(msg['text']);
+                      }
+                      return MessageBubble(
+                        message: msg['text'],
+                        time: msg['time'],
+                        isMe: msg['isMe'],
+                        isRead: msg['isRead'] ?? false,
+                      );
+                    },
+                  );
+                }
               ),
             ),
             // ربط حقل الإدخال بدالة الإضافة

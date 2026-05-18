@@ -6,6 +6,7 @@ import '../../utils/constants.dart';
 import '../../widgets/appbar.dart';
 import '../../widgets/city_filter.dart';
 import '../../widgets/workshop_card.dart';
+import '../../widgets/inline_search_bar.dart';
 import 'workshop_profile_screen.dart';
 import '../notifications/notifications_screen.dart';
 
@@ -19,6 +20,7 @@ class WorkshopsListScreen extends StatefulWidget {
 class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
   // 1. ذاكرة الشاشة: المدن المختارة حالياً
   List<String> _selectedCities = [];
+  String _searchQuery = '';
 
   // 2. البيانات الوهمية المحدثة لتطابق التصميم الجديد للبطاقة
   final List<Map<String, dynamic>> _dummyWorkshops = [
@@ -63,11 +65,12 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
   @override
   Widget build(BuildContext context) {
     // 3. محرك الفلترة الذكي
-    final filteredWorkshops = _selectedCities.isEmpty
-        ? _dummyWorkshops
-        : _dummyWorkshops.where((workshop) {
-            return _selectedCities.contains(workshop['cityName']);
-          }).toList();
+    final filteredWorkshops = _dummyWorkshops.where((workshop) {
+      final matchesCity = _selectedCities.isEmpty || _selectedCities.contains(workshop['cityName']);
+      final matchesSearch = _searchQuery.isEmpty || 
+          (workshop['username'] as String).toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchesCity && matchesSearch;
+    }).toList();
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -90,40 +93,13 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
         body: Column(
           children: [
             // ── شريط البحث الوهمي ──
-            Container(
-              color: ShamsColors.bgWhite,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: GestureDetector(
-                onTap: () {
-                  debugPrint('فتح شريط البحث...');
-                },
-                child: Container(
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F7FF),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFEEF0F4)),
-                  ),
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 14),
-                      const Icon(
-                        Icons.search_rounded,
-                        size: 20,
-                        color: Color(0xFF9EA3B0),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        'ابحث عن الورشة المفضلة...',
-                        style: GoogleFonts.tajawal(
-                          fontSize: 13.5,
-                          color: const Color(0xFF9EA3B0),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            InlineSearchBar(
+              hintText: 'ابحث عن الورشة المفضلة...',
+              onChanged: (val) {
+                setState(() {
+                  _searchQuery = val;
+                });
+              },
             ),
 
             // ── منطقة الفلتر (المدن) ──

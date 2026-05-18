@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/constants.dart';
-// import '../../widgets/post_card.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/inline_search_bar.dart';
 import '/views/chat/chat_conversation_screen.dart';
 
 class WorkshopProfile extends StatefulWidget {
@@ -38,6 +38,7 @@ class WorkshopProfile extends StatefulWidget {
 
 class _WorkshopProfileState extends State<WorkshopProfile> {
   late bool _isFollowing;
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -74,9 +75,27 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
           backgroundColor: Colors.white,
           elevation: 0.5,
           iconTheme: const IconThemeData(color: ShamsColors.textGray),
-          leading: IconButton(
+          leading: PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert_rounded),
-            onPressed: () {},
+            onSelected: (value) {
+              if (value == 'search') {
+                setState(() {
+                  _isSearching = true;
+                });
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'search',
+                child: Row(
+                  children: [
+                    const Icon(Icons.search_rounded, size: 20, color: ShamsColors.textGray),
+                    const SizedBox(width: 8),
+                    Text('بحث', style: GoogleFonts.tajawal(color: ShamsColors.textGray)),
+                  ],
+                ),
+              ),
+            ],
           ),
           actions: [
             IconButton(
@@ -108,6 +127,19 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
         body: SingleChildScrollView(
           child: Column(
             children: [
+              if (_isSearching)
+                SafeArea(
+                  bottom: false,
+                  child: InlineSearchBar(
+                    hintText: 'ابحث في الورشة...',
+                    onChanged: (val) {},
+                    onClose: () {
+                      setState(() {
+                        _isSearching = false;
+                      });
+                    },
+                  ),
+                ),
               _buildHeader(context),
               const SizedBox(height: 55),
               _buildWorkshopInfo(),

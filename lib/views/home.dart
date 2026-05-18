@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
 import '../widgets/appbar.dart';
 import '../widgets/post_card.dart';
-import '../widgets/search_bar.dart';
+import '../widgets/inline_search_bar.dart';
 import 'posts/post_detail_screen.dart';
 import '../widgets/comments_component.dart';
 import 'notifications/notifications_screen.dart';
@@ -128,6 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
     'الطاقة المتجددة',
   ];
 
+  String _searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -160,46 +162,13 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-            child: GestureDetector(
-              onTap: () => showSearch(
-                context: context,
-                delegate: ShamsSearchDelegate(
-                  searchSuggestions: _searchSuggestions,
-                ),
-              ),
-              child: Container(
-                height: 46,
-                decoration: BoxDecoration(
-                  color: ShamsColors.backgroundLight,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: ShamsColors.borderLight,
-                    width: 1.2,
-                  ),
-                ),
-                child: Row(
-                  textDirection: TextDirection.rtl,
-                  children: [
-                    const SizedBox(width: 14),
-                    const Icon(
-                      Icons.search_rounded,
-                      size: 20,
-                      color: ShamsColors.textHint,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'ابحث عن قبليات، مشاريع أو قطع غيار...',
-                      style: GoogleFonts.tajawal(
-                        fontSize: 13.5,
-                        color: ShamsColors.textHint,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          InlineSearchBar(
+            hintText: 'ابحث عن قبليات، مشاريع أو قطع غيار...',
+            onChanged: (val) {
+              setState(() {
+                _searchQuery = val;
+              });
+            },
           ),
           const Divider(
             height: 1,
@@ -214,6 +183,13 @@ class _HomeScreenState extends State<HomeScreen> {
   // ─── محتوى الصفحة: بحث ثابت + قائمة المنشورات ───────────────────────────
 
   Widget _buildBody(BuildContext context) {
+    final filteredPosts = _searchQuery.isEmpty 
+        ? _kPosts 
+        : _kPosts.where((p) => 
+            (p['content'] as String).toLowerCase().contains(_searchQuery.toLowerCase()) || 
+            (p['username'] as String).toLowerCase().contains(_searchQuery.toLowerCase())
+          ).toList();
+
     return CustomScrollView(
       slivers: [
         // ── شريط البحث الثابت ────────────────────────────
@@ -226,9 +202,19 @@ class _HomeScreenState extends State<HomeScreen> {
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
         // ── قائمة المنشورات ───────────────────────────────
-        SliverList(
-          delegate: SliverChildBuilderDelegate((context, index) {
-            final post = _kPosts[index];
+        if (filteredPosts.isEmpty)
+          SliverFillRemaining(
+            child: Center(
+              child: Text(
+                'لا توجد نتائج لـ "$_searchQuery"',
+                style: GoogleFonts.tajawal(color: ShamsColors.textHint, fontSize: 16),
+              ),
+            ),
+          )
+        else
+          SliverList(
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final post = filteredPosts[index];
             final postData = PostDetailData(
               username: post['username'] as String,
               userHandle: post['userHandle'] as String,
@@ -278,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             );
-          }, childCount: _kPosts.length),
+          }, childCount: filteredPosts.length),
         ),
 
         // ── فراغ سفلي ─────────────────────────────────────

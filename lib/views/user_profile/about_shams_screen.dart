@@ -119,16 +119,16 @@ class AboutShamsScreen extends StatelessWidget {
 
   Widget _buildLogo() {
     return Container(
-      width: 100,
-      height: 100,
+      width: 150,
+      height: 150,
       decoration: BoxDecoration(
         color: const Color(0xFFFFF9E7),
         borderRadius: BorderRadius.circular(100),
       ),
-      padding: const EdgeInsets.all(15),
+      // padding: const EdgeInsets.all(1),
       child: Image.asset(
         'assets/images/logo/shams logo.png',
-        fit: BoxFit.contain,
+        fit: BoxFit.cover,
       ),
     );
   }

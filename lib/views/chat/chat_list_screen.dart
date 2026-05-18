@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../utils/constants.dart';
 import '../../widgets/chat_tile.dart';
 import '../../widgets/search_bar.dart';
+import '../../widgets/inline_search_bar.dart';
 import 'chat_conversation_screen.dart'; // مسار شاشة الدردشة
 
 class ChatListScreen extends StatefulWidget {
@@ -75,8 +76,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   // int _currentIndex = 2; // مؤشر شريط التنقل السفلي لقسم "المحادثات"
 
+  String _searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
+    final filteredChats = _searchQuery.isEmpty 
+        ? _chats 
+        : _chats.where((c) => (c['name'] as String).toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -91,28 +98,21 @@ class _ChatListScreenState extends State<ChatListScreen> {
               fontSize: 18,
             ),
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search_rounded),
-              onPressed: () {
-                // تفعيل شريط البحث الذي بنيته مسبقاً
-                showSearch(
-                  context: context,
-                  delegate: ShamsSearchDelegate(
-                    searchSuggestions: _chats
-                        .map((c) => c['name'] as String)
-                        .toList(),
-                  ),
-                );
-              },
-            ),
-          ],
+          actions: const [],
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            InlineSearchBar(
+              hintText: 'ابحث في المحادثات...',
+              onChanged: (val) {
+                setState(() {
+                  _searchQuery = val;
+                });
+              },
+            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
               child: Text(
                 'المحادثات الأخيرة',
                 style: GoogleFonts.tajawal(
@@ -123,34 +123,41 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ),
             ),
             Expanded(
-              child: ListView.separated(
-                itemCount: _chats.length,
-                separatorBuilder: (context, index) =>
-                    Divider(color: Colors.grey.shade100, height: 1),
-                itemBuilder: (context, index) {
-                  final chat = _chats[index];
-                  return ChatTile(
-                    name: chat['name'],
-                    lastMessage: chat['lastMessage'],
-                    time: chat['time'],
-                    isOnline: chat['isOnline'],
-                    unreadCount: chat['unreadCount'],
-                    avatarPath: '', // المسار وهمي حالياً
-                    onTap: () {
-                      // 💡 الانتقال لشاشة المحادثة الفردية مع تمرير اسم الورشة
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChatConversationScreen(
-                            workshopName:
-                                chat['name'], // نرسل الاسم ليظهر في الـ AppBar
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+              child: filteredChats.isEmpty
+                  ? Center(
+                      child: Text(
+                        'لا توجد محادثات تطابق "$_searchQuery"',
+                        style: GoogleFonts.tajawal(color: ShamsColors.textHint, fontSize: 16),
+                      ),
+                    )
+                  : ListView.separated(
+                      itemCount: filteredChats.length,
+                      separatorBuilder: (context, index) =>
+                          Divider(color: Colors.grey.shade100, height: 1),
+                      itemBuilder: (context, index) {
+                        final chat = filteredChats[index];
+                        return ChatTile(
+                          name: chat['name'],
+                          lastMessage: chat['lastMessage'],
+                          time: chat['time'],
+                          isOnline: chat['isOnline'],
+                          unreadCount: chat['unreadCount'],
+                          avatarPath: '', // المسار وهمي حالياً
+                          onTap: () {
+                            // 💡 الانتقال لشاشة المحادثة الفردية مع تمرير اسم الورشة
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatConversationScreen(
+                                  workshopName:
+                                      chat['name'], // نرسل الاسم ليظهر في الـ AppBar
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
             ),
           ],
         ),
