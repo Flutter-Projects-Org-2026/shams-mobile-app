@@ -4,7 +4,9 @@ class UserModel {
   final String email;
   final String? profileImageUrl;
   final String? bio;
+  final String? phone;
   final bool isVerified;
+  final bool hasWorkshop;
 
   const UserModel({
     required this.id,
@@ -12,7 +14,9 @@ class UserModel {
     required this.email,
     this.profileImageUrl,
     this.bio,
+    this.phone,
     this.isVerified = false,
+    this.hasWorkshop = false,
   });
 
   UserModel copyWith({
@@ -21,7 +25,9 @@ class UserModel {
     String? email,
     String? profileImageUrl,
     String? bio,
+    String? phone,
     bool? isVerified,
+    bool? hasWorkshop,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -29,7 +35,9 @@ class UserModel {
       email: email ?? this.email,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       bio: bio ?? this.bio,
+      phone: phone ?? this.phone,
       isVerified: isVerified ?? this.isVerified,
+      hasWorkshop: hasWorkshop ?? this.hasWorkshop,
     );
   }
 
@@ -38,9 +46,11 @@ class UserModel {
       'id': id,
       'name': name,
       'email': email,
-      'profileImageUrl': profileImageUrl,
+      'profile_image_url': profileImageUrl,
       'bio': bio,
-      'isVerified': isVerified,
+      'phone': phone,
+      'is_verified': isVerified,
+      'has_workshop': hasWorkshop,
     };
   }
 
@@ -49,9 +59,11 @@ class UserModel {
       id: map['id'] ?? '',
       name: map['name'] ?? '',
       email: map['email'] ?? '',
-      profileImageUrl: map['profileImageUrl'],
+      profileImageUrl: map['profile_image_url'],
       bio: map['bio'],
-      isVerified: map['isVerified'] ?? false,
+      phone: map['phone'],
+      isVerified: map['is_verified'] ?? false,
+      hasWorkshop: map['has_workshop'] ?? false,
     );
   }
 }

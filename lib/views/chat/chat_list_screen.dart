@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/constants.dart';
 import '../../widgets/chat_tile.dart';
-import '../../widgets/search_bar.dart';
 import '../../widgets/inline_search_bar.dart';
 import 'chat_conversation_screen.dart'; // مسار شاشة الدردشة
 import 'package:provider/provider.dart';
@@ -112,8 +111,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 ),
                               ),
                             ).then((_) {
-                              // Mark messages as read when returning
-                              context.read<ChatProvider>().markAsRead(chat.chatId);
+                              if (mounted) {
+                                // Mark messages as read when returning
+                                context.read<ChatProvider>().markAsRead(chat.chatId);
+                              }
                             });
                           },
                         );

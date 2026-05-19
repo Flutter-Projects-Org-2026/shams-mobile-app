@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:shams_mobile_app/views/main_screen.dart';
+import 'package:shams_mobile_app/widgets/auth_gate.dart';
 
 import 'providers/workshop_provider.dart';
 import 'providers/user_provider.dart';
@@ -24,8 +24,8 @@ Future<void> main() async {
   // Initialize Supabase.
   try {
     await Supabase.initialize(
-      url: const String.fromEnvironment('SUPABASE_URL'),
-      anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
+      url: 'https://txnxxrpyiofnjmpmgvkr.supabase.co',
+      anonKey: 'sb_publishable_-RY8Ton1b2fSjR2tU20q-w_gAAZRJ72',
     );
   } catch (e) {
     debugPrint('Supabase initialization failed: $e');
@@ -72,7 +72,7 @@ class ShamsApp extends StatelessWidget {
       ],
 
       // ── Entry Point ─────────────────────────────────────────────
-      home: const MainScreen(),
+      home: const AuthGate(),
     );
   }
 }

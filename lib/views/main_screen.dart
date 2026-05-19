@@ -4,7 +4,6 @@ import 'home.dart';
 import 'workshops/workshops_list_screen.dart';
 import 'user_profile/user_profile_screen.dart';
 import 'chat/chat_list_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -47,25 +46,3 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-class _PlaceholderScreen extends StatelessWidget {
-  final String title;
-
-  const _PlaceholderScreen({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FF),
-      body: Center(
-        child: Text(
-          '$title (قريباً)',
-          style: GoogleFonts.tajawal(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF9EA3B0),
-          ),
-        ),
-      ),
-    );
-  }
-}

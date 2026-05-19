@@ -26,16 +26,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<String> _searchSuggestions = [
-    'طاقة شمسية',
-    'ألواح كهروضوئية',
-    'بطاريات تخزين',
-    'عاكس كهربائي',
-    'تركيب منظومة',
-    'شبكة الكهرباء',
-    'توفير الطاقة',
-    'الطاقة المتجددة',
-  ];
 
   String _searchQuery = '';
 
