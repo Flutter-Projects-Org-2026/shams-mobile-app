@@ -5,12 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../models/workshop_data.dart';
 import '../../utils/constants.dart';
 import '../../widgets/image_source_sheet.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/scrollable_image_picker.dart';
 import '../../widgets/username_field.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+import '../../providers/user_provider.dart';
 
 class AddWorkshopScreen extends StatefulWidget {
   const AddWorkshopScreen({super.key});
@@ -35,6 +37,7 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
   final List<File> _images = []; // unlimited extra images
 
   final _picker = ImagePicker();
+  bool _isLoading = false;
 
   final List<String> _cities = [
     'صنعاء',
@@ -95,7 +98,7 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
 
   // ── Submit ───────────────────────────────────────────────────────────────────
 
-  void _onCreateTapped() {
+  Future<void> _onCreateTapped() async {
     final name = _nameController.text.trim();
     final username = _usernameController.text.trim();
     final description = _descriptionController.text.trim();
@@ -113,19 +116,46 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
       return;
     }
 
-    Navigator.pop(
-      context,
-      WorkshopData(
-        name: name,
-        username: username,
-        city: _selectedCity!,
-        description: description,
-        yearsOfExperience: int.tryParse(_yearsController.text.trim()) ?? 0,
-        profileImage: _profileImage,
-        coverImage: _coverImage,
-        extraImages: List.unmodifiable(_images),
-      ),
-    );
+    setState(() => _isLoading = true);
+
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) throw Exception('المستخدم غير مسجل الدخول');
+
+      // 1. Insert workshop (using city as address as requested)
+      await Supabase.instance.client.from('workshops').insert({
+        'owner_id': user.id,
+        'name': name,
+        'city': _selectedCity,
+        'address': _selectedCity,
+        'description': description,
+      });
+
+      // 2. Update profile
+      await Supabase.instance.client.from('profiles').update({
+        'has_workshop': true,
+      }).eq('id', user.id);
+
+      // 3. Update local state
+      if (mounted) {
+        context.read<UserProvider>().updateWorkshopStatus(true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تم إضافة الورشة بنجاح!', style: GoogleFonts.tajawal()),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showError('فشل إنشاء الورشة: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   void _showError(String message) {
@@ -270,10 +300,12 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
               // 7. Create button
               SizedBox(
                 width: double.infinity,
-                child: CustomSolidButton(
-                  title: 'إنشاء الورشة',
-                  onPressed: _onCreateTapped,
-                ),
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator(color: ShamsColors.primaryBlue))
+                    : CustomSolidButton(
+                        title: 'إنشاء الورشة',
+                        onPressed: _onCreateTapped,
+                      ),
               ),
               const SizedBox(height: 20),
             ],

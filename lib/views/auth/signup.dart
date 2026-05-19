@@ -1,10 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/constants.dart';
 import '../../widgets/text_field.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/outlined_button.dart';
 import 'signin.dart';
-import '../chat/chat_list_screen.dart';
+import 'signup_profile_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+import '../../providers/user_provider.dart';
+import '../../widgets/auth_gate.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -14,26 +20,95 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
+  final _confirmPassController = TextEditingController();
 
-  String? _nameError, _emailError, _passError;
+  String? _emailError, _passError, _confirmPassError;
+  bool _isLoading = false;
+  late final StreamSubscription<AuthState> _authSubscription;
 
-void _handleSignUp() {
-    setState(() {
-      _nameError = _nameController.text.isEmpty ? 'يرجى إدخال اسمك الكامل' : null;
-      _emailError = !_emailController.text.contains('@') ? 'البريد الإلكتروني غير صالح' : null;
-      _passError = _passController.text.length < 6 ? 'كلمة المرور قصيرة جداً' : null;
-
-      if (_nameError == null && _emailError == null && _passError == null) {
-        // الانتقال إلى قائمة المحادثات بعد نجاح التسجيل
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const ChatListScreen()),
-        );
+  void _listenToAuth() {
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final AuthChangeEvent event = data.event;
+      // Only react if we are signed in and it's not just the initial session check
+      if (event == AuthChangeEvent.signedIn) {
+        if (mounted) {
+          context.read<UserProvider>().fetchUserData();
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const AuthGate()),
+            (route) => false,
+          );
+        }
       }
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _listenToAuth();
+  }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    _emailController.dispose();
+    _passController.dispose();
+    _confirmPassController.dispose();
+    super.dispose();
+  }
+
+  void _handleNext() {
+    final email = _emailController.text.trim();
+    final password = _passController.text.trim();
+    final confirmPassword = _confirmPassController.text.trim();
+
+    setState(() {
+      _emailError = !email.contains('@') ? 'البريد الإلكتروني غير صالح' : null;
+      _passError = password.length < 6 ? 'كلمة المرور قصيرة جداً (6 أحرف على الأقل)' : null;
+      _confirmPassError = password != confirmPassword ? 'كلمتا المرور غير متطابقتين' : null;
+    });
+
+    if (_emailError == null && _passError == null && _confirmPassError == null) {
+      // Cancel the listener so it doesn't prematurely navigate when signUp is called!
+      _authSubscription.cancel();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SignUpProfileScreen(
+            email: email,
+            password: password,
+          ),
+        ),
+      ).then((_) {
+        // Re-subscribe if the user goes back to this screen
+        if (mounted) _listenToAuth();
+      });
+    }
+  }
+
+  Future<void> _handleGoogleSignUp() async {
+    setState(() => _isLoading = true);
+    try {
+      await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'shams://login-callback/',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('حدث خطأ أثناء التسجيل: $e', style: GoogleFonts.tajawal()), 
+            backgroundColor: ShamsColors.dangerRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -49,7 +124,7 @@ void _handleSignUp() {
             children: [
               Text('انضم إلى مجتمع شمس', style: GoogleFonts.tajawal(fontSize: 24, fontWeight: FontWeight.bold, color: ShamsColors.textGray)),
               const SizedBox(height: 8),
-              Text('ابدأ رحلتك اليوم واستمتع بتجربة فريدة ومتميزة معنا', style: GoogleFonts.tajawal(fontSize: 14, color: const Color(0xFF9EA3B0))),
+              Text('خطوتك الأولى لتجربة فريدة ومتميزة معنا', style: GoogleFonts.tajawal(fontSize: 14, color: const Color(0xFF9EA3B0))),
               const SizedBox(height: 32),
               // ── بطاقة الإدخال ──
               Container(
@@ -58,16 +133,43 @@ void _handleSignUp() {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _inputLabel('الاسم الكامل'),
-                    CustomTextField(hintText: 'أدخل اسمك الكامل', prefixIcon: Icons.person_outline, controller: _nameController, errorText: _nameError),
-                    const SizedBox(height: 20),
                     _inputLabel('البريد الإلكتروني'),
                     CustomTextField(hintText: 'example@mail.com', prefixIcon: Icons.email_outlined, controller: _emailController, errorText: _emailError),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     _inputLabel('كلمة المرور'),
                     CustomTextField(hintText: '••••••••', prefixIcon: Icons.lock_outline, isPassword: true, controller: _passController, errorText: _passError),
+                    const SizedBox(height: 16),
+                    _inputLabel('تأكيد كلمة المرور'),
+                    CustomTextField(hintText: '••••••••', prefixIcon: Icons.lock_outline, isPassword: true, controller: _confirmPassController, errorText: _confirmPassError),
                     const SizedBox(height: 32),
-                    SizedBox(width: double.infinity, height: 50, child: CustomSolidButton(title: 'متابعة', onPressed: _handleSignUp)),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: CustomSolidButton(title: 'التالي', onPressed: _handleNext),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text('أو إنشاء حساب عبر', style: GoogleFonts.tajawal(color: const Color(0xFF9EA3B0), fontSize: 13)),
+                        ),
+                        const Expanded(child: Divider(color: Color(0xFFE5E7EB))),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator(color: ShamsColors.primaryBlue))
+                          : CustomOutlinedButton(
+                              title: 'Google',
+                              icon: const Icon(Icons.g_mobiledata_rounded),
+                              onPressed: _handleGoogleSignUp,
+                            ),
+                    ),
                   ],
                 ),
               ),

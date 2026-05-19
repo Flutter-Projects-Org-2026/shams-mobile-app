@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../models/workshop_data.dart';
 import '../../utils/constants.dart';
 import '../../widgets/primary_button.dart';
 import 'add_workshop_screen.dart';
@@ -13,6 +12,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../widgets/auth_gate.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UserProfileScreen — شاشة الملف الشخصي للمستخدم
@@ -28,11 +29,6 @@ class UserProfileScreen extends StatefulWidget {
 class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isNotificationsEnabled = true;
   String _selectedLanguage = 'ar';
-
-  /// Tracks whether the user has an active workshop.
-  /// Populated when AddWorkshopScreen returns a WorkshopData object.
-  bool _hasWorkshop = false;
-  WorkshopData? _workshopData;
 
   @override
   Widget build(BuildContext context) {
@@ -99,9 +95,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
                 child: CircleAvatar(
                   radius: 40,
-                  backgroundImage: AssetImage(
-                    currentUser.profileImageUrl ?? 'assets/images/logo/shams logo.png',
-                  ),
+                  backgroundColor: Colors.white,
+                  backgroundImage: (currentUser.profileImageUrl != null && currentUser.profileImageUrl!.isNotEmpty)
+                      ? NetworkImage(currentUser.profileImageUrl!) as ImageProvider
+                      : const AssetImage('assets/images/logo/shams logo.png'),
                 ),
               ),
               // زر تعديل الملف (يسار)
@@ -167,11 +164,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     color: Colors.grey.shade600,
                   ),
                 ),
+                if (currentUser.phone != null && currentUser.phone!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.phone_outlined, size: 14, color: ShamsColors.solarYellow),
+                      const SizedBox(width: 4),
+                      Text(
+                        currentUser.phone!,
+                        style: GoogleFonts.tajawal(fontSize: 12, color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 6),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    if (currentUser.bio != null) ...[
+                    if (currentUser.bio != null && currentUser.bio!.isNotEmpty) ...[
                       const Icon(
                         Icons.info_outline_rounded,
                         size: 14,
@@ -231,7 +241,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   // ─── Dynamic Workshop Tile ───────────────────────────────────────────
 
   Widget _buildWorkshopTile() {
-    final bool hasWorkshop = _hasWorkshop;
+    final bool hasWorkshop = context.watch<UserProvider>().currentUser.hasWorkshop;
 
     return InkWell(
       onTap: hasWorkshop ? _openWorkshopDashboard : _openAddWorkshop,
@@ -305,28 +315,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  /// Navigates to AddWorkshopScreen and stores [WorkshopData] on success.
-  Future<void> _openAddWorkshop() async {
-    final WorkshopData? data = await Navigator.push<WorkshopData>(
+  /// Navigates to AddWorkshopScreen
+  void _openAddWorkshop() {
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const AddWorkshopScreen()),
     );
-
-    if (data != null) {
-      setState(() {
-        _hasWorkshop = true;
-        _workshopData = data;
-      });
-      if (mounted) _showWorkshopCreatedSnackBar();
-    }
   }
 
-  /// Navigates to the workshop dashboard, passing the stored [WorkshopData].
+  /// Navigates to the workshop dashboard.
   void _openWorkshopDashboard() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => WorkshopDashboardScreen(workshopData: _workshopData),
+        builder: (_) => const WorkshopDashboardScreen(),
       ),
     );
   }
@@ -704,12 +706,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   const SizedBox(width: 15),
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-                          (Route<dynamic> route) => false,
-                        );
+                      onPressed: () async {
+                        // 1. Sign out from Supabase
+                        await Supabase.instance.client.auth.signOut();
+                        if (context.mounted) {
+                          // 2. Clear local user data
+                          context.read<UserProvider>().clearUserData();
+                          // 3. Navigate to AuthGate to reset the app state
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => const AuthGate()),
+                            (Route<dynamic> route) => false,
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ShamsColors.dangerRed,

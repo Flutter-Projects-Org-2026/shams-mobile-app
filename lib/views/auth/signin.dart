@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/constants.dart';
@@ -5,7 +6,10 @@ import '../../widgets/text_field.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/outlined_button.dart';
 import 'signup.dart';
-import '../chat/chat_list_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
+import '../../providers/user_provider.dart';
+import '../../widgets/auth_gate.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -18,20 +22,109 @@ class _SignInScreenState extends State<SignInScreen> {
   final _emailController = TextEditingController();
   final _passController = TextEditingController();
   String? _emailError, _passError;
+  bool _isLoading = false;
+  late final StreamSubscription<AuthState> _authSubscription;
 
-  void _handleLogin() {
-    setState(() {
-      _emailError = _emailController.text.isEmpty ? 'يرجى التحقق من البريد الإلكتروني' : null;
-      _passError = _passController.text.isEmpty ? 'كلمة المرور غير صحيحة' : null;
-
-      if (_emailError == null && _passError == null) {
-        // الانتقال إلى قائمة المحادثات وعدم السماح بالرجوع لشاشة الدخول
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const ChatListScreen()),
-        );
+  @override
+  void initState() {
+    super.initState();
+    // Listen for auth state changes (e.g. returning from Google Sign-In)
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final AuthChangeEvent event = data.event;
+      if (event == AuthChangeEvent.signedIn) {
+        if (mounted) {
+          context.read<UserProvider>().fetchUserData();
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const AuthGate()),
+            (route) => false,
+          );
+        }
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    _emailController.dispose();
+    _passController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passController.text.trim();
+
+    setState(() {
+      _emailError = email.isEmpty ? 'يرجى التحقق من البريد الإلكتروني' : null;
+      _passError = password.isEmpty ? 'كلمة المرور غير صحيحة' : null;
+    });
+
+    if (_emailError == null && _passError == null) {
+      setState(() => _isLoading = true);
+      try {
+        await Supabase.instance.client.auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
+        
+        if (mounted) {
+          await context.read<UserProvider>().fetchUserData();
+          
+          if (mounted) {
+            // Remove Welcome & SignIn screens from stack and go back to root
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const AuthGate()),
+              (route) => false,
+            );
+          }
+        }
+      } on AuthException catch (e) {
+        if (mounted) {
+          String errorMessage = e.message;
+          if (e.message.contains('Invalid login credentials')) {
+            errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+          } else if (e.message.contains('Email not confirmed')) {
+            errorMessage = 'يرجى تأكيد بريدك الإلكتروني أولاً';
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage, style: GoogleFonts.tajawal()), 
+              backgroundColor: ShamsColors.dangerRed,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('حدث خطأ أثناء تسجيل الدخول: $e', style: GoogleFonts.tajawal()), 
+              backgroundColor: ShamsColors.dangerRed,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+  }
+
+  Future<void> _handleGoogleLogin() async {
+    try {
+      await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'shams://login-callback/',
+      );
+      // fetchUserData will be called by AuthGate or after redirect
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('فشل تسجيل الدخول عبر جوجل'), backgroundColor: ShamsColors.dangerRed),
+        );
+      }
+    }
   }
 
   @override
@@ -62,12 +155,18 @@ class _SignInScreenState extends State<SignInScreen> {
                     CustomTextField(hintText: '••••••••', prefixIcon: Icons.lock_outline, isPassword: true, controller: _passController, errorText: _passError),
                     Align(alignment: Alignment.centerLeft, child: TextButton(onPressed: () {}, child: Text('نسيت كلمة المرور؟', style: GoogleFonts.tajawal(color: ShamsColors.primaryBlue, fontSize: 12)))),
                     const SizedBox(height: 16),
-                    SizedBox(width: double.infinity, height: 50, child: CustomSolidButton(title: 'تسجيل الدخول', onPressed: _handleLogin)),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: _isLoading 
+                          ? const Center(child: CircularProgressIndicator(color: ShamsColors.primaryBlue))
+                          : CustomSolidButton(title: 'تسجيل الدخول', onPressed: _handleLogin),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
-              CustomOutlinedButton(title: 'Google تسجيل الدخول بواسطة', icon: const Icon(Icons.g_mobiledata, size: 30), onPressed: () {}),
+              CustomOutlinedButton(title: 'Google تسجيل الدخول بواسطة', icon: const Icon(Icons.g_mobiledata, size: 30), onPressed: _handleGoogleLogin),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

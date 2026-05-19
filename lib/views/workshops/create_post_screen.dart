@@ -461,38 +461,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       ),
     );
   }
-
-  Widget _buildPickerOption({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: GoogleFonts.tajawal(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: ShamsColors.textGray,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
