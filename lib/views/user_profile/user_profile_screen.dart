@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/auth_gate.dart';
+import 'edit_profile_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UserProfileScreen — شاشة الملف الشخصي للمستخدم
@@ -101,38 +102,46 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       : const AssetImage('assets/images/logo/shams logo.png'),
                 ),
               ),
-              // زر تعديل الملف (يسار)
-              Container(
-                margin: const EdgeInsets.only(top: 8),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: ShamsColors.solarYellow.withValues(alpha: 0.2),
+     // زر تعديل الملف (يسار)
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
                   ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.edit_outlined,
-                      size: 14,
-                      color: ShamsColors.solarYellow,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: ShamsColors.solarYellow.withValues(alpha: 0.2),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'تعديل الملف',
-                      style: GoogleFonts.tajawal(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.edit_outlined,
+                        size: 14,
                         color: ShamsColors.solarYellow,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Text(
+                        'تعديل الملف',
+                        style: GoogleFonts.tajawal(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: ShamsColors.solarYellow,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

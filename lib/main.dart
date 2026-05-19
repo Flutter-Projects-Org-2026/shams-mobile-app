@@ -10,6 +10,7 @@ import 'providers/user_provider.dart';
 import 'providers/feed_provider.dart';
 import 'providers/chat_provider.dart';
 import 'utils/theme.dart';
+import 'package:shams_mobile_app/views/user_profile/edit_profile_screen.dart';
 
 Future<void> main() async {
   // Ensure Flutter engine is fully initialized before calling native code.
@@ -73,6 +74,7 @@ class ShamsApp extends StatelessWidget {
 
       // ── Entry Point ─────────────────────────────────────────────
       home: const AuthGate(),
+      // home: const EditProfileScreen(),
     );
   }
 }
