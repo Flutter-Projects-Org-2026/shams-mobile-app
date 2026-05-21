@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../models/message_model.dart';
+import '../../models/user_model.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ChatConversationScreen extends StatefulWidget {
@@ -50,10 +51,12 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
         lastMessageTime: DateTime.now(),
       ),
     );
-    final otherParticipant = chat.participants.firstWhere(
-      (p) => p.id != currentUser.id,
-      orElse: () => chat.participants.first,
-    );
+    final otherParticipant = chat.participants.isEmpty
+        ? const UserModel(id: '', name: 'محادثة', email: '')
+        : chat.participants.firstWhere(
+            (p) => p.id != currentUser.id,
+            orElse: () => chat.participants.first,
+          );
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -74,10 +77,16 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundImage: AssetImage(
-                  otherParticipant.profileImageUrl ??
-                      'assets/images/logo/shams logo.png',
-                ),
+                backgroundColor: const Color(0xFFF0F2F5),
+                backgroundImage:
+                    otherParticipant.profileImageUrl != null &&
+                            otherParticipant.profileImageUrl!.isNotEmpty
+                        ? AssetImage(otherParticipant.profileImageUrl!)
+                        : null,
+                child: otherParticipant.profileImageUrl == null ||
+                        otherParticipant.profileImageUrl!.isEmpty
+                    ? const Icon(Icons.store_rounded, color: Colors.grey, size: 20)
+                    : null,
               ),
               const SizedBox(width: 10),
               Text(

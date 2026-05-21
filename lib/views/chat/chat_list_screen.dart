@@ -7,6 +7,7 @@ import 'chat_conversation_screen.dart'; // مسار شاشة الدردشة
 import 'package:provider/provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../models/user_model.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ChatListScreen extends StatefulWidget {
@@ -32,6 +33,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final filteredChats = _searchQuery.isEmpty 
         ? allChats 
         : allChats.where((c) {
+            if (c.participants.isEmpty) return false;
             final otherParticipant = c.participants.firstWhere((p) => p.id != currentUser.id, orElse: () => c.participants.first);
             return otherParticipant.name.toLowerCase().contains(_searchQuery.toLowerCase());
           }).toList();
@@ -88,10 +90,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           Divider(color: Colors.grey.shade100, height: 1),
                       itemBuilder: (context, index) {
                         final chat = filteredChats[index];
-                        final otherParticipant = chat.participants.firstWhere(
-                          (p) => p.id != currentUser.id, 
-                          orElse: () => chat.participants.first
-                        );
+                        final otherParticipant = chat.participants.isEmpty
+                            ? const UserModel(id: '', name: 'محادثة', email: '')
+                            : chat.participants.firstWhere(
+                                (p) => p.id != currentUser.id, 
+                                orElse: () => chat.participants.first
+                              );
                         final lastMessage = chat.messages.isNotEmpty ? chat.messages.first.text : 'لا توجد رسائل';
                         final unreadCount = chat.messages.where((m) => !m.isRead && m.senderId != currentUser.id).length;
 

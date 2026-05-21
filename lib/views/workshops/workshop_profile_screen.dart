@@ -38,6 +38,145 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
     context.read<WorkshopProvider>().toggleFollow(widget.workshopId);
   }
 
+  void _showMaintenanceRequestSheet(BuildContext context, PublicWorkshopModel workshop) {
+    final textController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (bCtx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(bCtx).viewInsets.bottom,
+          ),
+          child: Container(
+            decoration: const BoxDecoration(
+              color: ShamsColors.bgWhite,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Drag handle
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: ShamsColors.handleBar,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'طلب خدمة صيانة من ${workshop.name}',
+                  style: GoogleFonts.tajawal(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: ShamsColors.textGray,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'يرجى كتابة تفاصيل المشكلة أو الخدمة المطلوبة لنتمكن من خدمتك بشكل أفضل.',
+                  style: GoogleFonts.tajawal(
+                    fontSize: 13.5,
+                    color: ShamsColors.textHint,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: textController,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: 'مثال: أريد فحص منظومة الطاقة الشمسية وتنظيف الألواح وتغيير البطاريات...',
+                    hintStyle: GoogleFonts.tajawal(
+                      fontSize: 13,
+                      color: ShamsColors.textHint,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF8F9FE),
+                    contentPadding: const EdgeInsets.all(16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: ShamsColors.borderLight),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: ShamsColors.primaryBlue, width: 1.5),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: ShamsColors.borderLight),
+                    ),
+                  ),
+                  style: GoogleFonts.tajawal(
+                    fontSize: 14,
+                    color: ShamsColors.textGray,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                CustomSolidButton(
+                  title: 'إرسال الطلب',
+                  onPressed: () {
+                    final requestText = textController.text.trim();
+                    if (requestText.isEmpty) {
+                      ScaffoldMessenger.of(bCtx).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'يرجى كتابة تفاصيل الطلب أولاً',
+                            style: GoogleFonts.tajawal(
+                              color: Colors.white,
+                            ),
+                          ),
+                          backgroundColor: ShamsColors.dangerRed,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      return;
+                    }
+
+                    // 1. Close bottom sheet
+                    Navigator.pop(bCtx);
+
+                    // 2. Prepare target workshop data as UserModel
+                    final workshopData = UserModel(
+                      id: workshop.id,
+                      name: workshop.name,
+                      email: '${workshop.handle.replaceFirst('@', '')}@shams.com',
+                      profileImageUrl: workshop.logoPath,
+                    );
+
+                    // 3. Create the maintenance chat session
+                    final currentUser = context.read<UserProvider>().currentUser;
+                    final generatedChatId = context
+                        .read<ChatProvider>()
+                        .createMaintenanceChat(currentUser, workshopData, requestText);
+
+                    // 4. Router Navigation
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChatConversationScreen(
+                          chatId: generatedChatId,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // ── Single source of truth: watch provider for live updates ──────────────
@@ -105,7 +244,9 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                         size: 20, color: ShamsColors.textGray),
                     const SizedBox(width: 8),
                     Text('بحث',
-                        style: GoogleFonts.tajawal(color: ShamsColors.textGray)),
+                        style: GoogleFonts.tajawal(
+                          color: ShamsColors.textGray,
+                        )),
                   ],
                 ),
               ),
@@ -123,29 +264,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
           padding: const EdgeInsets.symmetric(horizontal: 50),
           child: CustomSolidButton(
             title: 'طلب خدمة صيانة الآن',
-            onPressed: () {
-              // ── Connect directly to the chat system dynamically ─────────────
-              final currentUser = context.read<UserProvider>().currentUser;
-              final otherUser = UserModel(
-                id: workshop.id,
-                name: workshop.name,
-                email: '${workshop.handle.replaceFirst('@', '')}@shams.com',
-                profileImageUrl: workshop.logoPath,
-              );
-
-              final chatId = context
-                  .read<ChatProvider>()
-                  .getOrCreateChat(currentUser, otherUser);
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChatConversationScreen(
-                    chatId: chatId,
-                  ),
-                ),
-              );
-            },
+            onPressed: () => _showMaintenanceRequestSheet(context, workshop),
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

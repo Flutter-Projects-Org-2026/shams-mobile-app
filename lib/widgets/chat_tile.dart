@@ -36,8 +36,12 @@ class ChatTile extends StatelessWidget {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: const Color(0xFFF0F2F5),
-                  // افتراض أن avatarPath هو رابط لخادم أو أصل، سنستخدم Icon للتمثيل المبدئي
-                  child: const Icon(Icons.person, color: Colors.grey, size: 30),
+                  backgroundImage: avatarPath.isNotEmpty
+                      ? AssetImage(avatarPath)
+                      : null,
+                  child: avatarPath.isEmpty
+                      ? const Icon(Icons.store_rounded, color: Colors.grey, size: 28)
+                      : null,
                 ),
                 if (isOnline)
                   Positioned(

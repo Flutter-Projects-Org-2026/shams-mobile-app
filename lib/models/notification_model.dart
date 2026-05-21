@@ -38,24 +38,4 @@ class NotificationModel {
       color: color ?? this.color,
     );
   }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'title': title,
-      'message': message,
-      'timestamp': timestamp.toIso8601String(),
-      'isRead': isRead,
-    };
-  }
-
-  factory NotificationModel.fromMap(Map<String, dynamic> map) {
-    return NotificationModel(
-      id: map['id'] ?? '',
-      title: map['title'] ?? '',
-      message: map['message'] ?? '',
-      timestamp: DateTime.parse(map['timestamp']),
-      isRead: map['isRead'] ?? false,
-    );
-  }
 }
