@@ -443,9 +443,11 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
-
-  @override
+ @override
   Widget build(BuildContext context) {
+    // 💡 التعديل الجديد: تعريف المتغير الذي يراقب حالة الورشة
+    final workshopState = context.watch<WorkshopProvider>();
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -531,32 +533,28 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
               ),
               const SizedBox(height: 24),
 
-              // ── 4. Stats bar ──
+              // ── 4. Stats bar (شريط الإحصائيات) ──
               Divider(color: Colors.grey.shade200, height: 1),
-              Consumer<WorkshopProvider>(
-                builder: (context, provider, _) {
-                  return IntrinsicHeight(
-                    child: Row(
-                      children: [
-                        _buildStatColumn(
-                          '1.2K',
-                          'المتابعون',
-                          Icons.people_alt_outlined,
-                        ),
-                        VerticalDivider(
-                          color: Colors.grey.shade200,
-                          width: 1,
-                          thickness: 1,
-                        ),
-                        _buildStatColumn(
-                          '${provider.postCount}',
-                          'المنشورات',
-                          Icons.article_outlined,
-                        ),
-                      ],
+              IntrinsicHeight(
+                child: Row(
+                  children: [
+                    _buildStatColumn(
+                      '1.2K',
+                      'المتابعون',
+                      Icons.people_alt_outlined,
                     ),
-                  );
-                },
+                    VerticalDivider(
+                      color: Colors.grey.shade200,
+                      width: 1,
+                      thickness: 1,
+                    ),
+                    _buildStatColumn(
+                      '${workshopState.postCount}', // 💡 استخدام مباشر للمتغير
+                      'المنشورات',
+                      Icons.article_outlined,
+                    ),
+                  ],
+                ),
               ),
               Divider(color: Colors.grey.shade200, height: 1),
               const SizedBox(height: 24),
@@ -577,9 +575,11 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    Consumer<WorkshopProvider>(
-                      builder: (context, provider, _) {
-                        final posts = provider.posts;
+                    // 💡 حذفنا الـ Consumer واستخدمنا Builder عادي للترتيب التنظيمي فقط
+                    Builder(
+                      builder: (context) {
+                        // 💡 استخدام المتغير لقراءة مصفوفة المنشورات
+                        final posts = workshopState.posts;
 
                         if (posts.isEmpty) {
                           return Center(
@@ -624,8 +624,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) =>
-                                        EditPostScreen(post: post),
+                                    builder: (_) => EditPostScreen(post: post),
                                   ),
                                 );
                               },
