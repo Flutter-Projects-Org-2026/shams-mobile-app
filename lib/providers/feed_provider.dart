@@ -52,6 +52,15 @@ class FeedProvider extends ChangeNotifier {
 
   List<PostModel> get posts => _posts;
 
+  /// Returns the post with [id], or null if not found.
+  PostModel? getPostById(String id) {
+    try {
+      return _posts.firstWhere((p) => p.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
   void toggleLike(String postId) {
     final index = _posts.indexWhere((p) => p.id == postId);
     if (index != -1) {

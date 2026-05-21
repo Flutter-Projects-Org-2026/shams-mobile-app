@@ -113,6 +113,19 @@ class _PostCardState extends State<PostCard>
     _likeScaleAnim = _likeAnimController;
   }
 
+  /// Keep local state in sync when the provider pushes a new value.
+  /// This fires whenever [widget.isLiked] or [widget.likesCount] changes
+  /// from the parent (e.g. after returning from PostDetailScreen).
+  @override
+  void didUpdateWidget(PostCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isLiked != widget.isLiked ||
+        oldWidget.likesCount != widget.likesCount) {
+      _isLiked = widget.isLiked;
+      _likesCount = widget.likesCount;
+    }
+  }
+
   @override
   void dispose() {
     _likeAnimController.dispose();

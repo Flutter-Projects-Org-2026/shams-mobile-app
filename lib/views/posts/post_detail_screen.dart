@@ -1,349 +1,118 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../utils/constants.dart';
 import '../../widgets/post_card.dart';
 import '../../widgets/comments_component.dart';
 import '../../models/comment_model.dart';
+
+import '../../providers/feed_provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// نموذج بيانات المنشور لشاشة التفاصيل
-// ─────────────────────────────────────────────────────────────────────────────
-
-class PostDetailData {
-  final String postId;
-  final String username;
-  final String userHandle;
-  final String avatarPath;
-  final String content;
-  final List<String>? imagePaths;
-  final int likesCount;
-  final int commentsCount;
-  final int sharesCount;
-  final bool isLiked;
-  final List<CommentModel> comments;
-
-  const PostDetailData({
-    required this.postId,
-    required this.username,
-    required this.userHandle,
-    required this.avatarPath,
-    required this.content,
-    required this.likesCount,
-    required this.commentsCount,
-    required this.sharesCount,
-    required this.isLiked,
-    required this.comments,
-    this.imagePaths,
-  });
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // PostDetailScreen — شاشة تفاصيل المنشور
+//
+// • Accepts ONLY a [postId] — no full Post object is passed.
+// • Reads live data from FeedProvider via context.watch() in build().
+// • Mutations use context.read() strictly inside callbacks (never in build).
+// • No Consumer widget is used anywhere.
 // ─────────────────────────────────────────────────────────────────────────────
 
-class PostDetailScreen extends StatefulWidget {
-  final PostDetailData post;
+class PostDetailScreen extends StatelessWidget {
+  /// The unique identifier of the post to display.
+  final String postId;
 
-  const PostDetailScreen({super.key, required this.post});
-
-  @override
-  State<PostDetailScreen> createState() => _PostDetailScreenState();
-}
-
-class _PostDetailScreenState extends State<PostDetailScreen> {
-  // int _currentNavIndex = 0;
+  const PostDetailScreen({super.key, required this.postId});
 
   @override
   Widget build(BuildContext context) {
+    // ── Single source of truth: watch the provider for live updates ──────────
+    // context.watch causes the entire build to re-run whenever FeedProvider
+    // calls notifyListeners(), guaranteeing the UI is always up-to-date.
+    final feed = context.watch<FeedProvider>();
+    final post = feed.getPostById(postId);
+
+    // Guard: if the post was deleted while open, pop back gracefully.
+    if (post == null) {
+      return Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: ShamsColors.backgroundLight,
+          appBar: _buildAppBar(context),
+          body: Center(
+            child: Text(
+              'لم يُعثر على المنشور',
+              style: GoogleFonts.tajawal(
+                fontSize: 16,
+                color: ShamsColors.textHint,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Derived display values — computed inside build, never stored in state.
+    final username = post.author?.name ?? 'مستخدم غير معروف';
+    final userHandle = post.author?.email != null
+        ? '@${post.author!.email.split('@').first}'
+        : '@unknown';
+    final avatarPath =
+        post.author?.profileImageUrl ?? 'assets/images/logo/shams logo.png';
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: ShamsColors.backgroundLight,
 
-        // ── شريط التطبيق ─────────────────────────────────────────
+        // ── AppBar ───────────────────────────────────────────────────────────
         appBar: _buildAppBar(context),
 
-        // ── المحتوى ──────────────────────────────────────────────
+        // ── Body ─────────────────────────────────────────────────────────────
         body: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // بطاقة المنشور كاملة (بدون تقليص النص)
+              // ── بطاقة المنشور الكاملة ──────────────────────────────────────
               PostCard(
-                username: widget.post.username,
-                userHandle: widget.post.userHandle,
-                avatarPath: widget.post.avatarPath,
-                content: widget.post.content,
-                imagePaths: widget.post.imagePaths,
-                likesCount: widget.post.likesCount,
-                commentsCount: widget.post.comments.length,
-                sharesCount: widget.post.sharesCount,
-                isLiked: widget.post.isLiked,
-                // نعرض النص كاملاً دون تقليص
+                username: username,
+                userHandle: userHandle,
+                avatarPath: avatarPath,
+                content: post.textDetails,
+                imagePaths: post.images.isNotEmpty ? post.images : null,
+                likesCount: post.likesCount,
+                commentsCount: post.comments.length,
+                sharesCount: 0,
+                isLiked: post.isLiked,
+                // Show full text — no truncation on the detail screen.
                 maxLines: 999,
-                onCommentTap: () async {
-                  await showCommentsSheet(
-                    context,
-                    postId: widget.post.postId,
-                    comments: widget.post.comments,
-                    commentsCount: widget.post.comments.length,
-                  );
-                  // تحديث الواجهة بعد إغلاق نافذة التعليقات لعرض العدد والتعليقات الجديدة
-                  setState(() {});
-                },
+                // context.read() inside a callback — correct usage.
+                onLikeToggle: (_) =>
+                    context.read<FeedProvider>().toggleLike(postId),
+                onCommentTap: () => _openCommentsSheet(context),
                 onShareTap: () => _onShare(context),
                 onMenuTap: () => _showMenu(context),
               ),
 
-              // ── الهاشتاقات ───────────────────────────────────
-              // _buildHashtags(),
               const SizedBox(height: 8),
 
-              // ── قسم التعليقات المعاينة ────────────────────────
-              _buildCommentsPreview(context),
+              // ── قسم التعليقات ─────────────────────────────────────────────
+              _CommentsSection(postId: postId),
 
               const SizedBox(height: 20),
             ],
           ),
         ),
-
-        // ── شريط التنقل السفلي ──────────────────────────────────
-        // bottomNavigationBar: ShamsBottomNavBar(
-        //   currentIndex: _currentNavIndex,
-        //   onTap: (index) => setState(() => _currentNavIndex = index),
-        // ),
       ),
     );
   }
 
-  // ── AppBar مع سهم الرجوع ─────────────────────────────────────────────────
+  // ── Helpers ─────────────────────────────────────────────────────────────────
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(kToolbarHeight),
-      child: Container(
-        color: ShamsColors.solarYellow,
-        child: SafeArea(
-          bottom: false,
-          child: SizedBox(
-            height: kToolbarHeight,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                children: [
-                  // زر الرجوع
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 18,
-                        color: ShamsColors.textGray,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  // العنوان
-                  Text(
-                    'تفاصيل المنشور',
-                    style: GoogleFonts.tajawal(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      color: ShamsColors.textGray,
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  // زر المشاركة
-                  GestureDetector(
-                    onTap: () => _onShare(context),
-                    child: const Icon(
-                      Icons.share_outlined,
-                      size: 22,
-                      color: ShamsColors.textGray,
-                    ),
-                  ),
-
-                  const SizedBox(width: 16),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ── الهاشتاقات ───────────────────────────────────────────────────────────
-
-  // Widget _buildHashtags() {
-  //   const tags = [
-  //     '#طاقة_شمسية',
-  //     '#ألواح_كهروضوئية',
-  //     '#عاكس_كهربائي',
-  //     '#منظومة_شمسية',
-  //   ];
-
-  //   return Padding(
-  //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-  //     child: Wrap(
-  //       spacing: 8,
-  //       runSpacing: 6,
-  //       children: tags.map((tag) => _HashtagChip(label: tag)).toList(),
-  //     ),
-  //   );
-  // }
-
-  // ── قسم معاينة التعليقات ─────────────────────────────────────────────────
-
-  Widget _buildCommentsPreview(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: ShamsColors.bgWhite,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: ShamsColors.primaryBlue.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // رأس القسم
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-            child: Row(
-              children: [
-                Text(
-                  'التعليقات',
-                  style: GoogleFonts.tajawal(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: ShamsColors.textGray,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: ShamsColors.primaryBlue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  child: Text(
-                    '${widget.post.comments.length}',
-                    style: GoogleFonts.tajawal(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: ShamsColors.primaryBlue,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () async {
-                    await showCommentsSheet(
-                      context,
-                      postId: widget.post.postId,
-                      comments: widget.post.comments,
-                      commentsCount: widget.post.comments.length,
-                    );
-                    setState(() {});
-                  },
-                  child: Text(
-                    'عرض الكل',
-                    style: GoogleFonts.tajawal(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: ShamsColors.primaryBlue,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const Divider(height: 1, thickness: 1, color: ShamsColors.dividerLight),
-
-          // معاينة أول تعليقين (أو أقل)
-          if (widget.post.comments.isNotEmpty)
-            ...widget.post.comments.take(2).expand((comment) {
-              return [
-                _PreviewComment(
-                  avatarPath: comment.user.profileImageUrl ?? 'assets/images/logo/shams logo.png',
-                  userName: comment.user.name,
-                  text: comment.text,
-                  timeAgo: timeago.format(comment.timestamp, locale: 'ar'),
-                ),
-                if (comment != widget.post.comments.take(2).last)
-                  const Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: ShamsColors.dividerLight,
-                    indent: 62,
-                  ),
-              ];
-            }),
-
-          // زر إضافة تعليق
-          GestureDetector(
-            onTap: () async {
-              await showCommentsSheet(
-                context,
-                postId: widget.post.postId,
-                comments: widget.post.comments,
-                commentsCount: widget.post.comments.length,
-              );
-              setState(() {});
-            },
-            child: Container(
-              margin: const EdgeInsets.all(14),
-              height: 42,
-              decoration: BoxDecoration(
-                color: ShamsColors.backgroundLight,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: ShamsColors.borderLight),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 14),
-                  const Icon(
-                    Icons.chat_bubble_outline_rounded,
-                    size: 18,
-                    color: ShamsColors.textHint,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'اكتب تعليقك هنا...',
-                    style: GoogleFonts.tajawal(
-                      fontSize: 13.5,
-                      color: ShamsColors.textHint,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  void _openCommentsSheet(BuildContext context) async {
+    await showCommentsSheet(context, postId: postId);
+    // No setState needed — FeedProvider notified, context.watch rebuilds us.
   }
 
   void _onShare(BuildContext context) {
@@ -407,10 +176,225 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       ),
     );
   }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: Container(
+        color: ShamsColors.solarYellow,
+        child: SafeArea(
+          bottom: false,
+          child: SizedBox(
+            height: kToolbarHeight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 18,
+                        color: ShamsColors.textGray,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'تفاصيل المنشور',
+                    style: GoogleFonts.tajawal(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: ShamsColors.textGray,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => _onShare(context),
+                    child: const Icon(
+                      Icons.share_outlined,
+                      size: 22,
+                      color: ShamsColors.textGray,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// _PreviewComment — تعليق معاينة مبسّط
+// _CommentsSection — the full comments block (header + preview + add button).
+//
+// Reads the live comments list from context.watch inside its own build so
+// it re-renders automatically when FeedProvider notifies (e.g. after addComment).
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _CommentsSection extends StatelessWidget {
+  final String postId;
+
+  const _CommentsSection({required this.postId});
+
+  @override
+  Widget build(BuildContext context) {
+    // Watch FeedProvider directly to make this section perfectly reactive
+    final feed = context.watch<FeedProvider>();
+    final post = feed.getPostById(postId);
+
+    if (post == null) return const SizedBox.shrink();
+    final comments = post.comments;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: ShamsColors.bgWhite,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: ShamsColors.primaryBlue.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── رأس القسم ──────────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+            child: Row(
+              children: [
+                Text(
+                  'التعليقات',
+                  style: GoogleFonts.tajawal(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: ShamsColors.textGray,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                // Live count badge — updates automatically via context.watch
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: ShamsColors.primaryBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text(
+                    '${comments.length}',
+                    style: GoogleFonts.tajawal(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: ShamsColors.primaryBlue,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                // context.read() inside onTap callback — correct usage.
+                GestureDetector(
+                  onTap: () => _openSheet(context),
+                  child: Text(
+                    'عرض الكل',
+                    style: GoogleFonts.tajawal(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: ShamsColors.primaryBlue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const Divider(
+            height: 1,
+            thickness: 1,
+            color: ShamsColors.dividerLight,
+          ),
+
+          // ── معاينة أول تعليقين ─────────────────────────────────────────────
+          if (comments.isNotEmpty)
+            ...comments.take(2).expand((comment) {
+              return [
+                _PreviewComment(
+                  avatarPath:
+                      comment.user.profileImageUrl ??
+                      'assets/images/logo/shams logo.png',
+                  userName: comment.user.name,
+                  text: comment.text,
+                  timeAgo: timeago.format(comment.timestamp, locale: 'ar'),
+                ),
+                if (comment != comments.take(2).last)
+                  const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: ShamsColors.dividerLight,
+                    indent: 62,
+                  ),
+              ];
+            }),
+
+          // ── زر إضافة تعليق ─────────────────────────────────────────────────
+          GestureDetector(
+            // context.read() inside a callback — correct usage.
+            onTap: () => _openSheet(context),
+            child: Container(
+              margin: const EdgeInsets.all(14),
+              height: 42,
+              decoration: BoxDecoration(
+                color: ShamsColors.backgroundLight,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: ShamsColors.borderLight),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 14),
+                  const Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    size: 18,
+                    color: ShamsColors.textHint,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'اكتب تعليقك هنا...',
+                    style: GoogleFonts.tajawal(
+                      fontSize: 13.5,
+                      color: ShamsColors.textHint,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openSheet(BuildContext context) async {
+    await showCommentsSheet(context, postId: postId);
+    // No setState — FeedProvider notifies, context.watch in the parent rebuilds.
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// _PreviewComment — مصغّر تعليق في القائمة
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _PreviewComment extends StatelessWidget {
@@ -435,7 +419,7 @@ class _PreviewComment extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // الصورة
+          // الصورة الشخصية
           Container(
             width: 36,
             height: 36,
@@ -451,11 +435,11 @@ class _PreviewComment extends StatelessWidget {
                   : Image.asset(
                       avatarPath,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => Container(
+                      errorBuilder: (context, error, stackTrace) => Container(
                         color: ShamsColors.avatarFallbackBg,
                         child: Center(
                           child: Text(
-                            userName[0],
+                            userName.isNotEmpty ? userName[0] : '؟',
                             style: GoogleFonts.tajawal(
                               fontWeight: FontWeight.w700,
                               color: ShamsColors.primaryBlue,
@@ -510,7 +494,7 @@ class _PreviewComment extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// _MenuOption — خيار في قائمة المنشور
+// _MenuOption — خيار في قائمة خيارات المنشور
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _MenuOption extends StatelessWidget {

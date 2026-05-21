@@ -16,15 +16,13 @@ import 'package:timeago/timeago.dart' as timeago; // For timeAgo logic
 Future<void> showCommentsSheet(
   BuildContext context, {
   required String postId,
-  required List<CommentModel> comments,
-  int commentsCount = 0,
 }) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (_) =>
-        CommentsComponent(postId: postId, comments: comments, commentsCount: commentsCount),
+        CommentsComponent(postId: postId),
   );
 }
 
@@ -34,14 +32,10 @@ Future<void> showCommentsSheet(
 
 class CommentsComponent extends StatefulWidget {
   final String postId;
-  final List<CommentModel> comments;
-  final int commentsCount;
 
   const CommentsComponent({
     super.key,
     required this.postId,
-    required this.comments,
-    this.commentsCount = 0,
   });
 
   @override

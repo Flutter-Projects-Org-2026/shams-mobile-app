@@ -117,59 +117,47 @@ class _HomeScreenState extends State<HomeScreen> {
           SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
               final post = filteredPosts[index];
-              final postData = PostDetailData(
-                postId: post.id,
-                username: post.author?.name ?? 'مستخدم غير معروف',
-                userHandle: post.author?.email != null ? '@${post.author!.email.split('@').first}' : '@unknown',
-                avatarPath: post.author?.profileImageUrl ?? 'assets/images/logo/shams logo.png',
-                content: post.textDetails,
-                imagePaths: post.images.isNotEmpty ? post.images : null,
-                likesCount: post.likesCount,
-                commentsCount: post.comments.length,
-                sharesCount: 0, // Placeholder
-                isLiked: post.isLiked,
-                comments: post.comments,
-              );
               return GestureDetector(
+                // Pass only the postId — PostDetailScreen reads all live data
+                // from FeedProvider via context.watch inside its own build().
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => PostDetailScreen(post: postData),
+                    builder: (_) => PostDetailScreen(postId: post.id),
                   ),
                 ),
                 child: PostCard(
-                  username: postData.username,
-                  userHandle: postData.userHandle,
-                  avatarPath: postData.avatarPath,
-                  content: postData.content,
-                  imagePaths: postData.imagePaths,
-                  likesCount: postData.likesCount,
-                  commentsCount: postData.comments.length,
-                  sharesCount: postData.sharesCount,
-                  isLiked: postData.isLiked,
-                  onLikeToggle: (liked) {
-                    context.read<FeedProvider>().toggleLike(post.id);
-                  },
+                  username: post.author?.name ?? 'مستخدم غير معروف',
+                  userHandle: post.author?.email != null
+                      ? '@${post.author!.email.split('@').first}'
+                      : '@unknown',
+                  avatarPath: post.author?.profileImageUrl ??
+                      'assets/images/logo/shams logo.png',
+                  content: post.textDetails,
+                  imagePaths: post.images.isNotEmpty ? post.images : null,
+                  likesCount: post.likesCount,
+                  commentsCount: post.comments.length,
+                  sharesCount: 0,
+                  isLiked: post.isLiked,
+                  // context.read() inside a callback — correct usage.
+                  onLikeToggle: (_) =>
+                      context.read<FeedProvider>().toggleLike(post.id),
                   onCommentTap: () => showCommentsSheet(
                     context,
                     postId: post.id,
-                    comments: postData.comments,
-                    commentsCount: postData.comments.length,
                   ),
-                onShareTap: () => _onShare(context),
-                onMenuTap: () => _showPostMenu(context),
-                onUserTap: () {
-                  Navigator.push(
+                  onShareTap: () => _onShare(context),
+                  onMenuTap: () => _showPostMenu(context),
+                  onUserTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => PostDetailScreen(post: postData),
+                      builder: (_) => PostDetailScreen(postId: post.id),
                     ),
-                  );
-                },
-              ),
-            );
-          }, childCount: filteredPosts.length),
-        ),
+                  ),
+                ),
+              );
+            }, childCount: filteredPosts.length),
+          ),
 
         // ── فراغ سفلي ─────────────────────────────────────
         const SliverToBoxAdapter(child: SizedBox(height: 16)),

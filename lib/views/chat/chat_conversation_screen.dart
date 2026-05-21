@@ -210,24 +210,6 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     );
   }
 
-  Widget _buildDateDivider(String label) {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF0F2F5),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.tajawal(
-            fontSize: 11,
-            color: const Color(0xFF9EA3B0),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
   }
-}
+
+
