@@ -8,6 +8,8 @@ import 'posts/post_detail_screen.dart';
 import '../widgets/comments_component.dart';
 import 'package:provider/provider.dart';
 import '../providers/feed_provider.dart';
+import '../providers/workshop_provider.dart';
+import '../models/public_workshop_model.dart';
 import 'notifications/notifications_screen.dart';
 import 'workshops/workshop_profile_screen.dart';
 
@@ -138,6 +140,24 @@ class _HomeScreenState extends State<HomeScreen> {
           SliverList(
             delegate: SliverChildBuilderDelegate((context, index) {
               final post = filteredPosts[index];
+              // Resolve workshop for the post's owner display
+              final workshops = context.watch<WorkshopProvider>().publicWorkshops;
+              PublicWorkshopModel? postWorkshop;
+              if (post.workshopId != null) {
+                try {
+                  postWorkshop = workshops.firstWhere((w) => w.id == post.workshopId);
+                } catch (_) {}
+              }
+              if (postWorkshop == null && post.author != null) {
+                try {
+                  postWorkshop = workshops.firstWhere((w) => w.id == post.author!.id);
+                } catch (_) {}
+              }
+              
+              final displayName = postWorkshop?.name ?? post.author?.name ?? 'مستخدم غير معروف';
+              final displayHandle = postWorkshop?.handle ?? (post.author?.email != null ? '@${post.author!.email.split('@').first}' : '@unknown');
+              final displayAvatar = postWorkshop?.logoPath ?? post.author?.profileImageUrl ?? 'assets/images/logo/shams logo.png';
+
               return GestureDetector(
                 // Pass only the postId — PostDetailScreen reads all live data
                 // from FeedProvider via context.watch inside its own build().
@@ -148,12 +168,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 child: PostCard(
-                  username: post.author?.name ?? 'مستخدم غير معروف',
-                  userHandle: post.author?.email != null
-                      ? '@${post.author!.email.split('@').first}'
-                      : '@unknown',
-                  avatarPath: post.author?.profileImageUrl ??
-                      'assets/images/logo/shams logo.png',
+                  username: displayName,
+                  userHandle: displayHandle,
+                  avatarPath: displayAvatar,
                   content: post.textDetails,
                   imagePaths: post.images.isNotEmpty ? post.images : null,
                   likesCount: post.likesCount,
@@ -169,13 +186,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   onShareTap: () => _onShare(context),
                   onMenuTap: () => _showPostMenu(context),
-                  onUserTap: () {
-                    // Navigate to Workshop Profile (Fix #10)
-                    if (post.author != null) {
+                   onUserTap: () {
+                    final workshops = context.read<WorkshopProvider>().publicWorkshops;
+                    PublicWorkshopModel? targetWorkshop;
+                    
+                    if (post.workshopId != null) {
+                      try {
+                        targetWorkshop = workshops.firstWhere((w) => w.id == post.workshopId);
+                      } catch (_) {}
+                    }
+                    
+                    if (targetWorkshop == null && post.author != null) {
+                      try {
+                        targetWorkshop = workshops.firstWhere((w) => w.id == post.author!.id);
+                      } catch (_) {}
+                    }
+                    
+                    final targetId = targetWorkshop?.id ?? post.author?.id;
+                    if (targetId != null) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => WorkshopProfile(workshopId: post.author!.id),
+                          builder: (_) => WorkshopProfile(workshopId: targetId),
                         ),
                       );
                     }

@@ -121,6 +121,7 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
 
       // Create WorkshopData instance
       final newWorkshop = WorkshopData(
+        id: user.id,
         name: name,
         username: username,
         city: _selectedCity!,

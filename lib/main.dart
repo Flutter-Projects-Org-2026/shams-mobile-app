@@ -38,7 +38,14 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => WorkshopProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => FeedProvider()),
+        ChangeNotifierProxyProvider<WorkshopProvider, FeedProvider>(
+          create: (_) => FeedProvider(),
+          update: (_, workshopProvider, feedProvider) {
+            final fp = feedProvider ?? FeedProvider();
+            fp.initializeFromWorkshops(workshopProvider.publicWorkshops);
+            return fp;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],

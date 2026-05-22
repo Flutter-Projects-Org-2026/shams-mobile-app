@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +7,8 @@ import '../../widgets/post_card.dart';
 import '../../widgets/comments_component.dart';
 
 import '../../providers/feed_provider.dart';
+import '../../providers/workshop_provider.dart';
+import '../../models/public_workshop_model.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../workshops/workshop_profile_screen.dart';
 
@@ -52,13 +55,24 @@ class PostDetailScreen extends StatelessWidget {
       );
     }
 
+    // Resolve workshop for the post's owner display
+    final workshops = context.watch<WorkshopProvider>().publicWorkshops;
+    PublicWorkshopModel? postWorkshop;
+    if (post.workshopId != null) {
+      try {
+        postWorkshop = workshops.firstWhere((w) => w.id == post.workshopId);
+      } catch (_) {}
+    }
+    if (postWorkshop == null && post.author != null) {
+      try {
+        postWorkshop = workshops.firstWhere((w) => w.id == post.author!.id);
+      } catch (_) {}
+    }
+
     // Derived display values — computed inside build, never stored in state.
-    final username = post.author?.name ?? 'مستخدم غير معروف';
-    final userHandle = post.author?.email != null
-        ? '@${post.author!.email.split('@').first}'
-        : '@unknown';
-    final avatarPath =
-        post.author?.profileImageUrl ?? 'assets/images/logo/shams logo.png';
+    final username = postWorkshop?.name ?? post.author?.name ?? 'مستخدم غير معروف';
+    final userHandle = postWorkshop?.handle ?? (post.author?.email != null ? '@${post.author!.email.split('@').first}' : '@unknown');
+    final avatarPath = postWorkshop?.logoPath ?? post.author?.profileImageUrl ?? 'assets/images/logo/shams logo.png';
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -94,11 +108,27 @@ class PostDetailScreen extends StatelessWidget {
                 onShareTap: () => _onShare(context),
                 onMenuTap: () => _showMenu(context),
                 onUserTap: () {
-                  if (post.author != null) {
+                  final workshops = context.read<WorkshopProvider>().publicWorkshops;
+                  PublicWorkshopModel? targetWorkshop;
+                  
+                  if (post.workshopId != null) {
+                    try {
+                      targetWorkshop = workshops.firstWhere((w) => w.id == post.workshopId);
+                    } catch (_) {}
+                  }
+                  
+                  if (targetWorkshop == null && post.author != null) {
+                    try {
+                      targetWorkshop = workshops.firstWhere((w) => w.id == post.author!.id);
+                    } catch (_) {}
+                  }
+                  
+                  final targetId = targetWorkshop?.id ?? post.author?.id;
+                  if (targetId != null) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => WorkshopProfile(workshopId: post.author!.id),
+                        builder: (_) => WorkshopProfile(workshopId: targetId),
                       ),
                     );
                   }
@@ -442,22 +472,52 @@ class _PreviewComment extends StatelessWidget {
             child: ClipOval(
               child: isNetwork
                   ? Image.network(avatarPath, fit: BoxFit.cover)
-                  : Image.asset(
-                      avatarPath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: ShamsColors.avatarFallbackBg,
-                        child: Center(
-                          child: Text(
-                            userName.isNotEmpty ? userName[0] : '؟',
-                            style: GoogleFonts.tajawal(
-                              fontWeight: FontWeight.w700,
-                              color: ShamsColors.primaryBlue,
+                  : (avatarPath.startsWith('assets/')
+                      ? Image.asset(
+                          avatarPath,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: ShamsColors.avatarFallbackBg,
+                            child: Center(
+                              child: Text(
+                                userName.isNotEmpty ? userName[0] : '؟',
+                                style: GoogleFonts.tajawal(
+                                  fontWeight: FontWeight.w700,
+                                  color: ShamsColors.primaryBlue,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    ),
+                        )
+                      : (File(avatarPath).existsSync()
+                          ? Image.file(
+                              File(avatarPath),
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                color: ShamsColors.avatarFallbackBg,
+                                child: Center(
+                                  child: Text(
+                                    userName.isNotEmpty ? userName[0] : '؟',
+                                    style: GoogleFonts.tajawal(
+                                      fontWeight: FontWeight.w700,
+                                      color: ShamsColors.primaryBlue,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Container(
+                              color: ShamsColors.avatarFallbackBg,
+                              child: Center(
+                                child: Text(
+                                  userName.isNotEmpty ? userName[0] : '؟',
+                                  style: GoogleFonts.tajawal(
+                                    fontWeight: FontWeight.w700,
+                                    color: ShamsColors.primaryBlue,
+                                  ),
+                                ),
+                              ),
+                            ))),
             ),
           ),
           const SizedBox(width: 10),

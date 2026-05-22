@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
@@ -68,6 +69,109 @@ class _WorkshopCardState extends State<WorkshopCard>
     super.dispose();
   }
 
+  Widget _buildCoverImage(String path) {
+    if (path.isEmpty) {
+      return Container(
+        color: const Color(0xFFEEF0F4),
+        child: const Center(
+          child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+        ),
+      );
+    }
+
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: const Color(0xFFEEF0F4),
+          child: const Center(
+            child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+          ),
+        ),
+      );
+    } else if (path.startsWith('assets/')) {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: const Color(0xFFEEF0F4),
+          child: const Center(
+            child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+          ),
+        ),
+      );
+    } else {
+      final file = File(path);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Container(
+            color: const Color(0xFFEEF0F4),
+            child: const Center(
+              child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+            ),
+          ),
+        );
+      } else {
+        return Container(
+          color: const Color(0xFFEEF0F4),
+          child: const Center(
+            child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildProfileImage(String path, String name) {
+    if (path.isEmpty) {
+      return _buildFallbackAvatar(name);
+    }
+
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+      );
+    } else if (path.startsWith('assets/')) {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+      );
+    } else {
+      final file = File(path);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+        );
+      } else {
+        return _buildFallbackAvatar(name);
+      }
+    }
+  }
+
+  Widget _buildFallbackAvatar(String name) {
+    return Container(
+      color: ShamsColors.avatarFallbackBg,
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0] : '؟',
+          style: GoogleFonts.tajawal(
+            fontWeight: FontWeight.w700,
+            color: ShamsColors.primaryBlue,
+            fontSize: 16,
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _handleFollowTap() async {
     await _followAnimController.reverse();
     await _followAnimController.forward();
@@ -121,18 +225,14 @@ class _WorkshopCardState extends State<WorkshopCard>
           Container(
             height: 110,
             width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.vertical(
                 top: Radius.circular(16),
               ),
-              color: const Color(0xFFEEF0F4), // لون احتياطي
-              image: DecorationImage(
-                image: isNetworkCover
-                    ? NetworkImage(widget.coverImagePath) as ImageProvider
-                    : AssetImage(widget.coverImagePath),
-                fit: BoxFit.cover,
-              ),
+              color: Color(0xFFEEF0F4), // لون احتياطي
             ),
+            clipBehavior: Clip.antiAlias,
+            child: _buildCoverImage(widget.coverImagePath),
           ),
           // الصورة الشخصية الدائرية (على اليمين وتبرز للأسفل)
           Positioned(
@@ -157,9 +257,7 @@ class _WorkshopCardState extends State<WorkshopCard>
                 ],
               ),
               child: ClipOval(
-                child: isNetworkAvatar
-                    ? Image.network(widget.imagePath, fit: BoxFit.cover)
-                    : Image.asset(widget.imagePath, fit: BoxFit.cover),
+                child: _buildProfileImage(widget.imagePath, widget.username),
               ),
             ),
           ),

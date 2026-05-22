@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/post_model.dart';
 import '../models/public_workshop_model.dart';
 import '../models/workshop_data.dart';
@@ -18,8 +19,67 @@ class WorkshopProvider extends ChangeNotifier {
 
   WorkshopData? get myWorkshop => _myWorkshop;
 
+  Future<void> fetchMyWorkshop(String userId, String username) async {
+    try {
+      final data = await Supabase.instance.client
+          .from('workshops')
+          .select()
+          .eq('owner_id', userId)
+          .maybeSingle();
+
+      if (data != null) {
+        final workshop = WorkshopData(
+          id: userId,
+          name: data['name'] ?? '',
+          username: username.isEmpty ? (data['username'] ?? 'workshop') : username,
+          city: data['city'] ?? '',
+          description: data['description'] ?? '',
+          yearsOfExperience: 0,
+        );
+        setMyWorkshop(workshop);
+      }
+    } catch (e) {
+      debugPrint('Error fetching user workshop data: $e');
+    }
+  }
+
   void setMyWorkshop(WorkshopData data) {
     _myWorkshop = data;
+    
+    final index = _publicWorkshops.indexWhere((w) => w.id == data.id);
+    final logoPath = data.profileImage?.path ?? 'assets/images/logo/shams logo.png';
+    final coverImagePath = data.coverImage?.path ?? 'assets/images/post image.jpg';
+    
+    if (index != -1) {
+      final existing = _publicWorkshops[index];
+      _publicWorkshops[index] = existing.copyWith(
+        name: data.name,
+        handle: '@${data.username}',
+        city: data.city,
+        description: data.description,
+        logoPath: logoPath,
+        coverImagePath: coverImagePath,
+        yearsOfExperience: data.yearsOfExperience,
+      );
+    } else {
+      _publicWorkshops.insert(
+        0,
+        PublicWorkshopModel(
+          id: data.id,
+          name: data.name,
+          handle: '@${data.username}',
+          city: data.city,
+          rating: 4.8,
+          reviewCount: 1,
+          description: data.description,
+          logoPath: logoPath,
+          coverImagePath: coverImagePath,
+          isFollowing: false,
+          posts: List.from(_posts),
+          yearsOfExperience: data.yearsOfExperience,
+        ),
+      );
+    }
     notifyListeners();
   }
 
@@ -221,6 +281,14 @@ class WorkshopProvider extends ChangeNotifier {
   /// Add a new post at the top of the owner's list.
   void addPost(PostModel newPost) {
     _posts.insert(0, newPost);
+    if (_myWorkshop != null) {
+      final index = _publicWorkshops.indexWhere((w) => w.id == _myWorkshop!.id);
+      if (index != -1) {
+        final currentW = _publicWorkshops[index];
+        final updatedPosts = List<PostModel>.from(currentW.posts)..insert(0, newPost);
+        _publicWorkshops[index] = currentW.copyWith(posts: updatedPosts);
+      }
+    }
     notifyListeners();
   }
 
@@ -230,13 +298,33 @@ class WorkshopProvider extends ChangeNotifier {
     final index = _posts.indexWhere((p) => p.id == updatedPost.id);
     if (index != -1) {
       _posts[index] = updatedPost;
-      notifyListeners();
     }
+    if (_myWorkshop != null) {
+      final wIndex = _publicWorkshops.indexWhere((w) => w.id == _myWorkshop!.id);
+      if (wIndex != -1) {
+        final currentW = _publicWorkshops[wIndex];
+        final pIndex = currentW.posts.indexWhere((p) => p.id == updatedPost.id);
+        if (pIndex != -1) {
+          final updatedPosts = List<PostModel>.from(currentW.posts);
+          updatedPosts[pIndex] = updatedPost;
+          _publicWorkshops[wIndex] = currentW.copyWith(posts: updatedPosts);
+        }
+      }
+    }
+    notifyListeners();
   }
 
   /// Remove the post with the given [postId].
   void deletePost(String postId) {
     _posts.removeWhere((p) => p.id == postId);
+    if (_myWorkshop != null) {
+      final wIndex = _publicWorkshops.indexWhere((w) => w.id == _myWorkshop!.id);
+      if (wIndex != -1) {
+        final currentW = _publicWorkshops[wIndex];
+        final updatedPosts = List<PostModel>.from(currentW.posts)..removeWhere((p) => p.id == postId);
+        _publicWorkshops[wIndex] = currentW.copyWith(posts: updatedPosts);
+      }
+    }
     notifyListeners();
   }
 }

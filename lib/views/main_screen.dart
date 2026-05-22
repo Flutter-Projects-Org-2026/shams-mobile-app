@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/user_provider.dart';
+import '../providers/workshop_provider.dart';
 import '../widgets/shams_bottom_nav_bar.dart';
 import 'home.dart';
 import 'workshops/workshops_list_screen.dart';
@@ -28,6 +31,19 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final userProvider = context.read<UserProvider>();
+      await userProvider.fetchUserData();
+      if (mounted) {
+        final currentUser = userProvider.currentUser;
+        if (currentUser.id.isNotEmpty && currentUser.hasWorkshop) {
+          final username = currentUser.username ?? 'owner';
+          await context
+              .read<WorkshopProvider>()
+              .fetchMyWorkshop(currentUser.id, username);
+        }
+      }
+    });
   }
 
   @override

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shams_mobile_app/models/chat_model.dart';
@@ -8,6 +9,7 @@ import '../../utils/constants.dart';
 import 'package:provider/provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/workshop_provider.dart';
 import '../../models/message_model.dart';
 import '../../models/user_model.dart';
 
@@ -32,6 +34,53 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
   bool _isSearching = false;
   String _searchQuery = '';
   bool _isMuted = false;
+
+  Widget _buildChatAvatar(String? path, String name) {
+    if (path == null || path.isEmpty) {
+      return _buildFallbackAvatar(name);
+    }
+
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+      );
+    } else if (path.startsWith('assets/')) {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+      );
+    } else {
+      final file = File(path);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+        );
+      } else {
+        return _buildFallbackAvatar(name);
+      }
+    }
+  }
+
+  Widget _buildFallbackAvatar(String name) {
+    return Container(
+      color: ShamsColors.avatarFallbackBg,
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0] : '؟',
+          style: GoogleFonts.tajawal(
+            fontWeight: FontWeight.w700,
+            color: ShamsColors.primaryBlue,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
 
   void _addNewMessage(String text) {
     if (text.trim().isEmpty) return;
@@ -84,9 +133,22 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     final otherParticipant = chat.participants.isEmpty
         ? const UserModel(id: '', name: 'محادثة', email: '')
         : chat.participants.firstWhere(
-            (p) => p.id != currentUser.id,
-            orElse: () => chat.participants.first,
+            (p) => p.email != currentUser.email,
+            orElse: () => chat.participants.firstWhere(
+              (p) => p.id != currentUser.id,
+              orElse: () => chat.participants.first,
+            ),
           );
+
+    String displayName = otherParticipant.name;
+    String? displayAvatar = otherParticipant.profileImageUrl;
+
+    final workshopProvider = context.watch<WorkshopProvider>();
+    final workshopMatch = workshopProvider.getWorkshopById(otherParticipant.id);
+    if (workshopMatch != null) {
+      displayName = workshopMatch.name;
+      displayAvatar = workshopMatch.logoPath;
+    }
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -105,22 +167,19 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
           ),
           title: Row(
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: const Color(0xFFF0F2F5),
-                backgroundImage:
-                    otherParticipant.profileImageUrl != null &&
-                            otherParticipant.profileImageUrl!.isNotEmpty
-                        ? AssetImage(otherParticipant.profileImageUrl!)
-                        : null,
-                child: otherParticipant.profileImageUrl == null ||
-                        otherParticipant.profileImageUrl!.isEmpty
-                    ? const Icon(Icons.store_rounded, color: Colors.grey, size: 20)
-                    : null,
+              Container(
+                width: 36,
+                height: 36,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFF0F2F5),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: _buildChatAvatar(displayAvatar, displayName),
               ),
               const SizedBox(width: 10),
               Text(
-                otherParticipant.name,
+                displayName,
                 style: GoogleFonts.tajawal(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../models/post_model.dart';
 import '../../providers/workshop_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../providers/feed_provider.dart';
 import '../../utils/constants.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -147,17 +149,24 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       return;
     }
 
+    final myWorkshop = context.read<WorkshopProvider>().myWorkshop;
+    final currentUser = context.read<UserProvider>().currentUser;
+    final workshopId = myWorkshop?.id ?? currentUser.id;
+
     final newPost = PostModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
+      workshopId: workshopId,
       textDetails: _contentController.text.trim(),
       images: _attachments.map((a) => a.path).toList(),
       isLocalFile: _attachments.isNotEmpty && !_attachments.first.isAsset,
       viewsCount: '0',
       createdAt: 'الآن',
       isHighlighted: _isHighlighted,
+      author: currentUser,
     );
 
     context.read<WorkshopProvider>().addPost(newPost);
+    context.read<FeedProvider>().addPost(newPost);
     Navigator.pop(context);
   }
 

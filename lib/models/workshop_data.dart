@@ -5,6 +5,9 @@ import 'dart:io';
 /// Carries the values entered in [AddWorkshopScreen] to
 /// [WorkshopDashboardScreen] via Navigator result.
 class WorkshopData {
+  /// المعرف الفريد للورشة
+  final String id;
+
   /// اسم الورشة
   final String name;
 
@@ -30,6 +33,7 @@ class WorkshopData {
   final List<File> extraImages;
 
   const WorkshopData({
+    required this.id,
     required this.name,
     required this.username,
     required this.city,

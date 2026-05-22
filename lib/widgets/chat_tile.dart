@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
@@ -22,6 +23,53 @@ class ChatTile extends StatelessWidget {
     required this.onTap,
   });
 
+  Widget _buildAvatar(String path, String name) {
+    if (path.isEmpty) {
+      return _buildFallbackAvatar(name);
+    }
+
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+      );
+    } else if (path.startsWith('assets/')) {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+      );
+    } else {
+      final file = File(path);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+        );
+      } else {
+        return _buildFallbackAvatar(name);
+      }
+    }
+  }
+
+  Widget _buildFallbackAvatar(String name) {
+    return Container(
+      color: ShamsColors.avatarFallbackBg,
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0] : '؟',
+          style: GoogleFonts.tajawal(
+            fontWeight: FontWeight.w700,
+            color: ShamsColors.primaryBlue,
+            fontSize: 20,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -33,15 +81,15 @@ class ChatTile extends StatelessWidget {
             // الصورة مع حالة الاتصال
             Stack(
               children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: const Color(0xFFF0F2F5),
-                  backgroundImage: avatarPath.isNotEmpty
-                      ? AssetImage(avatarPath)
-                      : null,
-                  child: avatarPath.isEmpty
-                      ? const Icon(Icons.store_rounded, color: Colors.grey, size: 28)
-                      : null,
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0xFFF0F2F5),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _buildAvatar(avatarPath, name),
                 ),
                 if (isOnline)
                   Positioned(

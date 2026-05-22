@@ -7,6 +7,7 @@ import 'chat_conversation_screen.dart'; // مسار شاشة الدردشة
 import 'package:provider/provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/workshop_provider.dart';
 import '../../models/user_model.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -28,6 +29,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget build(BuildContext context) {
     final chatProvider = context.watch<ChatProvider>();
     final currentUser = context.watch<UserProvider>().currentUser;
+    final workshopProvider = context.watch<WorkshopProvider>();
     final allChats = chatProvider.chats;
 
     final filteredChats = _searchQuery.isEmpty 
@@ -35,7 +37,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
         : allChats.where((c) {
             if (c.participants.isEmpty) return false;
             final otherParticipant = c.participants.firstWhere((p) => p.id != currentUser.id, orElse: () => c.participants.first);
-            return otherParticipant.name.toLowerCase().contains(_searchQuery.toLowerCase());
+            final workshopMatch = workshopProvider.getWorkshopById(otherParticipant.id);
+            final displayName = workshopMatch != null ? workshopMatch.name : otherParticipant.name;
+            return displayName.toLowerCase().contains(_searchQuery.toLowerCase());
           }).toList();
 
     return Directionality(
@@ -129,16 +133,21 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 (p) => p.id != currentUser.id, 
                                 orElse: () => chat.participants.first
                               );
+                        
+                        final workshopMatch = workshopProvider.getWorkshopById(otherParticipant.id);
+                        final displayName = workshopMatch != null ? workshopMatch.name : otherParticipant.name;
+                        final displayAvatar = workshopMatch != null ? workshopMatch.logoPath : (otherParticipant.profileImageUrl ?? 'assets/images/logo/shams logo.png');
+
                         final lastMessage = chat.messages.isNotEmpty ? chat.messages.first.text : 'لا توجد رسائل';
                         final unreadCount = chat.messages.where((m) => !m.isRead && m.senderId != currentUser.id).length;
 
                         return ChatTile(
-                          name: otherParticipant.name,
+                          name: displayName,
                           lastMessage: lastMessage,
                           time: timeago.format(chat.lastMessageTime, locale: 'ar'),
                           isOnline: false, // Dummy online status
                           unreadCount: unreadCount,
-                          avatarPath: otherParticipant.profileImageUrl ?? 'assets/images/logo/shams logo.png',
+                          avatarPath: displayAvatar,
                           onTap: () {
                             final chatProvider = context.read<ChatProvider>();
                             Navigator.push(

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,7 +12,23 @@ class UserProvider extends ChangeNotifier {
 
   UserModel get currentUser => _currentUser;
 
+  void _evictImage(String? path) {
+    if (path == null || path.isEmpty) return;
+    try {
+      if (path.startsWith('http')) {
+        NetworkImage(path).evict();
+      } else if (!path.startsWith('assets/')) {
+        FileImage(File(path)).evict();
+      }
+    } catch (e) {
+      debugPrint('Error evicting image: $e');
+    }
+  }
+
   void updateProfile(UserModel updatedUser) {
+    if (_currentUser.profileImageUrl != updatedUser.profileImageUrl) {
+      _evictImage(_currentUser.profileImageUrl);
+    }
     _currentUser = updatedUser;
     notifyListeners();
   }
@@ -27,7 +44,12 @@ class UserProvider extends ChangeNotifier {
           .eq('id', user.id)
           .single();
 
-      _currentUser = UserModel.fromMap(data);
+      final newUser = UserModel.fromMap(data);
+      if (_currentUser.profileImageUrl != newUser.profileImageUrl) {
+        _evictImage(_currentUser.profileImageUrl);
+      }
+
+      _currentUser = newUser;
       notifyListeners();
     } catch (e) {
       debugPrint('Error fetching user data: $e');

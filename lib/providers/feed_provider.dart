@@ -1,58 +1,35 @@
 import 'package:flutter/material.dart';
 import '../models/post_model.dart';
-import '../models/user_model.dart';
 import '../models/comment_model.dart';
+import '../models/public_workshop_model.dart';
 
 class FeedProvider extends ChangeNotifier {
-  final List<PostModel> _posts = [
-    PostModel(
-      id: 'p1',
-      textDetails:
-          'تم الانتهاء اليوم من تركيب منظومة طاقة شمسية بقدرة 5 كيلو واط مع عاكس [مكس/JA] قياسي واط في صنعاء، تم استخدام الألواح الأداء ممتازة من غاز عبر.',
-      images: ['assets/images/post image.jpg'],
-      createdAt: 'منذ ساعتين',
-      likesCount: 124,
-      isLiked: false,
-      author: const UserModel(
-        id: 'u2',
-        name: 'م. أحمد العمودي',
-        email: 'ahmed@example.com',
-        profileImageUrl: 'assets/images/logo/shams logo.png',
-      ),
-      comments: [
-        CommentModel(
-          id: 'c1',
-          postId: 'p1',
-          text: 'ممتاز! هذا النوع من المنظومات يعطي كفاءة عالية جداً في الصيف.',
-          likesCount: 4,
-          timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-          user: const UserModel(
-            id: 'u3',
-            name: 'م. سارة الهاشمي',
-            email: 'sara@example.com',
-            profileImageUrl: 'assets/images/logo/shams logo.png',
-          ),
-        ),
-      ],
-    ),
-    PostModel(
-      id: 'p2',
-      textDetails:
-          'مشروع جديد في الرياض! تركيب ألواح شمسية على مبنى تجاري بقدرة 20 كيلو واط. النتائج مبهرة والكفاءة عالية جداً.',
-      images: ['assets/images/post image.jpg'],
-      createdAt: 'منذ يوم',
-      likesCount: 89,
-      isLiked: true,
-      author: const UserModel(
-        id: 'u3',
-        name: 'م. سارة الهاشمي',
-        email: 'sara@example.com',
-        profileImageUrl: 'assets/images/logo/shams logo.png',
-      ),
-    ),
-  ];
+  final List<PostModel> _posts = [];
 
   List<PostModel> get posts => _posts;
+
+  /// Aggregates all initial posts from the public workshops in WorkshopProvider.
+  /// Uses a smart merge to avoid duplicate posts and prevent overwriting
+  /// user interaction states (likes, comments, etc.).
+  void initializeFromWorkshops(List<PublicWorkshopModel> workshops) {
+    bool changed = false;
+    for (final workshop in workshops) {
+      for (final post in workshop.posts) {
+        final exists = _posts.any((p) => p.id == post.id);
+        if (!exists) {
+          final fullPost = post.copyWith(
+            workshopId: workshop.id,
+            author: workshop.toUserModel(),
+          );
+          _posts.add(fullPost);
+          changed = true;
+        }
+      }
+    }
+    if (changed) {
+      notifyListeners();
+    }
+  }
 
   /// Returns the post with [id], or null if not found.
   PostModel? getPostById(String id) {

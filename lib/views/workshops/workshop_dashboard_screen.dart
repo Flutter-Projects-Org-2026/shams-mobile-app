@@ -55,6 +55,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
   void _updateProviderWorkshop() {
     final currentWorkshop = context.read<WorkshopProvider>().myWorkshop;
     final updatedWorkshop = WorkshopData(
+      id: currentWorkshop?.id ?? widget.workshopData?.id ?? 'my_workshop_default_id',
       name: _workshopName,
       username: _workshopHandle.replaceFirst('@', ''),
       city: _workshopCity,

@@ -8,6 +8,9 @@ class PostModel {
   /// Unique identifier (timestamp-based for dummy data)
   final String id;
 
+  /// The workshop ID this post belongs to
+  final String? workshopId;
+
   /// The written description / body of the post
   final String textDetails;
 
@@ -40,6 +43,7 @@ class PostModel {
 
   const PostModel({
     required this.id,
+    this.workshopId,
     required this.textDetails,
     this.images = const [],
     this.isLocalFile = false,
@@ -55,6 +59,7 @@ class PostModel {
   /// Returns a copy of this model with the provided fields overridden.
   PostModel copyWith({
     String? id,
+    String? workshopId,
     String? textDetails,
     List<String>? images,
     bool? isLocalFile,
@@ -68,6 +73,7 @@ class PostModel {
   }) {
     return PostModel(
       id: id ?? this.id,
+      workshopId: workshopId ?? this.workshopId,
       textDetails: textDetails ?? this.textDetails,
       images: images ?? this.images,
       isLocalFile: isLocalFile ?? this.isLocalFile,
@@ -84,6 +90,7 @@ class PostModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'workshopId': workshopId,
       'textDetails': textDetails,
       'images': images,
       'isLocalFile': isLocalFile,
@@ -100,6 +107,7 @@ class PostModel {
   factory PostModel.fromMap(Map<String, dynamic> map) {
     return PostModel(
       id: map['id'] ?? '',
+      workshopId: map['workshopId'],
       textDetails: map['textDetails'] ?? '',
       images: List<String>.from(map['images'] ?? []),
       isLocalFile: map['isLocalFile'] ?? false,

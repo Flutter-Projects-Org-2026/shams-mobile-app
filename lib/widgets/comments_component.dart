@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -403,11 +404,19 @@ class _CommentTile extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (_, _, _) => _avatarFallback(),
                     )
-                  : Image.asset(
-                      avatarPath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _avatarFallback(),
-                    ),
+                  : (avatarPath.startsWith('assets/')
+                      ? Image.asset(
+                          avatarPath,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => _avatarFallback(),
+                        )
+                      : (File(avatarPath).existsSync()
+                          ? Image.file(
+                              File(avatarPath),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => _avatarFallback(),
+                            )
+                          : _avatarFallback())),
             ),
           ),
 

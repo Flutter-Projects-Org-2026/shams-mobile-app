@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import '../../views/chat/chat_conversation_screen.dart';
 import '../../providers/workshop_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/feed_provider.dart';
 import '../../models/user_model.dart';
 import '../../models/public_workshop_model.dart';
 
@@ -33,6 +35,109 @@ class WorkshopProfile extends StatefulWidget {
 
 class _WorkshopProfileState extends State<WorkshopProfile> {
   bool _isSearching = false;
+
+  Widget _buildCoverImage(String path) {
+    if (path.isEmpty) {
+      return Container(
+        color: const Color(0xFFEEF0F4),
+        child: const Center(
+          child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+        ),
+      );
+    }
+
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: const Color(0xFFEEF0F4),
+          child: const Center(
+            child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+          ),
+        ),
+      );
+    } else if (path.startsWith('assets/')) {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: const Color(0xFFEEF0F4),
+          child: const Center(
+            child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+          ),
+        ),
+      );
+    } else {
+      final file = File(path);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Container(
+            color: const Color(0xFFEEF0F4),
+            child: const Center(
+              child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+            ),
+          ),
+        );
+      } else {
+        return Container(
+          color: const Color(0xFFEEF0F4),
+          child: const Center(
+            child: Icon(Icons.broken_image_outlined, color: Colors.grey),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildProfileImage(String path, String name) {
+    if (path.isEmpty) {
+      return _buildFallbackAvatar(name);
+    }
+
+    if (path.startsWith('http')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+      );
+    } else if (path.startsWith('assets/')) {
+      return Image.asset(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+      );
+    } else {
+      final file = File(path);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
+        );
+      } else {
+        return _buildFallbackAvatar(name);
+      }
+    }
+  }
+
+  Widget _buildFallbackAvatar(String name) {
+    return Container(
+      color: ShamsColors.avatarFallbackBg,
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0] : '؟',
+          style: GoogleFonts.tajawal(
+            fontWeight: FontWeight.w700,
+            color: ShamsColors.primaryBlue,
+            fontSize: 24,
+          ),
+        ),
+      ),
+    );
+  }
 
   void _toggleFollow() {
     context.read<WorkshopProvider>().toggleFollow(widget.workshopId);
@@ -362,12 +467,8 @@ ${descController.text.trim()}''';
         Container(
           height: 220,
           width: double.infinity,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage(workshop.coverImagePath),
-              fit: BoxFit.cover,
-            ),
-          ),
+          color: const Color(0xFFEEF0F4),
+          child: _buildCoverImage(workshop.coverImagePath),
         ),
         // Overlay for better back button visibility
         Positioned.fill(
@@ -396,9 +497,15 @@ ${descController.text.trim()}''';
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
-              child: CircleAvatar(
-                radius: 45,
-                backgroundImage: AssetImage(workshop.logoPath),
+              child: Container(
+                width: 90,
+                height: 90,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFEEF0F4),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: _buildProfileImage(workshop.logoPath, workshop.name),
               ),
             ),
           ),
@@ -563,6 +670,9 @@ ${descController.text.trim()}''';
   }
 
   Widget _buildWorkLogSection(PublicWorkshopModel workshop) {
+    final feedPosts = context.watch<FeedProvider>().posts;
+    final workshopPosts = feedPosts.where((post) => post.workshopId == workshop.id).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -604,7 +714,7 @@ ${descController.text.trim()}''';
           ),
         ),
         const SizedBox(height: 10),
-        if (workshop.posts.isEmpty)
+        if (workshopPosts.isEmpty)
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 20),
@@ -618,7 +728,7 @@ ${descController.text.trim()}''';
             ),
           )
         else
-          ...workshop.posts.map((post) => _buildWorkLogCard(
+          ...workshopPosts.map((post) => _buildWorkLogCard(
                 post.createdAt,
                 post.textDetails,
                 post.images,
@@ -697,11 +807,10 @@ ${descController.text.trim()}''';
                   itemBuilder: (context, index) {
                     return Stack(
                       children: [
-                        Image.asset(
-                          images[index],
+                        SizedBox(
                           width: double.infinity,
                           height: 200,
-                          fit: BoxFit.cover,
+                          child: _buildCoverImage(images[index]),
                         ),
                         // 1/2 indicator
                         if (images.length > 1)

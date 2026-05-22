@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
@@ -334,19 +335,33 @@ class _PostCardState extends State<PostCard>
                 itemBuilder: (context, index) {
                   final path = images[index];
                   final isNetwork = path.startsWith('http');
-                  return isNetwork
-                      ? Image.network(
-                          path,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          errorBuilder: (_, _, _) => _imagePlaceholder(),
-                        )
-                      : Image.asset(
-                          path,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          errorBuilder: (_, _, _) => _imagePlaceholder(),
-                        );
+                  if (isNetwork) {
+                    return Image.network(
+                      path,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      errorBuilder: (_, _, _) => _imagePlaceholder(),
+                    );
+                  } else if (path.startsWith('assets/')) {
+                    return Image.asset(
+                      path,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      errorBuilder: (_, _, _) => _imagePlaceholder(),
+                    );
+                  } else {
+                    final file = File(path);
+                    if (file.existsSync()) {
+                      return Image.file(
+                        file,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        errorBuilder: (_, _, _) => _imagePlaceholder(),
+                      );
+                    } else {
+                      return _imagePlaceholder();
+                    }
+                  }
                 },
               ),
             ),
@@ -471,11 +486,19 @@ class _Avatar extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => _fallback(),
               )
-            : Image.asset(
-                imagePath,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _fallback(),
-              ),
+            : (imagePath.startsWith('assets/')
+                ? Image.asset(
+                    imagePath,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _fallback(),
+                  )
+            : (File(imagePath).existsSync()
+                ? Image.file(
+                    File(imagePath),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _fallback(),
+                  )
+                : _fallback())),
       ),
     );
   }

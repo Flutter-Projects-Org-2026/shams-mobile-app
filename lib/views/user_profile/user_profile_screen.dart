@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,6 +30,23 @@ class UserProfileScreen extends StatefulWidget {
 class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isNotificationsEnabled = true;
   String _selectedLanguage = 'ar';
+
+  ImageProvider _getProfileImageProvider(String? path) {
+    if (path == null || path.isEmpty) {
+      return const AssetImage('assets/images/logo/shams logo.png');
+    }
+    if (path.startsWith('http')) {
+      return NetworkImage(path);
+    } else if (path.startsWith('assets/')) {
+      return AssetImage(path);
+    } else {
+      final file = File(path);
+      if (file.existsSync()) {
+        return FileImage(file);
+      }
+    }
+    return const AssetImage('assets/images/logo/shams logo.png');
+  }
 
   @override
   void initState() {
@@ -104,12 +122,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 child: CircleAvatar(
                   radius: 40,
                   backgroundColor: Colors.white,
-                  backgroundImage:
-                      (currentUser.profileImageUrl != null &&
-                          currentUser.profileImageUrl!.isNotEmpty)
-                      ? NetworkImage(currentUser.profileImageUrl!)
-                            as ImageProvider
-                      : const AssetImage('assets/images/logo/shams logo.png'),
+                  backgroundImage: _getProfileImageProvider(currentUser.profileImageUrl),
                 ),
               ),
               // زر تعديل الملف (يسار)
