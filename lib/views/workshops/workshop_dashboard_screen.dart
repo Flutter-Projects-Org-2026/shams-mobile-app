@@ -8,6 +8,9 @@ import 'package:provider/provider.dart';
 import '../../models/post_model.dart';
 import '../../models/workshop_data.dart';
 import '../../providers/workshop_provider.dart';
+import '../../providers/user_provider.dart';
+import '../../services/storage_service.dart';
+import '../../services/workshop_service.dart';
 import '../../utils/constants.dart';
 import '../../widgets/managed_post_card.dart';
 import '../../widgets/primary_button.dart';
@@ -38,6 +41,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
   late String _workshopName;
   late String _workshopHandle;
   late String _workshopCity;
+  String? _prevWorkshopId;
 
   @override
   void initState() {
@@ -50,12 +54,19 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
     _workshopHandle =
         d?.username != null && d!.username.isNotEmpty ? '@${d.username}' : '@workshop';
     _workshopCity = d?.city ?? 'صنعاء';
+    if (d != null) {
+      _prevWorkshopId = d.id;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<WorkshopProvider>().fetchMyWorkshopPosts(d.id);
+      });
+    }
   }
 
   void _updateProviderWorkshop() {
     final currentWorkshop = context.read<WorkshopProvider>().myWorkshop;
     final updatedWorkshop = WorkshopData(
       id: currentWorkshop?.id ?? widget.workshopData?.id ?? 'my_workshop_default_id',
+      ownerId: currentWorkshop?.ownerId ?? widget.workshopData?.ownerId ?? context.read<UserProvider>().currentUser.id,
       name: _workshopName,
       username: _workshopHandle.replaceFirst('@', ''),
       city: _workshopCity,
@@ -64,6 +75,9 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
       profileImage: _profileImage,
       coverImage: _coverImage,
       extraImages: List.from(_extraImages),
+      logoUrl: currentWorkshop?.logoUrl ?? widget.workshopData?.logoUrl,
+      coverUrl: currentWorkshop?.coverUrl ?? widget.workshopData?.coverUrl,
+      galleryUrls: currentWorkshop?.galleryUrls ?? widget.workshopData?.galleryUrls ?? const [],
     );
     context.read<WorkshopProvider>().setMyWorkshop(updatedWorkshop);
   }
@@ -71,23 +85,123 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
   // ── Image pickers ─────────────────────────────────────────────────────────
 
   Future<void> _pickCoverImage() async {
-    _showImageSourceSheet(onPicked: (file) {
+    _showImageSourceSheet(onPicked: (file) async {
       setState(() => _coverImage = file);
       _updateProviderWorkshop();
+
+      final workshop = context.read<WorkshopProvider>().myWorkshop;
+      if (workshop != null) {
+        try {
+          final url = await StorageService.uploadImage(
+            bucket: 'workshops',
+            path: '${workshop.ownerId}/cover_edit_${DateTime.now().millisecondsSinceEpoch}.jpg',
+            file: file,
+          );
+          await WorkshopService.updateWorkshop(
+            workshopId: workshop.id,
+            updates: {'cover_url': url},
+          );
+          // Update local provider state with new cover URL
+          context.read<WorkshopProvider>().setMyWorkshop(
+            WorkshopData(
+              id: workshop.id,
+              ownerId: workshop.ownerId,
+              name: _workshopName,
+              username: _workshopHandle.replaceFirst('@', ''),
+              city: _workshopCity,
+              description: workshop.description,
+              yearsOfExperience: workshop.yearsOfExperience,
+              logoUrl: workshop.logoUrl,
+              coverUrl: url,
+              galleryUrls: workshop.galleryUrls,
+            ),
+          );
+        } catch (e) {
+          debugPrint('Error uploading cover image: $e');
+        }
+      }
     });
   }
 
   Future<void> _pickProfileImage() async {
-    _showImageSourceSheet(onPicked: (file) {
+    _showImageSourceSheet(onPicked: (file) async {
       setState(() => _profileImage = file);
       _updateProviderWorkshop();
+
+      final workshop = context.read<WorkshopProvider>().myWorkshop;
+      if (workshop != null) {
+        try {
+          final url = await StorageService.uploadImage(
+            bucket: 'workshops',
+            path: '${workshop.ownerId}/logo_edit_${DateTime.now().millisecondsSinceEpoch}.jpg',
+            file: file,
+          );
+          await WorkshopService.updateWorkshop(
+            workshopId: workshop.id,
+            updates: {'logo_url': url},
+          );
+          // Update local provider state with new logo URL
+          context.read<WorkshopProvider>().setMyWorkshop(
+            WorkshopData(
+              id: workshop.id,
+              ownerId: workshop.ownerId,
+              name: _workshopName,
+              username: _workshopHandle.replaceFirst('@', ''),
+              city: _workshopCity,
+              description: workshop.description,
+              yearsOfExperience: workshop.yearsOfExperience,
+              logoUrl: url,
+              coverUrl: workshop.coverUrl,
+              galleryUrls: workshop.galleryUrls,
+            ),
+          );
+        } catch (e) {
+          debugPrint('Error uploading profile logo: $e');
+        }
+      }
     });
   }
 
   Future<void> _pickAndAddImage() async {
-    _showImageSourceSheet(onPicked: (file) {
+    _showImageSourceSheet(onPicked: (file) async {
       setState(() => _extraImages.add(file));
       _updateProviderWorkshop();
+
+      final workshop = context.read<WorkshopProvider>().myWorkshop;
+      if (workshop != null) {
+        try {
+          final url = await StorageService.uploadImage(
+            bucket: 'workshops',
+            path: '${workshop.ownerId}/gallery_${DateTime.now().millisecondsSinceEpoch}.jpg',
+            file: file,
+          );
+          final updatedGallery = List<String>.from(workshop.galleryUrls)..add(url);
+          await WorkshopService.updateWorkshop(
+            workshopId: workshop.id,
+            updates: {'images': updatedGallery},
+          );
+          // Remove local file since it's uploaded now
+          setState(() {
+            _extraImages.remove(file);
+          });
+          context.read<WorkshopProvider>().setMyWorkshop(
+            WorkshopData(
+              id: workshop.id,
+              ownerId: workshop.ownerId,
+              name: _workshopName,
+              username: _workshopHandle.replaceFirst('@', ''),
+              city: _workshopCity,
+              description: workshop.description,
+              yearsOfExperience: workshop.yearsOfExperience,
+              logoUrl: workshop.logoUrl,
+              coverUrl: workshop.coverUrl,
+              galleryUrls: updatedGallery,
+            ),
+          );
+        } catch (e) {
+          debugPrint('Error uploading gallery image: $e');
+        }
+      }
     });
   }
 
@@ -315,7 +429,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       setState(() {
                         if (nameCtrl.text.trim().isNotEmpty) {
                           _workshopName = nameCtrl.text.trim();
@@ -328,21 +442,41 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                         }
                       });
                       _updateProviderWorkshop();
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'تم حفظ معلومات الورشة بنجاح',
-                            style: GoogleFonts.tajawal(),
+
+                      // Update in database
+                      final currentWorkshop = context.read<WorkshopProvider>().myWorkshop;
+                      if (currentWorkshop != null) {
+                        try {
+                          await WorkshopService.updateWorkshop(
+                            workshopId: currentWorkshop.id,
+                            updates: {
+                              'name': _workshopName,
+                              'handle': _workshopHandle.replaceFirst('@', ''),
+                              'city': _workshopCity,
+                            },
+                          );
+                        } catch (e) {
+                          debugPrint('Error updating workshop in database: $e');
+                        }
+                      }
+
+                      if (ctx.mounted) Navigator.pop(ctx);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'تم حفظ معلومات الورشة بنجاح',
+                              style: GoogleFonts.tajawal(),
+                            ),
+                            backgroundColor: ShamsColors.verifiedGreen,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            duration: const Duration(seconds: 2),
                           ),
-                          backgroundColor: ShamsColors.verifiedGreen,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ShamsColors.solarYellow,
@@ -458,10 +592,33 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
   }
 
   // ── Build ─────────────────────────────────────────────────────────────────
- @override
+  @override
   Widget build(BuildContext context) {
     // 💡 التعديل الجديد: تعريف المتغير الذي يراقب حالة الورشة
     final workshopState = context.watch<WorkshopProvider>();
+    final currentUser = context.read<UserProvider>().currentUser;
+
+    // Auto-fetch if user has a workshop but it's not loaded in the provider
+    if (currentUser.hasWorkshop && workshopState.myWorkshop == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<WorkshopProvider>().fetchMyWorkshop(
+          currentUser.id,
+          currentUser.username ?? '',
+        );
+      });
+    }
+
+    final d = workshopState.myWorkshop;
+    if (d != null && d.id != _prevWorkshopId) {
+      _prevWorkshopId = d.id;
+      _workshopName = d.name;
+      _workshopHandle = d.username.isNotEmpty ? '@${d.username}' : '@workshop';
+      _workshopCity = d.city;
+      // Fetch posts for this workshop
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<WorkshopProvider>().fetchMyWorkshopPosts(d.id);
+      });
+    }
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -493,7 +650,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
           child: Column(
             children: [
               // ── 1. الرأس ──
-              _buildHeader(),
+              _buildHeader(workshopState),
 
               // ── 2. معلومات الورشة ──
               _buildWorkshopInfo(),
@@ -514,7 +671,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '(${_extraImages.length})',
+                      '(${ (workshopState.myWorkshop?.galleryUrls.length ?? 0) + _extraImages.length })',
                       style: GoogleFonts.tajawal(
                         fontSize: 13,
                         color: ShamsColors.textHint,
@@ -527,11 +684,46 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: ScrollableImagePicker(
-                  images: _extraImages,
+                  images: [
+                    ...?workshopState.myWorkshop?.galleryUrls,
+                    ..._extraImages,
+                  ],
                   onAddTap: _pickAndAddImage,
-                  onRemoveTap: (i) {
-                    setState(() => _extraImages.removeAt(i));
-                    _updateProviderWorkshop();
+                  onRemoveTap: (i) async {
+                    final galleryCount = workshopState.myWorkshop?.galleryUrls.length ?? 0;
+                    if (i < galleryCount) {
+                      // Remove remote image
+                      final updatedGallery = List<String>.from(workshopState.myWorkshop!.galleryUrls)..removeAt(i);
+                      try {
+                        await WorkshopService.updateWorkshop(
+                          workshopId: workshopState.myWorkshop!.id,
+                          updates: {'images': updatedGallery},
+                        );
+                        // Update local provider state
+                        context.read<WorkshopProvider>().setMyWorkshop(
+                          WorkshopData(
+                            id: workshopState.myWorkshop!.id,
+                            ownerId: workshopState.myWorkshop!.ownerId,
+                            name: _workshopName,
+                            username: _workshopHandle.replaceFirst('@', ''),
+                            city: _workshopCity,
+                            description: workshopState.myWorkshop!.description,
+                            yearsOfExperience: workshopState.myWorkshop!.yearsOfExperience,
+                            logoUrl: workshopState.myWorkshop!.logoUrl,
+                            coverUrl: workshopState.myWorkshop!.coverUrl,
+                            galleryUrls: updatedGallery,
+                          ),
+                        );
+                      } catch (e) {
+                        debugPrint('Error removing gallery image: $e');
+                      }
+                    } else {
+                      // Remove local image
+                      setState(() {
+                        _extraImages.removeAt(i - galleryCount);
+                      });
+                      _updateProviderWorkshop();
+                    }
                   },
                 ),
               ),
@@ -557,7 +749,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                 child: Row(
                   children: [
                     _buildStatColumn(
-                      '1.2K',
+                      workshopState.myWorkshopFollowersCount.toString(),
                       'المتابعون',
                       Icons.people_alt_outlined,
                     ),
@@ -636,6 +828,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                               content: post.textDetails,
                               timeAgo: post.createdAt,
                               viewsCount: post.viewsCount,
+                              likesCount: post.likesCount,
                               imagePaths: post.images,
                               isLocalFile: post.isLocalFile,
                               onEdit: () {
@@ -712,7 +905,12 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
 
   // ── Header: cover + avatar with tappable camera badges ───────────────────
 
-  Widget _buildHeader() {
+  Widget _buildHeader(WorkshopProvider workshopState) {
+    final hasCoverUrl = workshopState.myWorkshop?.coverUrl != null &&
+        workshopState.myWorkshop!.coverUrl!.isNotEmpty;
+    final hasLogoUrl = workshopState.myWorkshop?.logoUrl != null &&
+        workshopState.myWorkshop!.logoUrl!.isNotEmpty;
+
     return SizedBox(
       height: 250,
       child: Stack(
@@ -728,15 +926,28 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                   width: double.infinity,
                   child: _coverImage != null
                       ? Image.file(_coverImage!, fit: BoxFit.cover)
-                      : Container(
-                          color:
-                              ShamsColors.primaryBlue.withValues(alpha: 0.08),
-                          child: const Icon(
-                            Icons.image_outlined,
-                            size: 50,
-                            color: Colors.grey,
-                          ),
-                        ),
+                      : hasCoverUrl
+                          ? Image.network(
+                              workshopState.myWorkshop!.coverUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: ShamsColors.primaryBlue.withValues(alpha: 0.08),
+                                child: const Icon(
+                                  Icons.image_outlined,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            )
+                          : Container(
+                              color:
+                                  ShamsColors.primaryBlue.withValues(alpha: 0.08),
+                              child: const Icon(
+                                  Icons.image_outlined,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
+                            ),
                 ),
                 // طبقة شفافة للنقر على صورة الغلاف
                 Positioned(
@@ -771,15 +982,33 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                               fit: BoxFit.cover,
                             ),
                           )
-                        : const CircleAvatar(
-                            radius: 45,
-                            backgroundColor: Color(0xFFF0F2F5),
-                            child: Icon(
-                              Icons.store_rounded,
-                              size: 40,
-                              color: Colors.grey,
-                            ),
-                          ),
+                        : hasLogoUrl
+                            ? ClipOval(
+                                child: Image.network(
+                                  workshopState.myWorkshop!.logoUrl!,
+                                  width: 90,
+                                  height: 90,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const CircleAvatar(
+                                    radius: 45,
+                                    backgroundColor: Color(0xFFF0F2F5),
+                                    child: Icon(
+                                      Icons.store_rounded,
+                                      size: 40,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : const CircleAvatar(
+                                radius: 45,
+                                backgroundColor: Color(0xFFF0F2F5),
+                                child: Icon(
+                                  Icons.store_rounded,
+                                  size: 40,
+                                  color: Colors.grey,
+                                ),
+                              ),
                   ),
                   _buildCameraBadge(),
                 ],

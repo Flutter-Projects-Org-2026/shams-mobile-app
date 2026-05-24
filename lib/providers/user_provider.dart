@@ -38,13 +38,39 @@ class UserProvider extends ChangeNotifier {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) return;
 
-      final data = await Supabase.instance.client
-          .from('profiles')
-          .select()
-          .eq('id', user.id)
-          .single();
+      Map<String, dynamic>? data;
+      try {
+        data = await Supabase.instance.client
+            .from('profiles')
+            .select()
+            .eq('id', user.id)
+            .single();
+      } catch (e) {
+        debugPrint('Profile row not found, auto-creating default profile row: $e');
+        final email = user.email ?? '';
+        final defaultUsername = email.isNotEmpty ? email.split('@').first : 'user_${user.id.substring(0, 5)}';
+        final defaultName = user.userMetadata?['full_name'] ?? user.userMetadata?['name'] ?? 'مستخدم شمس';
+        
+        await Supabase.instance.client.from('profiles').upsert({
+          'id': user.id,
+          'name': defaultName,
+          'username': defaultUsername,
+          'email': email,
+          'has_workshop': false,
+        });
 
-      final newUser = UserModel.fromMap(data);
+        data = await Supabase.instance.client
+            .from('profiles')
+            .select()
+            .eq('id', user.id)
+            .single();
+      }
+
+      final newUser = UserModel.fromMap({
+        ...data,
+        'email': user.email ?? data['email'] ?? '',
+      });
+
       if (_currentUser.profileImageUrl != newUser.profileImageUrl) {
         _evictImage(_currentUser.profileImageUrl);
       }

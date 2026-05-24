@@ -100,11 +100,14 @@ class MaintenanceRequestModel {
       'battery_type': batteryType,
       'problem_description': problemDescription,
       'requested_at': requestedAt.toIso8601String(),
-      'status': status.name,
+      'status': status == MaintenanceRequestStatus.inProgress ? 'in_progress' : status.name,
     };
   }
 
   factory MaintenanceRequestModel.fromMap(Map<String, dynamic> map) {
+    String dbStatus = map['status'] ?? '';
+    if (dbStatus == 'in_progress') dbStatus = 'inProgress';
+    
     return MaintenanceRequestModel(
       id: map['id'] ?? '',
       workshopId: map['workshop_id'] ?? '',
@@ -118,7 +121,7 @@ class MaintenanceRequestModel {
           ? DateTime.parse(map['requested_at'])
           : DateTime.now(),
       status: MaintenanceRequestStatus.values.firstWhere(
-        (e) => e.name == map['status'],
+        (e) => e.name == dbStatus,
         orElse: () => MaintenanceRequestStatus.pending,
       ),
     );

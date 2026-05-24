@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../utils/constants.dart';
 import '../../models/notification_model.dart';
 import '../../providers/notification_provider.dart';
+import '../posts/post_detail_screen.dart';
+import '../workshops/workshop_profile_screen.dart';
+import '../chat/chat_conversation_screen.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NotificationsScreen — شاشة الإشعارات
@@ -124,7 +128,7 @@ class NotificationsScreen extends StatelessWidget {
 
   // ── Navigation dispatcher ────────────────────────────────────────────────
 
-  void _handleNotifTap(BuildContext context, NotificationModel notif) {
+  void _handleNotifTap(BuildContext context, NotificationModel notif) async {
     // Mark as read on tap
     if (!notif.isRead) {
       context.read<NotificationProvider>().markAsRead(notif.id);
@@ -136,25 +140,75 @@ class NotificationsScreen extends StatelessWidget {
       case NotificationType.comment:
       case NotificationType.reply:
         if (notif.targetId != null) {
-          // TODO(db): Navigator.push to PostDetailScreen(postId: notif.targetId!)
-          ScaffoldMessenger.of(context).showSnackBar(
-            _infoSnack('فتح المنشور: ${notif.targetId}'),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PostDetailScreen(postId: notif.targetId!),
+            ),
           );
         }
         break;
       case NotificationType.workshopUpdate:
         if (notif.targetId != null) {
-          // TODO(db): Navigator.push to WorkshopProfile(workshopId: notif.targetId!)
-          ScaffoldMessenger.of(context).showSnackBar(
-            _infoSnack('فتح ملف الورشة: ${notif.targetId}'),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => WorkshopProfile(workshopId: notif.targetId!),
+            ),
           );
         }
         break;
       case NotificationType.maintenanceStatus:
         if (notif.targetId != null) {
-          // TODO(db): Navigator.push to ChatConversationScreen(chatId: notif.targetId!)
-          ScaffoldMessenger.of(context).showSnackBar(
-            _infoSnack('فتح المحادثة: ${notif.targetId}'),
+          // Show progress indicator while loading
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+
+          try {
+            final chatRes = await Supabase.instance.client
+                .from('chats')
+                .select('id')
+                .eq('maintenance_req_id', notif.targetId!)
+                .maybeSingle();
+
+            if (context.mounted) {
+              Navigator.pop(context); // Dismiss progress dialog
+              if (chatRes != null) {
+                final chatId = chatRes['id'] as String;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChatConversationScreen(chatId: chatId),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  _infoSnack('لم يتم العثور على محادثة لطلب الصيانة هذا'),
+                );
+              }
+            }
+          } catch (e) {
+            if (context.mounted) {
+              Navigator.pop(context); // Dismiss progress dialog
+              ScaffoldMessenger.of(context).showSnackBar(
+                _infoSnack('حدث خطأ أثناء تحميل المحادثة: $e'),
+              );
+            }
+          }
+        }
+        break;
+      case NotificationType.message:
+        if (notif.targetId != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatConversationScreen(chatId: notif.targetId!),
+            ),
           );
         }
         break;
@@ -251,12 +305,11 @@ class _NotificationTile extends StatelessWidget {
 
             // Icon badge
             CircleAvatar(
-              backgroundColor: (notif.color ?? ShamsColors.primaryBlue)
-                  .withValues(alpha: 0.12),
+              backgroundColor: notif.resolvedColor.withValues(alpha: 0.12),
               radius: 22,
               child: Icon(
-                notif.icon ?? Icons.notifications_outlined,
-                color: notif.color ?? ShamsColors.primaryBlue,
+                notif.resolvedIcon,
+                color: notif.resolvedColor,
                 size: 20,
               ),
             ),

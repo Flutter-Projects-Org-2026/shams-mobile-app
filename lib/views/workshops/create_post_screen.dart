@@ -7,6 +7,7 @@ import '../../models/post_model.dart';
 import '../../providers/workshop_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/feed_provider.dart';
+import '../../services/post_service.dart';
 import '../../utils/constants.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -136,7 +137,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     setState(() => _attachments.removeAt(index));
   }
 
-  void _publish() {
+  void _publish() async {
     if (_contentController.text.trim().isEmpty && _attachments.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -153,21 +154,43 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     final currentUser = context.read<UserProvider>().currentUser;
     final workshopId = myWorkshop?.id ?? currentUser.id;
 
-    final newPost = PostModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      workshopId: workshopId,
-      textDetails: _contentController.text.trim(),
-      images: _attachments.map((a) => a.path).toList(),
-      isLocalFile: _attachments.isNotEmpty && !_attachments.first.isAsset,
-      viewsCount: '0',
-      createdAt: 'الآن',
-      isHighlighted: _isHighlighted,
-      author: currentUser,
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
     );
 
-    context.read<WorkshopProvider>().addPost(newPost);
-    context.read<FeedProvider>().addPost(newPost);
-    Navigator.pop(context);
+    try {
+      final imageFiles = _attachments.map((a) => File(a.path)).toList();
+      final newPostMap = await PostService.createPost(
+        workshopId: workshopId,
+        textDetails: _contentController.text.trim(),
+        images: imageFiles,
+        isHighlighted: _isHighlighted,
+      );
+
+      final newPost = PostModel.fromSupabase(newPostMap);
+
+      if (mounted) {
+        context.read<WorkshopProvider>().addPost(newPost);
+        context.read<FeedProvider>().addPost(newPost);
+        Navigator.pop(context); // Dismiss loading
+        Navigator.pop(context); // Go back
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Dismiss loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('حدث خطأ أثناء النشر: $e', style: GoogleFonts.tajawal()),
+            backgroundColor: ShamsColors.dangerRed,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────

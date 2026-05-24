@@ -17,6 +17,9 @@ enum NotificationType {
   /// Maintenance request status changed → navigate to chat
   maintenanceStatus,
 
+  /// New message received → navigate to chat
+  message,
+
   /// Generic / system notification
   system,
 }
@@ -48,6 +51,82 @@ class NotificationModel {
     this.type = NotificationType.system,
     this.targetId,
   });
+
+  IconData get resolvedIcon => icon ?? _resolvedIcon(type);
+  Color get resolvedColor => color ?? _resolvedColor(type);
+
+  static IconData _resolvedIcon(NotificationType type) {
+    switch (type) {
+      case NotificationType.like:
+        return Icons.favorite_rounded;
+      case NotificationType.comment:
+        return Icons.comment_rounded;
+      case NotificationType.reply:
+        return Icons.reply_rounded;
+      case NotificationType.workshopUpdate:
+        return Icons.local_offer_rounded;
+      case NotificationType.maintenanceStatus:
+        return Icons.build_circle_rounded;
+      case NotificationType.message:
+        return Icons.chat_bubble_outline_rounded;
+      case NotificationType.system:
+        return Icons.notifications_rounded;
+    }
+  }
+
+  static Color _resolvedColor(NotificationType type) {
+    switch (type) {
+      case NotificationType.like:
+        return const Color(0xFFD32F2F);
+      case NotificationType.comment:
+        return const Color(0xFF2CC069);
+      case NotificationType.reply:
+        return const Color(0xFF0056C6);
+      case NotificationType.workshopUpdate:
+        return const Color(0xFF2CC069);
+      case NotificationType.maintenanceStatus:
+        return const Color(0xFFFFD600);
+      case NotificationType.message:
+        return const Color(0xFF0056C6);
+      case NotificationType.system:
+        return const Color(0xFF9EA3B0);
+    }
+  }
+
+  factory NotificationModel.fromSupabase(Map<String, dynamic> map) {
+    final typeStr = map['type'] ?? 'system';
+    final parsedType = _parseType(typeStr);
+    return NotificationModel(
+      id: map['id'] ?? '',
+      title: map['title'] ?? '',
+      message: map['message'] ?? '',
+      timestamp: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : DateTime.now(),
+      isRead: map['is_read'] ?? false,
+      type: parsedType,
+      targetId: map['target_id'],
+    );
+  }
+
+  static NotificationType _parseType(String typeStr) {
+    switch (typeStr) {
+      case 'like':
+        return NotificationType.like;
+      case 'comment':
+        return NotificationType.comment;
+      case 'reply':
+        return NotificationType.reply;
+      case 'workshop_update':
+        return NotificationType.workshopUpdate;
+      case 'maintenance_status':
+        return NotificationType.maintenanceStatus;
+      case 'message':
+        return NotificationType.message;
+      default:
+        return NotificationType.system;
+    }
+  }
 
   NotificationModel copyWith({
     String? id,

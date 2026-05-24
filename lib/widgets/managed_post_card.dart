@@ -7,6 +7,7 @@ class ManagedPostCard extends StatefulWidget {
   final String content;
   final String timeAgo;
   final String viewsCount;
+  final int likesCount;
   final List<String> imagePaths;
   final bool isLocalFile;
   final VoidCallback onEdit;
@@ -17,6 +18,7 @@ class ManagedPostCard extends StatefulWidget {
     required this.content,
     required this.timeAgo,
     required this.viewsCount,
+    this.likesCount = 0,
     required this.imagePaths,
     this.isLocalFile = false,
     required this.onEdit,
@@ -160,6 +162,15 @@ class _ManagedPostCardState extends State<ManagedPostCard> {
                           if (_isVideoPath(path)) {
                             return _buildVideoPlaceholder();
                           }
+                          final isNetwork = path.startsWith('http') || path.startsWith('https');
+                          if (isNetwork) {
+                            return Image.network(
+                              path,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildPlaceholder(),
+                            );
+                          }
                           // صورة محلية من الجهاز (مسار يبدأ بـ /)
                           final isLocal = path.startsWith('/') ||
                               path.startsWith('file://');
@@ -203,47 +214,59 @@ class _ManagedPostCardState extends State<ManagedPostCard> {
                             ),
                           ),
                         ),
-
-                      // عدد المشاهدات (يمين تحت)
-                      Positioned(
-                        bottom: 12,
-                        right: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.6),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                widget.viewsCount,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.visibility_outlined,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
               ),
             ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.visibility_outlined,
+                      size: 16,
+                      color: Color(0xFF9EA3B0),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      widget.viewsCount,
+                      style: GoogleFonts.tajawal(
+                        color: const Color(0xFF9EA3B0),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.favorite_border_rounded,
+                      size: 16,
+                      color: Color(0xFF9EA3B0),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${widget.likesCount}',
+                      style: GoogleFonts.tajawal(
+                        color: const Color(0xFF9EA3B0),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
         ],
       ),
     );

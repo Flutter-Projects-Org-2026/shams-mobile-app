@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/post_model.dart';
+import '../models/comment_model.dart';
 import '../models/public_workshop_model.dart';
 import '../models/workshop_data.dart';
+import '../services/workshop_service.dart';
+import '../services/post_service.dart';
 
 /// WorkshopProvider — state manager for all workshop data.
 ///
@@ -14,10 +17,49 @@ import '../models/workshop_data.dart';
 /// All mutations call [notifyListeners] so every context.watch() subscriber
 /// rebuilds automatically. No Consumer widgets needed.
 class WorkshopProvider extends ChangeNotifier {
+  WorkshopProvider() {
+    fetchPublicWorkshops();
+  }
+
+  Future<void> fetchPublicWorkshops() async {
+    try {
+      final data = await WorkshopService.fetchPublicWorkshops();
+      final List<PublicWorkshopModel> loaded = [];
+      for (final item in data) {
+        final isFollowing = await WorkshopService.isFollowing(item['id']);
+        var model = PublicWorkshopModel.fromSupabase(
+          item,
+          isFollowing: isFollowing,
+        );
+        if (_myWorkshop != null && item['id'] == _myWorkshop!.id) {
+          final logoPath = _myWorkshop!.profileImage?.path ?? _myWorkshop!.logoUrl ?? model.logoPath;
+          final coverImagePath = _myWorkshop!.coverImage?.path ?? _myWorkshop!.coverUrl ?? model.coverImagePath;
+          model = model.copyWith(
+            name: _myWorkshop!.name,
+            handle: '@${_myWorkshop!.username}',
+            city: _myWorkshop!.city,
+            description: _myWorkshop!.description,
+            logoPath: logoPath,
+            coverImagePath: coverImagePath,
+            yearsOfExperience: _myWorkshop!.yearsOfExperience,
+            posts: List.from(_posts),
+          );
+        }
+        loaded.add(model);
+      }
+      _publicWorkshops.clear();
+      _publicWorkshops.addAll(loaded);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching public workshops from database: $e');
+    }
+  }
   // ── My Workshop Details (for Owner's Dashboard) ──────────────────────────
   WorkshopData? _myWorkshop;
+  int _myWorkshopFollowersCount = 0;
 
   WorkshopData? get myWorkshop => _myWorkshop;
+  int get myWorkshopFollowersCount => _myWorkshopFollowersCount;
 
   Future<void> fetchMyWorkshop(String userId, String username) async {
     try {
@@ -28,13 +70,30 @@ class WorkshopProvider extends ChangeNotifier {
           .maybeSingle();
 
       if (data != null) {
+        final workshopId = data['id'] ?? '';
+
+        // Fetch real followers count from the follows table
+        try {
+          final followersRes = await Supabase.instance.client
+              .from('follows')
+              .select('id')
+              .eq('workshop_id', workshopId);
+          _myWorkshopFollowersCount = followersRes.length;
+        } catch (e) {
+          debugPrint('Error fetching followers count: $e');
+        }
+
         final workshop = WorkshopData(
-          id: userId,
+          id: workshopId,
+          ownerId: userId,
           name: data['name'] ?? '',
-          username: username.isEmpty ? (data['username'] ?? 'workshop') : username,
+          username: (data['handle'] ?? username).toString().replaceAll('@', ''),
           city: data['city'] ?? '',
           description: data['description'] ?? '',
-          yearsOfExperience: 0,
+          yearsOfExperience: data['years_of_experience'] as int? ?? 0,
+          logoUrl: data['logo_url'],
+          coverUrl: data['cover_url'],
+          galleryUrls: List<String>.from(data['images'] ?? []),
         );
         setMyWorkshop(workshop);
       }
@@ -43,12 +102,29 @@ class WorkshopProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> fetchMyWorkshopPosts(String workshopId) async {
+    try {
+      final data = await PostService.fetchWorkshopPosts(workshopId: workshopId);
+      final List<PostModel> loaded = [];
+      for (final item in data) {
+        final commentsData = await PostService.fetchComments(item['id']);
+        final comments = commentsData.map((c) => CommentModel.fromSupabase(c)).toList();
+        loaded.add(PostModel.fromSupabase(item, comments: comments));
+      }
+      _posts.clear();
+      _posts.addAll(loaded);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching my workshop posts: $e');
+    }
+  }
+
   void setMyWorkshop(WorkshopData data) {
     _myWorkshop = data;
     
     final index = _publicWorkshops.indexWhere((w) => w.id == data.id);
-    final logoPath = data.profileImage?.path ?? 'assets/images/logo/shams logo.png';
-    final coverImagePath = data.coverImage?.path ?? 'assets/images/post image.jpg';
+    final logoPath = data.profileImage?.path ?? data.logoUrl ?? 'assets/images/logo/shams logo.png';
+    final coverImagePath = data.coverImage?.path ?? data.coverUrl ?? 'assets/images/post image.jpg';
     
     if (index != -1) {
       final existing = _publicWorkshops[index];
@@ -66,6 +142,7 @@ class WorkshopProvider extends ChangeNotifier {
         0,
         PublicWorkshopModel(
           id: data.id,
+          ownerId: data.ownerId,
           name: data.name,
           handle: '@${data.username}',
           city: data.city,
@@ -85,164 +162,11 @@ class WorkshopProvider extends ChangeNotifier {
 
   // ── My Workshop Posts (owner's dashboard) ──────────────────────────────────
 
-  final List<PostModel> _posts = [
-    PostModel(
-      id: 'post_001',
-      textDetails:
-          'تركيب منظومة طاقة شمسية بقدرة 10 كيلوواط لمنزل سكني في صنعاء. '
-          'تشمل 24 لوحاً شمسياً، بطاريات ليثيوم، ومحول عاكس عالي الكفاءة.',
-      images: ['assets/images/post image.jpg'],
-      isLocalFile: false,
-      viewsCount: '45.8K',
-      createdAt: 'منذ يومين',
-      isHighlighted: true,
-    ),
-    PostModel(
-      id: 'post_002',
-      textDetails:
-          'صيانة دورية شاملة لمحطة طاقة شمسية صناعية — تنظيف الألواح، '
-          'فحص كابلات الربط، واختبار كفاءة الإنتاج بأجهزة قياس معتمدة.',
-      images: ['assets/images/post image.jpg'],
-      isLocalFile: false,
-      viewsCount: '12.3K',
-      createdAt: 'منذ 4 أيام',
-      isHighlighted: false,
-    ),
-    PostModel(
-      id: 'post_003',
-      textDetails:
-          'تصميم وتنفيذ نظام مضخة مياه شمسية للمزارع بسعة 5000 لتر/ساعة — '
-          'حل مستدام يُقلّل فاتورة الكهرباء بنسبة 80٪.',
-      images: ['assets/images/post image.jpg'],
-      isLocalFile: false,
-      viewsCount: '8.1K',
-      createdAt: 'منذ أسبوع',
-      isHighlighted: false,
-    ),
-  ];
+  final List<PostModel> _posts = [];
 
   // ── Public Workshops Directory ─────────────────────────────────────────────
 
-  final List<PublicWorkshopModel> _publicWorkshops = [
-    PublicWorkshopModel(
-      id: 'w1',
-      name: 'مركز المجد للطاقة الشمسية',
-      handle: '@al_majd_solar',
-      city: 'تعز',
-      rating: 4.5,
-      reviewCount: 320,
-      description:
-          'متخصصون في تركيب وصيانة أنظمة الطاقة الشمسية لأكثر من 10 سنوات. '
-          'نقدم حلولاً متكاملة للقطاعين السكني والتجاري.',
-      logoPath: 'assets/images/logo/shams logo.png',
-      coverImagePath: 'assets/images/post image.jpg',
-      isFollowing: true,
-      posts: [
-        PostModel(
-          id: 'w1_p1',
-          textDetails:
-              'صيانة شاملة لنظام ألواح شمسية بقدرة 10 كيلوواط مع تنظيف الألواح لزيادة الكفاءة.',
-          images: ['assets/images/post image.jpg'],
-          createdAt: 'منذ يومين',
-        ),
-        PostModel(
-          id: 'w1_p2',
-          textDetails:
-              'فحص وتبديل محول العاكس (Inverter) لنظام طاقة شمسية منزلي واستعادة النظام للعمل.',
-          images: ['assets/images/post image.jpg'],
-          createdAt: 'الأسبوع الماضي',
-        ),
-        PostModel(
-          id: 'w1_p3',
-          textDetails:
-              'حل مشكلة ضعف شحن البطاريات وتغيير التوصيلات التالفة لنظام الطاقة الشمسية.',
-          images: ['assets/images/post image.jpg'],
-          createdAt: 'منذ أسبوعين',
-        ),
-      ],
-    ),
-    PublicWorkshopModel(
-      id: 'w2',
-      name: 'نور المستقبل لأنظمة الطاقة',
-      handle: '@future_light_energy',
-      city: 'تعز',
-      rating: 4.8,
-      reviewCount: 510,
-      description:
-          'شركة رائدة في حلول الطاقة الشمسية المتجددة. '
-          'نوفر أفضل الأنظمة بأسعار منافسة مع ضمان شامل.',
-      logoPath: 'assets/images/logo/shams logo.png',
-      coverImagePath: 'assets/images/post image.jpg',
-      isFollowing: false,
-      posts: [
-        PostModel(
-          id: 'w2_p1',
-          textDetails:
-              'تركيب منظومة طاقة شمسية بقدرة 5 كيلوواط في منزل سكني بتعز.',
-          images: ['assets/images/post image.jpg'],
-          createdAt: 'منذ 3 أيام',
-        ),
-        PostModel(
-          id: 'w2_p2',
-          textDetails:
-              'توريد وتركيب بطاريات ليثيوم عالية الجودة لنظام طاقة شمسية.',
-          images: ['assets/images/post image.jpg'],
-          createdAt: 'منذ أسبوع',
-        ),
-      ],
-    ),
-    PublicWorkshopModel(
-      id: 'w3',
-      name: 'رواد الطاقة البديلة',
-      handle: '@alt_energy_pioneers',
-      city: 'صنعاء',
-      rating: 4.9,
-      reviewCount: 870,
-      description:
-          'من الرواد في مجال الطاقة البديلة باليمن. '
-          'خبرة تمتد لأكثر من 15 عاماً في تصميم وتنفيذ المشاريع الكبرى.',
-      logoPath: 'assets/images/logo/shams logo.png',
-      coverImagePath: 'assets/images/post image.jpg',
-      isFollowing: false,
-      posts: [
-        PostModel(
-          id: 'w3_p1',
-          textDetails:
-              'تنفيذ مشروع طاقة شمسية ضخم لمصنع في صنعاء بقدرة 50 كيلوواط.',
-          images: ['assets/images/post image.jpg'],
-          createdAt: 'منذ يوم',
-        ),
-        PostModel(
-          id: 'w3_p2',
-          textDetails:
-              'تركيب منظومة طاقة شمسية كاملة لمجمع سكني في صنعاء — 80 لوحاً شمسياً.',
-          images: ['assets/images/post image.jpg'],
-          createdAt: 'منذ 4 أيام',
-        ),
-      ],
-    ),
-    PublicWorkshopModel(
-      id: 'w4',
-      name: 'عدن للطاقة المتجددة',
-      handle: '@aden_renewable',
-      city: 'عدن',
-      rating: 3.9,
-      reviewCount: 145,
-      description:
-          'نقدم خدمات تركيب وصيانة أنظمة الطاقة الشمسية في عدن والمناطق المجاورة.',
-      logoPath: 'assets/images/logo/shams logo.png',
-      coverImagePath: 'assets/images/post image.jpg',
-      isFollowing: false,
-      posts: [
-        PostModel(
-          id: 'w4_p1',
-          textDetails: 'تركيب نظام مضخة مياه شمسية لمزرعة في لحج.',
-          images: ['assets/images/post image.jpg'],
-          createdAt: 'منذ 5 أيام',
-        ),
-      ],
-    ),
-  ];
+  final List<PublicWorkshopModel> _publicWorkshops = [];
 
   // ── Public API ─────────────────────────────────────────────────────────────
 
@@ -265,14 +189,39 @@ class WorkshopProvider extends ChangeNotifier {
     }
   }
 
+  /// Returns the workshop owned by [ownerId], or null if not found.
+  PublicWorkshopModel? getWorkshopByOwnerId(String ownerId) {
+    try {
+      return _publicWorkshops.firstWhere((w) => w.ownerId == ownerId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Toggle the follow state for the workshop with [workshopId].
-  void toggleFollow(String workshopId) {
+  Future<void> toggleFollow(String workshopId) async {
     final index = _publicWorkshops.indexWhere((w) => w.id == workshopId);
     if (index != -1) {
+      final currentlyFollowing = _publicWorkshops[index].isFollowing;
       _publicWorkshops[index] = _publicWorkshops[index].copyWith(
-        isFollowing: !_publicWorkshops[index].isFollowing,
+        isFollowing: !currentlyFollowing,
       );
       notifyListeners();
+
+      try {
+        if (currentlyFollowing) {
+          await WorkshopService.unfollowWorkshop(workshopId);
+        } else {
+          await WorkshopService.followWorkshop(workshopId);
+        }
+      } catch (e) {
+        debugPrint('Error toggling follow in database: $e');
+        // Revert on failure
+        _publicWorkshops[index] = _publicWorkshops[index].copyWith(
+          isFollowing: currentlyFollowing,
+        );
+        notifyListeners();
+      }
     }
   }
 

@@ -12,6 +12,8 @@ import '../../providers/user_provider.dart';
 import '../../providers/workshop_provider.dart';
 import '../../models/message_model.dart';
 import '../../models/user_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../services/chat_service.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ChatConversationScreen — شاشة المحادثة الفردية
@@ -34,6 +36,26 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
   bool _isSearching = false;
   String _searchQuery = '';
   bool _isMuted = false;
+  RealtimeChannel? _messageSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _messageSubscription = ChatService.subscribeToMessages(
+      chatId: widget.chatId,
+      onNewMessage: (payload) {
+        if (mounted) {
+          context.read<ChatProvider>().fetchChats();
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _messageSubscription?.unsubscribe();
+    super.dispose();
+  }
 
   Widget _buildChatAvatar(String? path, String name) {
     if (path == null || path.isEmpty) {
@@ -133,18 +155,15 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     final otherParticipant = chat.participants.isEmpty
         ? const UserModel(id: '', name: 'محادثة', email: '')
         : chat.participants.firstWhere(
-            (p) => p.email != currentUser.email,
-            orElse: () => chat.participants.firstWhere(
-              (p) => p.id != currentUser.id,
-              orElse: () => chat.participants.first,
-            ),
+            (p) => p.id != currentUser.id,
+            orElse: () => chat.participants.first,
           );
 
     String displayName = otherParticipant.name;
     String? displayAvatar = otherParticipant.profileImageUrl;
 
     final workshopProvider = context.watch<WorkshopProvider>();
-    final workshopMatch = workshopProvider.getWorkshopById(otherParticipant.id);
+    final workshopMatch = workshopProvider.getWorkshopByOwnerId(otherParticipant.id);
     if (workshopMatch != null) {
       displayName = workshopMatch.name;
       displayAvatar = workshopMatch.logoPath;

@@ -123,4 +123,49 @@ class PostModel {
           const [],
     );
   }
+
+  static String _timeAgo(String isoString) {
+    try {
+      final parsed = DateTime.parse(isoString);
+      final diff = DateTime.now().difference(parsed);
+      if (diff.inDays > 7) {
+        return '${parsed.year}-${parsed.month}-${parsed.day}';
+      } else if (diff.inDays >= 1) {
+        return 'منذ ${diff.inDays} يوم';
+      } else if (diff.inHours >= 1) {
+        return 'منذ ${diff.inHours} ساعة';
+      } else if (diff.inMinutes >= 1) {
+        return 'منذ ${diff.inMinutes} دقيقة';
+      } else {
+        return 'الآن';
+      }
+    } catch (_) {
+      return isoString;
+    }
+  }
+
+  factory PostModel.fromSupabase(
+    Map<String, dynamic> map, {
+    bool isLiked = false,
+    List<CommentModel> comments = const [],
+  }) {
+    final authorMap = map['profiles'];
+    final author = authorMap != null ? UserModel.fromMap(authorMap) : null;
+    final viewsVal = map['views_count'] ?? 0;
+    
+    return PostModel(
+      id: map['id'] ?? '',
+      workshopId: map['workshop_id'],
+      textDetails: map['text_details'] ?? '',
+      images: List<String>.from(map['images'] ?? []),
+      isLocalFile: false,
+      viewsCount: viewsVal > 1000 ? '${(viewsVal / 1000).toStringAsFixed(1)}K' : '$viewsVal',
+      createdAt: _timeAgo(map['created_at'] ?? ''),
+      isHighlighted: map['is_highlighted'] ?? false,
+      author: author,
+      likesCount: map['likes_count'] ?? 0,
+      isLiked: isLiked,
+      comments: comments,
+    );
+  }
 }

@@ -36,6 +36,9 @@ class _MainScreenState extends State<MainScreen> {
       await userProvider.fetchUserData();
       if (mounted) {
         final currentUser = userProvider.currentUser;
+        // Fetch public workshops for the authenticated user (populates isFollowing)
+        context.read<WorkshopProvider>().fetchPublicWorkshops();
+
         if (currentUser.id.isNotEmpty && currentUser.hasWorkshop) {
           final username = currentUser.username ?? 'owner';
           await context

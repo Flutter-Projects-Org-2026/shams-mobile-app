@@ -403,13 +403,12 @@ class _PostCardState extends State<PostCard>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // المشاركة (يسار)
-          _ActionChip(
-            icon: Icons.reply_rounded,
-            count: widget.sharesCount,
-            color: ShamsColors.textGray.withValues(alpha: 0.7),
-            onTap: widget.onShareTap,
-          ),
-
+          // _ActionChip(
+          //   icon: Icons.reply_rounded,
+          //   count: widget.sharesCount,
+          //   color: ShamsColors.textGray.withValues(alpha: 0.7),
+          //   onTap: widget.onShareTap,
+          // ),
           Row(
             children: [
               // التعليق
@@ -487,18 +486,18 @@ class _Avatar extends StatelessWidget {
                 errorBuilder: (_, _, _) => _fallback(),
               )
             : (imagePath.startsWith('assets/')
-                ? Image.asset(
-                    imagePath,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _fallback(),
-                  )
-            : (File(imagePath).existsSync()
-                ? Image.file(
-                    File(imagePath),
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => _fallback(),
-                  )
-                : _fallback())),
+                  ? Image.asset(
+                      imagePath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _fallback(),
+                    )
+                  : (File(imagePath).existsSync()
+                        ? Image.file(
+                            File(imagePath),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => _fallback(),
+                          )
+                        : _fallback())),
       ),
     );
   }

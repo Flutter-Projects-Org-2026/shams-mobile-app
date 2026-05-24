@@ -50,4 +50,16 @@ class MessageModel {
       isRead: map['isRead'] ?? false,
     );
   }
+
+  factory MessageModel.fromSupabase(Map<String, dynamic> map) {
+    return MessageModel(
+      id: map['id'] ?? '',
+      senderId: map['sender_id'] ?? '',
+      text: map['text'] ?? '',
+      timestamp: map['created_at'] != null 
+          ? DateTime.parse(map['created_at']) 
+          : DateTime.now(),
+      isRead: map['is_read'] ?? false,
+    );
+  }
 }

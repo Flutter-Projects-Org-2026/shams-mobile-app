@@ -116,12 +116,14 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
             }
           }
 
-          // 3. Update profile row
+           // 3. Update profile row
           try {
             final Map<String, dynamic> updates = {
+              'id': res.user!.id,
               'name': name,
               'username': username,
               'location': location,
+              'email': widget.email,
             };
             if (phone.isNotEmpty) updates['phone'] = phone;
             if (bio.isNotEmpty) updates['bio'] = bio;
@@ -129,8 +131,7 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
 
             await Supabase.instance.client
                 .from('profiles')
-                .update(updates)
-                .eq('id', res.user!.id);
+                .upsert(updates);
           } catch (e) {
             debugPrint('Profile update failed: $e');
             if (mounted) {

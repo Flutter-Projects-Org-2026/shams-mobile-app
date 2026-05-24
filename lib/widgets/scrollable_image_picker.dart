@@ -14,8 +14,8 @@ import '../utils/constants.dart';
 /// )
 /// ```
 class ScrollableImagePicker extends StatelessWidget {
-  /// The list of already-picked images to display.
-  final List<File> images;
+  /// The list of already-picked images to display (can be File or String url).
+  final List<dynamic> images;
 
   /// Called when the user taps the "+" add button.
   final VoidCallback onAddTap;
@@ -52,7 +52,7 @@ class ScrollableImagePicker extends StatelessWidget {
               return _AddImageButton(size: imageSize, onTap: onAddTap);
             }
             return _ImageThumbnail(
-              file: images[index],
+              item: images[index],
               size: imageSize,
               onRemove: () => onRemoveTap(index),
             );
@@ -66,18 +66,37 @@ class ScrollableImagePicker extends StatelessWidget {
 // ─── Thumbnail ────────────────────────────────────────────────────────────────
 
 class _ImageThumbnail extends StatelessWidget {
-  final File file;
+  final dynamic item;
   final double size;
   final VoidCallback onRemove;
 
   const _ImageThumbnail({
-    required this.file,
+    required this.item,
     required this.size,
     required this.onRemove,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget imageWidget;
+    if (item is File) {
+      imageWidget = Image.file(item as File, fit: BoxFit.cover);
+    } else if (item is String) {
+      imageWidget = Image.network(
+        item as String,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.grey.shade200,
+          child: const Icon(Icons.broken_image, color: Colors.grey),
+        ),
+      );
+    } else {
+      imageWidget = Container(
+        color: Colors.grey.shade200,
+        child: const Icon(Icons.image, color: Colors.grey),
+      );
+    }
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -89,7 +108,7 @@ class _ImageThumbnail extends StatelessWidget {
             border: Border.all(color: ShamsColors.solarYellow, width: 1.5),
           ),
           clipBehavior: Clip.hardEdge,
-          child: Image.file(file, fit: BoxFit.cover),
+          child: imageWidget,
         ),
         // Remove badge
         Positioned(

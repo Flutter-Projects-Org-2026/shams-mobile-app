@@ -8,6 +8,9 @@ class WorkshopData {
   /// المعرف الفريد للورشة
   final String id;
 
+  /// معرف مالك الورشة
+  final String ownerId;
+
   /// اسم الورشة
   final String name;
 
@@ -32,8 +35,18 @@ class WorkshopData {
   /// صور إضافية من المعرض (غير محدودة)
   final List<File> extraImages;
 
+  /// رابط صورة اللوجو على السيرفر
+  final String? logoUrl;
+
+  /// رابط صورة الغلاف على السيرفر
+  final String? coverUrl;
+
+  /// روابط الصور الإضافية على السيرفر
+  final List<String> galleryUrls;
+
   const WorkshopData({
     required this.id,
+    required this.ownerId,
     required this.name,
     required this.username,
     required this.city,
@@ -42,5 +55,8 @@ class WorkshopData {
     this.profileImage,
     this.coverImage,
     this.extraImages = const [],
+    this.logoUrl,
+    this.coverUrl,
+    this.galleryUrls = const [],
   });
 }

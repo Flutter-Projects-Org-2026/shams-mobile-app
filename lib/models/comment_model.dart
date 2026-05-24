@@ -64,4 +64,22 @@ class CommentModel {
           : DateTime.now(),
     );
   }
+
+  factory CommentModel.fromSupabase(
+    Map<String, dynamic> map, {
+    bool isLiked = false,
+  }) {
+    final userMap = map['profiles'] ?? {};
+    return CommentModel(
+      id: map['id'] ?? '',
+      postId: map['post_id'] ?? '',
+      user: UserModel.fromMap(userMap),
+      text: map['text'] ?? '',
+      likesCount: map['likes_count']?.toInt() ?? 0,
+      isLiked: isLiked,
+      timestamp: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : DateTime.now(),
+    );
+  }
 }

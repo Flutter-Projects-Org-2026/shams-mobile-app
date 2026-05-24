@@ -19,11 +19,127 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  // البيانات ستأتي من ChatProvider
-
-  // int _currentIndex = 2; // مؤشر شريط التنقل السفلي لقسم "المحادثات"
-
   String _searchQuery = '';
+  final Set<String> _selectedChatIds = {};
+
+  void _toggleSelection(String chatId) {
+    setState(() {
+      if (_selectedChatIds.contains(chatId)) {
+        _selectedChatIds.remove(chatId);
+      } else {
+        _selectedChatIds.add(chatId);
+      }
+    });
+  }
+
+  void _clearSelection() {
+    setState(() {
+      _selectedChatIds.clear();
+    });
+  }
+
+  void _selectAll(List<dynamic> visibleChats) {
+    setState(() {
+      final visibleIds = visibleChats.map((c) => c.chatId as String).toList();
+      final allSelected = visibleIds.isNotEmpty && visibleIds.every((id) => _selectedChatIds.contains(id));
+      if (allSelected) {
+        for (final id in visibleIds) {
+          _selectedChatIds.remove(id);
+        }
+      } else {
+        _selectedChatIds.addAll(visibleIds);
+      }
+    });
+  }
+
+  Widget _buildSelectionBar(List<dynamic> visibleChats) {
+    final allSelected = visibleChats.isNotEmpty && visibleChats.every((c) => _selectedChatIds.contains(c.chatId));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        color: ShamsColors.dangerRed.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: ShamsColors.dangerRed.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: const Icon(Icons.close, color: ShamsColors.dangerRed, size: 20),
+                onPressed: _clearSelection,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'تم تحديد ${_selectedChatIds.length}',
+                style: GoogleFonts.tajawal(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: ShamsColors.dangerRed,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: () => _selectAll(visibleChats),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                icon: Icon(
+                  allSelected ? Icons.deselect : Icons.select_all,
+                  size: 16,
+                  color: ShamsColors.primaryBlue,
+                ),
+                label: Text(
+                  allSelected ? 'إلغاء تحديد الكل' : 'تحديد الكل',
+                  style: GoogleFonts.tajawal(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: ShamsColors.primaryBlue,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                onPressed: () => _showDeleteConfirmationDialog(context, _selectedChatIds.toList()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: ShamsColors.dangerRed,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.delete_outline, size: 16),
+                label: Text(
+                  'حذف',
+                  style: GoogleFonts.tajawal(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +153,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         : allChats.where((c) {
             if (c.participants.isEmpty) return false;
             final otherParticipant = c.participants.firstWhere((p) => p.id != currentUser.id, orElse: () => c.participants.first);
-            final workshopMatch = workshopProvider.getWorkshopById(otherParticipant.id);
+            final workshopMatch = workshopProvider.getWorkshopByOwnerId(otherParticipant.id);
             final displayName = workshopMatch != null ? workshopMatch.name : otherParticipant.name;
             return displayName.toLowerCase().contains(_searchQuery.toLowerCase());
           }).toList();
@@ -69,7 +185,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 });
               },
             ),
-            if (_searchQuery.isEmpty)
+            if (_selectedChatIds.isNotEmpty)
+              _buildSelectionBar(filteredChats)
+            else if (_searchQuery.isEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                 child: Text(
@@ -134,7 +252,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 orElse: () => chat.participants.first
                               );
                         
-                        final workshopMatch = workshopProvider.getWorkshopById(otherParticipant.id);
+                        final workshopMatch = workshopProvider.getWorkshopByOwnerId(otherParticipant.id);
                         final displayName = workshopMatch != null ? workshopMatch.name : otherParticipant.name;
                         final displayAvatar = workshopMatch != null ? workshopMatch.logoPath : (otherParticipant.profileImageUrl ?? 'assets/images/logo/shams logo.png');
 
@@ -148,22 +266,141 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           isOnline: false, // Dummy online status
                           unreadCount: unreadCount,
                           avatarPath: displayAvatar,
+                          isSelected: _selectedChatIds.contains(chat.chatId),
                           onTap: () {
-                            final chatProvider = context.read<ChatProvider>();
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChatConversationScreen(
-                                  chatId: chat.chatId,
+                            if (_selectedChatIds.isNotEmpty) {
+                              _toggleSelection(chat.chatId);
+                            } else {
+                              final chatProvider = context.read<ChatProvider>();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChatConversationScreen(
+                                    chatId: chat.chatId,
+                                  ),
                                 ),
-                              ),
-                            ).then((_) {
-                              chatProvider.markAsRead(chat.chatId);
-                            });
+                              ).then((_) {
+                                chatProvider.markAsRead(chat.chatId);
+                              });
+                            }
+                          },
+                          onLongPress: () {
+                            _toggleSelection(chat.chatId);
                           },
                         );
                       },
                     ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, List<String> chatIds) {
+    final count = chatIds.length;
+    if (count == 0) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            count == 1 ? 'حذف المحادثة' : 'حذف المحادثات المحددة',
+            style: GoogleFonts.tajawal(
+              fontWeight: FontWeight.bold,
+              color: ShamsColors.dangerRed,
+            ),
+          ),
+          content: Text(
+            count == 1
+                ? 'هل أنت متأكد أنك تريد حذف هذه المحادثة نهائياً؟ لا يمكن التراجع عن هذا الإجراء.'
+                : 'هل أنت متأكد أنك تريد حذف المحادثات المحددة (عددها: $count) نهائياً؟ لا يمكن التراجع عن هذا الإجراء.',
+            style: GoogleFonts.tajawal(
+              fontSize: 14.5,
+              color: ShamsColors.textGray,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'إلغاء',
+                style: GoogleFonts.tajawal(
+                  color: ShamsColors.textHint,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(ctx);
+                
+                // Show loading indicator
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(ShamsColors.primaryBlue),
+                    ),
+                  ),
+                );
+
+                try {
+                  await context.read<ChatProvider>().deleteMultipleChats(chatIds);
+                  _clearSelection();
+                  
+                  // Hide loading indicator
+                  if (context.mounted) Navigator.pop(context);
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          count == 1 ? 'تم حذف المحادثة بنجاح' : 'تم حذف المحادثات بنجاح',
+                          style: GoogleFonts.tajawal(),
+                        ),
+                        backgroundColor: ShamsColors.dangerRed,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  // Hide loading indicator
+                  if (context.mounted) Navigator.pop(context);
+                  
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'حدث خطأ أثناء الحذف: $e',
+                          style: GoogleFonts.tajawal(),
+                        ),
+                        backgroundColor: ShamsColors.dangerRed,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ShamsColors.dangerRed,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'حذف',
+                style: GoogleFonts.tajawal(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),

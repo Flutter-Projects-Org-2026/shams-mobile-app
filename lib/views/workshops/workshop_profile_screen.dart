@@ -255,7 +255,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
 
                       CustomSolidButton(
                         title: 'إرسال الطلب',
-                        onPressed: () {
+                        onPressed: () async {
                           if (selectedService == null || descController.text.trim().isEmpty) {
                             ScaffoldMessenger.of(ctx).showSnackBar(
                               SnackBar(
@@ -270,21 +270,22 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                           // 1. Close bottom sheet
                           Navigator.pop(ctx);
 
-                          // 2. Prepare formatted request text (Temporary text serialization before structured chat is ready)
-                          final capacityTxt = capacityController.text.trim().isNotEmpty ? '${capacityController.text.trim()}W' : 'غير محدد';
-                          final inverterTxt = selectedInverter ?? 'غير محدد';
-                          final batteryTxt = selectedBattery ?? 'غير محدد';
-                          final requestText = '''طلب خدمة: $selectedService
-حجم المنظومة: $capacityTxt
-المحول: $inverterTxt
-البطاريات: $batteryTxt
+                          // Show loading indicator
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('جاري إرسال الطلب وإنشاء المحادثة...', style: GoogleFonts.tajawal(color: Colors.white)),
+                              backgroundColor: ShamsColors.primaryBlue,
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
 
-التفاصيل:
-${descController.text.trim()}''';
+                          final capacityVal = double.tryParse(capacityController.text.trim());
+                          final problemDesc = descController.text.trim();
 
                           // 3. Prepare target workshop data as UserModel
                           final workshopData = UserModel(
-                            id: workshop.id,
+                            id: workshop.ownerId, // Real owner user ID!
                             name: workshop.name,
                             email: '${workshop.handle.replaceFirst('@', '')}@shams.com',
                             profileImageUrl: workshop.logoPath,
@@ -292,19 +293,54 @@ ${descController.text.trim()}''';
 
                           // 4. Create the maintenance chat session
                           final currentUser = context.read<UserProvider>().currentUser;
-                          final generatedChatId = context
-                              .read<ChatProvider>()
-                              .createMaintenanceChat(currentUser, workshopData, requestText);
+                          String generatedChatId = '';
+                          try {
+                            generatedChatId = await context
+                                .read<ChatProvider>()
+                                .createMaintenanceChat(
+                                  currentUser: currentUser,
+                                  workshopId: workshop.id, // Real workshop database ID!
+                                  targetWorkshop: workshopData,
+                                  serviceType: selectedService!,
+                                  problemDescription: problemDesc,
+                                  systemCapacityKw: capacityVal,
+                                  inverterBrand: selectedInverter,
+                                  batteryType: selectedBattery,
+                                );
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('فشل في إرسال الطلب: $e', style: GoogleFonts.tajawal(color: Colors.white)),
+                                  backgroundColor: ShamsColors.dangerRed,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                            return;
+                          }
 
                           // 5. Router Navigation
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ChatConversationScreen(
-                                chatId: generatedChatId,
-                              ),
-                            ),
-                          );
+                          if (context.mounted) {
+                            if (generatedChatId.isNotEmpty) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChatConversationScreen(
+                                    chatId: generatedChatId,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('فشل في إرسال الطلب، يرجى المحاولة لاحقاً', style: GoogleFonts.tajawal(color: Colors.white)),
+                                  backgroundColor: ShamsColors.dangerRed,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          }
                         },
                       ),
                     ],

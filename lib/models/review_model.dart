@@ -65,4 +65,17 @@ class ReviewModel {
           : DateTime.now(),
     );
   }
+
+  factory ReviewModel.fromSupabase(Map<String, dynamic> map) {
+    final reviewerMap = map['profiles'] ?? {};
+    return ReviewModel(
+      id: map['id'] ?? '',
+      reviewer: UserModel.fromMap(reviewerMap),
+      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+      comment: map['comment'] ?? '',
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
+          : DateTime.now(),
+    );
+  }
 }

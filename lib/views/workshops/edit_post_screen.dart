@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../models/post_model.dart';
 import '../../providers/workshop_provider.dart';
+import '../../providers/feed_provider.dart';
+import '../../services/post_service.dart';
 import '../../utils/constants.dart';
 import 'create_post_screen.dart'; // إعادة استخدام MediaFile و _AttachmentThumbnail
 
@@ -38,9 +40,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
   @override
   void initState() {
     super.initState();
-    _contentController = TextEditingController(
-      text: widget.post.textDetails,
-    );
+    _contentController = TextEditingController(text: widget.post.textDetails);
     _isHighlighted = widget.post.isHighlighted;
 
     // تحميل الصور الأصلية من PostModel
@@ -135,7 +135,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
     setState(() => _attachments.removeAt(index));
   }
 
-  void _save() {
+  void _save() async {
     if (_contentController.text.trim().isEmpty && _attachments.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -148,18 +148,50 @@ class _EditPostScreenState extends State<EditPostScreen> {
       return;
     }
 
-    final hasNewLocalFile =
-        _attachments.isNotEmpty && !_attachments.first.isAsset;
-
-    final updatedPost = widget.post.copyWith(
-      textDetails: _contentController.text.trim(),
-      isHighlighted: _isHighlighted,
-      images: _attachments.map((a) => a.path).toList(),
-      isLocalFile: hasNewLocalFile,
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
-    context.read<WorkshopProvider>().updatePost(updatedPost);
-    Navigator.pop(context);
+    try {
+      await PostService.updatePost(
+        postId: widget.post.id,
+        textDetails: _contentController.text.trim(),
+        isHighlighted: _isHighlighted,
+      );
+
+      final hasNewLocalFile =
+          _attachments.isNotEmpty && !_attachments.first.isAsset;
+
+      final updatedPost = widget.post.copyWith(
+        textDetails: _contentController.text.trim(),
+        isHighlighted: _isHighlighted,
+        images: _attachments.map((a) => a.path).toList(),
+        isLocalFile: hasNewLocalFile,
+      );
+
+      if (mounted) {
+        context.read<WorkshopProvider>().updatePost(updatedPost);
+        context.read<FeedProvider>().updatePost(updatedPost);
+        Navigator.pop(context); // Dismiss loading
+        Navigator.pop(context); // Go back
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Dismiss loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'حدث خطأ أثناء تعديل المنشور: $e',
+              style: GoogleFonts.tajawal(),
+            ),
+            backgroundColor: ShamsColors.dangerRed,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
@@ -497,8 +529,11 @@ class _EditAttachmentThumbnail extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.videocam_rounded,
-                        color: Colors.white, size: 10),
+                    const Icon(
+                      Icons.videocam_rounded,
+                      color: Colors.white,
+                      size: 10,
+                    ),
                     const SizedBox(width: 2),
                     Text(
                       'فيديو',

@@ -15,6 +15,7 @@ import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/workshop_provider.dart';
 import '../../models/workshop_data.dart';
+import '../../services/workshop_service.dart';
 
 class AddWorkshopScreen extends StatefulWidget {
   const AddWorkshopScreen({super.key});
@@ -105,23 +106,23 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) throw Exception('المستخدم غير مسجل الدخول');
 
-      // 1. Insert workshop (using city as address as requested)
-      await Supabase.instance.client.from('workshops').insert({
-        'owner_id': user.id,
-        'name': name,
-        'city': _selectedCity,
-        'address': _selectedCity,
-        'description': description,
-      });
-
-      // 2. Update profile
-      await Supabase.instance.client.from('profiles').update({
-        'has_workshop': true,
-      }).eq('id', user.id);
+      // 1. Create workshop in database and upload images
+      final data = await WorkshopService.createWorkshop(
+        name: name,
+        city: _selectedCity!,
+        address: _selectedCity!,
+        description: description,
+        handle: '@$username',
+        logo: _profileImage,
+        cover: _coverImage,
+        galleryImages: _images,
+        yearsOfExperience: years,
+      );
 
       // Create WorkshopData instance
       final newWorkshop = WorkshopData(
-        id: user.id,
+        id: data['id'] ?? user.id,
+        ownerId: user.id,
         name: name,
         username: username,
         city: _selectedCity!,

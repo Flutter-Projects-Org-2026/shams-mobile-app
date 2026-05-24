@@ -124,7 +124,12 @@ class _CommentsComponentState extends State<CommentsComponent> {
                             itemBuilder: (context, index) {
                               final comment = currentComments[index];
                               return InkWell(
-                                onTap: () => _showCommentMenu(context, index, currentComments),
+                                onTap: () => _showCommentMenu(
+                                  context,
+                                  index,
+                                  currentComments,
+                                  post.author?.id,
+                                ),
                                 child: _CommentTile(
                                   comment: comment,
                                   onLikeTap: () => context
@@ -298,8 +303,20 @@ class _CommentsComponentState extends State<CommentsComponent> {
     );
   }
 
-  void _showCommentMenu(BuildContext context, int index, List<CommentModel> currentComments) {
+  void _showCommentMenu(
+    BuildContext context,
+    int index,
+    List<CommentModel> currentComments,
+    String? postAuthorId,
+  ) {
     final comment = currentComments[index];
+    final currentUser = context.read<UserProvider>().currentUser;
+    final commentAuthorId = comment.user.id;
+
+    // The comment can only be deleted by the comment author or the post author
+    final bool canDelete = currentUser.id == commentAuthorId ||
+        (postAuthorId != null && currentUser.id == postAuthorId);
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -344,20 +361,21 @@ class _CommentsComponentState extends State<CommentsComponent> {
                   }
                 },
               ),
-              ListTile(
-                leading: const Icon(Icons.delete_outline_rounded, color: ShamsColors.dangerRed),
-                title: Text(
-                  'حذف التعليق',
-                  style: GoogleFonts.tajawal(fontSize: 16, color: ShamsColors.dangerRed),
+              if (canDelete)
+                ListTile(
+                  leading: const Icon(Icons.delete_outline_rounded, color: ShamsColors.dangerRed),
+                  title: Text(
+                    'حذف التعليق',
+                    style: GoogleFonts.tajawal(fontSize: 16, color: ShamsColors.dangerRed),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    // context.read() in a callback — correct usage.
+                    context
+                        .read<FeedProvider>()
+                        .deleteComment(widget.postId, comment.id);
+                  },
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  // context.read() in a callback — correct usage.
-                  context
-                      .read<FeedProvider>()
-                      .deleteComment(widget.postId, comment.id);
-                },
-              ),
             ],
           ),
         ),

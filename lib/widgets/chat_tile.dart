@@ -11,6 +11,8 @@ class ChatTile extends StatelessWidget {
   final bool isOnline;
   final int unreadCount;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final bool isSelected;
 
   const ChatTile({
     super.key,
@@ -21,6 +23,8 @@ class ChatTile extends StatelessWidget {
     this.isOnline = false,
     this.unreadCount = 0,
     required this.onTap,
+    this.onLongPress,
+    this.isSelected = false,
   });
 
   Widget _buildAvatar(String path, String name) {
@@ -72,41 +76,60 @@ class ChatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Row(
-          children: [
-            // الصورة مع حالة الاتصال
-            Stack(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0xFFF0F2F5),
+    return Container(
+      color: isSelected ? ShamsColors.primaryBlue.withValues(alpha: 0.05) : Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        onLongPress: onLongPress,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          child: Row(
+            children: [
+              // الصورة مع حالة الاتصال
+              Stack(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFFF0F2F5),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: _buildAvatar(avatarPath, name),
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: _buildAvatar(avatarPath, name),
-                ),
-                if (isOnline)
-                  Positioned(
-                    bottom: 2,
-                    right: 2,
-                    child: Container(
-                      width: 14,
-                      height: 14,
+                  if (isSelected)
+                    Container(
+                      width: 56,
+                      height: 56,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF25D366), // أخضر للاتصال
+                        color: ShamsColors.primaryBlue.withValues(alpha: 0.4),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 28,
+                        ),
                       ),
                     ),
-                  ),
-              ],
-            ),
+                  if (isOnline)
+                    Positioned(
+                      bottom: 2,
+                      right: 2,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF25D366), // أخضر للاتصال
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             const SizedBox(width: 16),
             // تفاصيل المحادثة
             Expanded(
@@ -162,6 +185,7 @@ class ChatTile extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ),
+   );
   }
 }

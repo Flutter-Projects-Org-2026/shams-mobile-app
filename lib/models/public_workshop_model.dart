@@ -10,6 +10,9 @@ class PublicWorkshopModel {
   /// Unique identifier
   final String id;
 
+  /// Workshop owner user ID
+  final String ownerId;
+
   /// Display name of the workshop
   final String name;
 
@@ -62,6 +65,7 @@ class PublicWorkshopModel {
 
   const PublicWorkshopModel({
     required this.id,
+    required this.ownerId,
     required this.name,
     required this.handle,
     required this.city,
@@ -82,6 +86,7 @@ class PublicWorkshopModel {
 
   PublicWorkshopModel copyWith({
     String? id,
+    String? ownerId,
     String? name,
     String? handle,
     String? city,
@@ -101,6 +106,7 @@ class PublicWorkshopModel {
   }) {
     return PublicWorkshopModel(
       id: id ?? this.id,
+      ownerId: ownerId ?? this.ownerId,
       name: name ?? this.name,
       handle: handle ?? this.handle,
       city: city ?? this.city,
@@ -120,10 +126,38 @@ class PublicWorkshopModel {
     );
   }
 
+  factory PublicWorkshopModel.fromSupabase(
+    Map<String, dynamic> map, {
+    bool isFollowing = false,
+    List<PostModel> posts = const [],
+    List<ReviewModel> reviews = const [],
+  }) {
+    return PublicWorkshopModel(
+      id: map['id'] ?? '',
+      ownerId: map['owner_id'] ?? '',
+      name: map['name'] ?? '',
+      handle: map['handle'] ?? '',
+      city: map['city'] ?? '',
+      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+      reviewCount: map['reviews_count'] as int? ?? 0,
+      description: map['description'] ?? '',
+      logoPath: map['logo_url'] ?? 'assets/images/logo/shams logo.png',
+      coverImagePath: map['cover_url'] ?? 'assets/images/post image.jpg',
+      isFollowing: isFollowing,
+      posts: posts,
+      serviceTypes: List<String>.from(map['services'] ?? []),
+      phone: map['phone'],
+      whatsapp: map['whatsapp'],
+      yearsOfExperience: map['years_of_experience'] as int? ?? 0,
+      isVerified: map['is_verified'] ?? false,
+      reviews: reviews,
+    );
+  }
+
   /// Converts this workshop to a [UserModel] suitable for use in chat participants.
   UserModel toUserModel() {
     return UserModel(
-      id: id,
+      id: ownerId,
       name: name,
       email: '${handle.replaceFirst('@', '')}@shams.com',
       profileImageUrl: logoPath,

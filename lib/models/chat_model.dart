@@ -53,4 +53,20 @@ class ChatModel {
           : DateTime.now(),
     );
   }
+
+  factory ChatModel.fromSupabase(Map<String, dynamic> map, {List<MessageModel> messages = const []}) {
+    final participantsData = map['chat_participants'] as List<dynamic>? ?? [];
+    final participants = participantsData
+        .map((p) => UserModel.fromMap(p['profiles'] as Map<String, dynamic>? ?? {}))
+        .toList();
+
+    return ChatModel(
+      chatId: map['id'] ?? '',
+      participants: participants,
+      messages: messages,
+      lastMessageTime: map['last_message_at'] != null
+          ? DateTime.parse(map['last_message_at'])
+          : DateTime.now(),
+    );
+  }
 }

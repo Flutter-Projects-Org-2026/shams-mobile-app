@@ -1,60 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/notification_model.dart';
-import '../utils/constants.dart';
+import '../services/notification_service.dart';
 
 class NotificationProvider extends ChangeNotifier {
-  final List<NotificationModel> _notifications = [
-    NotificationModel(
-      id: '1',
-      title: 'قام أحمد خالد بالإعجاب بمنشورك',
-      message: 'أحمد خالد أبدى إعجابه بمنشورك',
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      isRead: false,
-      icon: Icons.favorite_rounded,
-      color: ShamsColors.dangerRed,
-      type: NotificationType.like,
-      targetId: 'p1',
-    ),
-    NotificationModel(
-      id: '2',
-      title: 'ورشة المجد أضافت عرضاً جديداً في منظومات الطاقة',
-      message: 'تصفح العرض الجديد الآن',
-      timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      isRead: false,
-      icon: Icons.local_offer_rounded,
-      color: ShamsColors.verifiedGreen,
-      type: NotificationType.workshopUpdate,
-      targetId: 'w1',
-    ),
-    NotificationModel(
-      id: '3',
-      title: 'رد جديد على تعليقك من محمد النور',
-      message: 'محمد النور رد على تعليقك في المنشور',
-      timestamp: DateTime.now().subtract(const Duration(days: 3)),
-      isRead: true,
-      icon: Icons.reply_rounded,
-      color: ShamsColors.primaryBlue,
-      type: NotificationType.reply,
-      targetId: 'p2',
-    ),
-    NotificationModel(
-      id: '4',
-      title: 'تم قبول طلب الصيانة الخاص بك',
-      message: 'ورشة رواد الطاقة البديلة قبلت طلبك. تابع المحادثة.',
-      timestamp: DateTime.now().subtract(const Duration(hours: 5)),
-      isRead: false,
-      icon: Icons.build_circle_rounded,
-      color: ShamsColors.solarYellow,
-      type: NotificationType.maintenanceStatus,
-      targetId: null,
-    ),
-  ];
+  final List<NotificationModel> _notifications = [];
+  RealtimeChannel? _subscription;
 
   List<NotificationModel> get notifications => _notifications;
 
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
-  void markAllAsRead() {
+  NotificationProvider() {
+    fetchNotifications();
+  }
+
+  Future<void> fetchNotifications() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) return;
+
+      final data = await NotificationService.fetchNotifications();
+      _notifications.clear();
+      for (final item in data) {
+        _notifications.add(NotificationModel.fromSupabase(item));
+      }
+      notifyListeners();
+      subscribeToNotifications();
+    } catch (e) {
+      debugPrint('Error fetching notifications from Supabase: $e');
+    }
+  }
+
+  void subscribeToNotifications() {
+    _subscription?.unsubscribe();
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    _subscription = NotificationService.subscribeToNotifications(
+      onNew: (payload) {
+        // Optimistic refresh
+        fetchNotifications();
+      },
+    );
+  }
+
+  Future<void> markAllAsRead() async {
     bool changed = false;
     for (int i = 0; i < _notifications.length; i++) {
       if (!_notifications[i].isRead) {
@@ -65,21 +56,45 @@ class NotificationProvider extends ChangeNotifier {
     if (changed) {
       notifyListeners();
     }
+
+    try {
+      await NotificationService.markAllAsRead();
+    } catch (e) {
+      debugPrint('Error marking notifications as read: $e');
+    }
   }
 
-  void markAsRead(String id) {
+  Future<void> markAsRead(String id) async {
     final index = _notifications.indexWhere((n) => n.id == id);
     if (index != -1 && !_notifications[index].isRead) {
       _notifications[index] = _notifications[index].copyWith(isRead: true);
       notifyListeners();
     }
+
+    try {
+      await NotificationService.markAsRead(id);
+    } catch (e) {
+      debugPrint('Error marking single notification as read: $e');
+    }
   }
 
-  void deleteNotification(String id) {
+  Future<void> deleteNotification(String id) async {
     final index = _notifications.indexWhere((n) => n.id == id);
     if (index != -1) {
       _notifications.removeAt(index);
       notifyListeners();
     }
+
+    try {
+      await NotificationService.deleteNotification(id);
+    } catch (e) {
+      debugPrint('Error deleting notification from database: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.unsubscribe();
+    super.dispose();
   }
 }
