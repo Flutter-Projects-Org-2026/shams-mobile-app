@@ -11,6 +11,7 @@ import '../../providers/workshop_provider.dart';
 import '../../providers/notification_provider.dart';
 import 'workshop_profile_screen.dart';
 import '../notifications/notifications_screen.dart';
+import '../../widgets/shams_drawer.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WorkshopsListScreen — قائمة الورش العامة
@@ -28,6 +29,7 @@ class WorkshopsListScreen extends StatefulWidget {
 }
 
 class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   // Local UI state — search query and selected city filters.
   List<String> _selectedCities = [];
   final List<String> _selectedServices = [];
@@ -52,11 +54,15 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const ShamsDrawer(activeIndex: 1),
         backgroundColor: const Color(0xFFF5F7FF),
 
         // ── الشريط العلوي ──────────────────────────────────────────────────
         appBar: ShamsPlatformAppBar(
-          onMenuTap: () {},
+          onMenuTap: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
           onNotificationTap: () {
             context.read<NotificationProvider>().markAllAsRead();
             Navigator.push(

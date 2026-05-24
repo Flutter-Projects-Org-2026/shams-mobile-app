@@ -11,6 +11,9 @@
 -- table to allow logged-in users to write notifications for other users.
 -- This works instantly with the Flutter/Dart logic we implemented.
 
+-- Enable Row-Level Security on the notifications table
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
 -- Allow authenticated users to insert notifications
 DROP POLICY IF EXISTS "Allow authenticated inserts" ON notifications;
 CREATE POLICY "Allow authenticated inserts" ON notifications

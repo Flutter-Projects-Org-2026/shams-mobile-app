@@ -12,6 +12,7 @@ import '../providers/workshop_provider.dart';
 import '../models/public_workshop_model.dart';
 import 'notifications/notifications_screen.dart';
 import 'workshops/workshop_profile_screen.dart';
+import '../widgets/shams_drawer.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // (أُزيلت البيانات الوهمية، يتم جلبها الآن من FeedProvider)
@@ -29,7 +30,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   String _searchQuery = '';
 
   @override
@@ -37,10 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const ShamsDrawer(activeIndex: 0),
         backgroundColor: ShamsColors.backgroundLight,
         // ── AppBar المُعاد استخدامه من widgets/appbar.dart ──────────
         appBar: ShamsPlatformAppBar(
-          onMenuTap: () {},
+          onMenuTap: () {
+            _scaffoldKey.currentState?.openDrawer();
+          },
           onNotificationTap: () {
             Navigator.push(
               context,

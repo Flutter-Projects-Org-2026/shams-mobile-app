@@ -12,6 +12,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/notification_provider.dart';
+import '../../providers/chat_provider.dart';
+import '../../providers/feed_provider.dart';
+import '../../providers/workshop_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/auth_gate.dart';
 import 'edit_profile_screen.dart';
@@ -814,11 +818,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () async {
-                        // 1. Sign out from Supabase
+                        // 1. Clear all local session data to prevent cross-user state leaks
+                        context.read<UserProvider>().clearUserData();
+                        context.read<NotificationProvider>().clearNotifications();
+                        context.read<ChatProvider>().clearChats();
+                        context.read<FeedProvider>().clearFeed();
+                        context.read<WorkshopProvider>().clearWorkshopData();
+
+                        // 2. Sign out from Supabase
                         await Supabase.instance.client.auth.signOut();
                         if (context.mounted) {
-                          // 2. Clear local user data
-                          context.read<UserProvider>().clearUserData();
                           // 3. Navigate to AuthGate to reset the app state
                           Navigator.pushAndRemoveUntil(
                             context,

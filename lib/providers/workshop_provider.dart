@@ -276,4 +276,13 @@ class WorkshopProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  /// Reset owner's workshop data and dashboard posts on logout.
+  void clearWorkshopData() {
+    _myWorkshop = null;
+    _myWorkshopFollowersCount = 0;
+    _posts.clear();
+    notifyListeners();
+  }
 }
+

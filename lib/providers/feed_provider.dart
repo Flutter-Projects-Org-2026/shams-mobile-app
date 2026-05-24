@@ -188,4 +188,9 @@ class FeedProvider extends ChangeNotifier {
       debugPrint('Error hiding post in database: $e');
     }
   }
+
+  void clearFeed() {
+    _posts.clear();
+    notifyListeners();
+  }
 }

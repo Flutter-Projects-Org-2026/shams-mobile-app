@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/workshop_provider.dart';
+import '../providers/notification_provider.dart';
+import '../providers/chat_provider.dart';
+import '../providers/feed_provider.dart';
 import '../widgets/shams_bottom_nav_bar.dart';
 import 'home.dart';
 import 'workshops/workshops_list_screen.dart';
@@ -36,8 +39,11 @@ class _MainScreenState extends State<MainScreen> {
       await userProvider.fetchUserData();
       if (mounted) {
         final currentUser = userProvider.currentUser;
-        // Fetch public workshops for the authenticated user (populates isFollowing)
+        // Fetch public workshops, notifications, chats, and feed for the authenticated user
         context.read<WorkshopProvider>().fetchPublicWorkshops();
+        context.read<NotificationProvider>().fetchNotifications();
+        context.read<ChatProvider>().fetchChats();
+        context.read<FeedProvider>().fetchFeed();
 
         if (currentUser.id.isNotEmpty && currentUser.hasWorkshop) {
           final username = currentUser.username ?? 'owner';

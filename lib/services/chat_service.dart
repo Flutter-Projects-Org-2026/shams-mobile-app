@@ -42,20 +42,14 @@ class ChatService {
       return chatId;
     }
 
-    // Create new chat
-    final chat = await _db.from('chats').insert({
-      'maintenance_req_id': maintenanceRequestId,
-    }).select().single();
+    // Create new chat using RPC function to create the chat and add participants atomically.
+    // This completely bypasses the select policy failure during direct insertion.
+    final dynamic resultId = await _db.rpc('create_new_chat', params: {
+      'other_user_uuid': otherUserId,
+      'maintenance_req_uuid': maintenanceRequestId,
+    });
 
-    final chatId = chat['id'] as String;
-
-    // Add both participants
-    await _db.from('chat_participants').insert([
-      {'chat_id': chatId, 'user_id': userId},
-      {'chat_id': chatId, 'user_id': otherUserId},
-    ]);
-
-    return chatId;
+    return resultId as String;
   }
 
   // ── READ (User's chat list) ─────────────────────────────────────────────

@@ -49,26 +49,26 @@ class ShamsPlatformAppBar extends StatelessWidget
           child: SizedBox(
             height: kToolbarHeight,
             child: Padding(
-              padding: const EdgeInsets.all(5),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // ── الشعار (يمين — بداية RTL) ────────────────────
-                  // Flexible يمنع overflow إذا كانت الصورة عريضة جداً
-                  Flexible(
-                    child: Image.asset(
-                      'assets/images/logo/shams texial logo for light mode small height.png',
+                  // ── أيقونة القائمة الجانبية (يمين — بداية RTL) ───────────────────
+                  _AppBarIcon(icon: Icons.menu_rounded, onTap: onMenuTap),
 
-                      height: double.infinity,
-                      fit: BoxFit.fitHeight,
-                      // alignment: Alignment.centerRight,
-                      // color: ShamsColors.textGray,
-                      // colorBlendMode: BlendMode.srcIn,
+                  // ── الشعار (الوسط) ────────────────────────────────────────────────
+                  Flexible(
+                    child: Center(
+                      child: Image.asset(
+                        'assets/images/logo/shams texial logo for light mode small height.png',
+                        height: 36,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
 
-                  // ── أيقونات (يسار — نهاية RTL) ───────────────────
+                  // ── أيقونات الوضع الليلي والإشعارات (يسار — نهاية RTL) ──────────────
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -120,11 +120,6 @@ class ShamsPlatformAppBar extends StatelessWidget
                             ),
                         ],
                       ),
-
-                      const SizedBox(width: 14),
-
-                      // أيقونة القائمة الجانبية
-                      _AppBarIcon(icon: Icons.menu_rounded, onTap: onMenuTap),
                     ],
                   ),
                 ],
@@ -152,7 +147,7 @@ class _AppBarIcon extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Icon(icon, size: 24, color: ShamsColors.textGray),
+      child: Icon(icon, size: 28, color: ShamsColors.textGray),
     );
   }
 }

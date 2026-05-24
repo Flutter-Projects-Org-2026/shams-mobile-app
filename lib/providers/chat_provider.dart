@@ -194,6 +194,13 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  void clearChats() {
+    _chats.clear();
+    _chatListSubscription?.unsubscribe();
+    _chatListSubscription = null;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _chatListSubscription?.unsubscribe();

@@ -92,6 +92,13 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
+  void clearNotifications() {
+    _notifications.clear();
+    _subscription?.unsubscribe();
+    _subscription = null;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _subscription?.unsubscribe();
