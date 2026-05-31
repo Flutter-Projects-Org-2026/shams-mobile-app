@@ -19,7 +19,7 @@ import '../../providers/workshop_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/auth_gate.dart';
 import 'edit_profile_screen.dart';
-
+import '../../services/local_storage_service.dart';
 // ─────────────────────────────────────────────────────────────────────────────
 // UserProfileScreen — شاشة الملف الشخصي للمستخدم
 // ─────────────────────────────────────────────────────────────────────────────
@@ -824,6 +824,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         context.read<ChatProvider>().clearChats();
                         context.read<FeedProvider>().clearFeed();
                         context.read<WorkshopProvider>().clearWorkshopData();
+                        await LocalStorageService.clearLoginData();
 
                         // 2. Sign out from Supabase
                         await Supabase.instance.client.auth.signOut();
