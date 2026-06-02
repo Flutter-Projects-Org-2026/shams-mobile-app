@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/auth_gate.dart';
+import '../../services/local_storage_service.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -29,9 +30,13 @@ class _SignInScreenState extends State<SignInScreen> {
   void initState() {
     super.initState();
     // Listen for auth state changes (e.g. returning from Google Sign-In)
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
       final AuthChangeEvent event = data.event;
       if (event == AuthChangeEvent.signedIn) {
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user != null && user.email != null) {
+          await LocalStorageService.saveLoginData(user.email!);
+        }
         if (mounted) {
           context.read<UserProvider>().fetchUserData();
           Navigator.of(context).pushAndRemoveUntil(
@@ -67,11 +72,12 @@ class _SignInScreenState extends State<SignInScreen> {
           email: email,
           password: password,
         );
-        
+         await LocalStorageService.saveLoginData(email);
         if (mounted) {
           await context.read<UserProvider>().fetchUserData();
           
           if (mounted) {
+           
             // Remove Welcome & SignIn screens from stack and go back to root
             Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => const AuthGate()),

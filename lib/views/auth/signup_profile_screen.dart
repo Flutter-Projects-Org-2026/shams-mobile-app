@@ -9,6 +9,7 @@ import '../../widgets/text_field.dart';
 import '../../widgets/primary_button.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/auth_gate.dart';
+import '../../services/local_storage_service.dart';
 
 class SignUpProfileScreen extends StatefulWidget {
   final String email;
@@ -144,6 +145,7 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
             }
           }
         }
+         await LocalStorageService.saveLoginData(widget.email);
 
         if (mounted) {
           await context.read<UserProvider>().fetchUserData();

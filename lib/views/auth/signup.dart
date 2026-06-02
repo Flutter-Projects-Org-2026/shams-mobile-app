@@ -11,6 +11,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/auth_gate.dart';
+import '../../services/local_storage_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -29,10 +30,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late final StreamSubscription<AuthState> _authSubscription;
 
   void _listenToAuth() {
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) async{
       final AuthChangeEvent event = data.event;
       // Only react if we are signed in and it's not just the initial session check
       if (event == AuthChangeEvent.signedIn) {
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user != null && user.email != null) {
+          await LocalStorageService.saveLoginData(user.email!);
+        }
         if (mounted) {
           context.read<UserProvider>().fetchUserData();
           Navigator.of(context).pushAndRemoveUntil(
