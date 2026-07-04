@@ -75,7 +75,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
               onPressed: () => _handlePick(ImageSource.gallery, false),
               child: Text(
                 'المعرض (صور)',
-                style: GoogleFonts.tajawal(color: Colors.blue),
+                style: GoogleFonts.tajawal(color: Theme.of(context).colorScheme.primary),
               ),
             ),
             TextButton(
@@ -96,7 +96,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'إلغاء',
-                style: GoogleFonts.tajawal(color: Colors.grey),
+                style: GoogleFonts.tajawal(color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint),
               ),
             ),
           ],
@@ -186,7 +186,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
               'حدث خطأ أثناء تعديل المنشور: $e',
               style: GoogleFonts.tajawal(),
             ),
-            backgroundColor: ShamsColors.dangerRed,
+            backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -201,14 +201,13 @@ class _EditPostScreenState extends State<EditPostScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: _buildAppBar(),
         body: Column(
           children: [
             const Divider(
               height: 1,
               thickness: 1,
-              color: ShamsColors.dividerLight,
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -252,7 +251,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       elevation: 0,
       centerTitle: true,
       automaticallyImplyLeading: false,
@@ -261,12 +260,15 @@ class _EditPostScreenState extends State<EditPostScreen> {
         style: GoogleFonts.tajawal(
           fontSize: 18,
           fontWeight: FontWeight.w700,
-          color: ShamsColors.textGray,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       leading: IconButton(
         onPressed: () => Navigator.pop(context),
-        icon: const Icon(Icons.close_rounded, color: ShamsColors.textGray),
+        icon: Icon(
+          Icons.close_rounded,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
         tooltip: 'إغلاق',
       ),
     );
@@ -299,9 +301,9 @@ class _EditPostScreenState extends State<EditPostScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 32),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade200, width: 1.5),
+            border: Border.all(color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight, width: 1.5),
           ),
           child: Column(
             children: [
@@ -312,13 +314,13 @@ class _EditPostScreenState extends State<EditPostScreen> {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.camera_alt_outlined,
                       size: 28,
-                      color: Colors.black54,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                   Positioned(
@@ -326,14 +328,14 @@ class _EditPostScreenState extends State<EditPostScreen> {
                     right: 2,
                     child: Container(
                       padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        color: ShamsColors.solarYellow,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.secondary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.add,
                         size: 14,
-                        color: Colors.black,
+                        color: Theme.of(context).colorScheme.onSecondary,
                       ),
                     ),
                   ),
@@ -345,13 +347,13 @@ class _EditPostScreenState extends State<EditPostScreen> {
                 style: GoogleFonts.tajawal(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: ShamsColors.textGray,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'وثّق إنجازاتك في الطاقة الشمسية',
-                style: GoogleFonts.tajawal(fontSize: 13, color: Colors.grey),
+                style: GoogleFonts.tajawal(fontSize: 13, color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint),
               ),
             ],
           ),
@@ -369,27 +371,27 @@ class _EditPostScreenState extends State<EditPostScreen> {
           style: GoogleFonts.tajawal(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: ShamsColors.textGray,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight),
           ),
           child: TextField(
             controller: _contentController,
             maxLines: 5,
             style: GoogleFonts.tajawal(
               fontSize: 14,
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             decoration: InputDecoration(
               hintText: 'اكتب تفاصيل المنشور هنا',
               hintStyle: GoogleFonts.tajawal(
-                color: Colors.grey.shade400,
+                color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
                 fontSize: 14,
               ),
               border: InputBorder.none,
@@ -405,7 +407,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -416,14 +418,14 @@ class _EditPostScreenState extends State<EditPostScreen> {
               style: GoogleFonts.tajawal(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
-                color: ShamsColors.textGray,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
           Switch(
             value: _isHighlighted,
             onChanged: (val) => setState(() => _isHighlighted = val),
-            activeThumbColor: ShamsColors.solarYellow,
+            activeThumbColor: Theme.of(context).colorScheme.secondary,
           ),
         ],
       ),
@@ -439,7 +441,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
         child: ElevatedButton(
           onPressed: _save,
           style: ElevatedButton.styleFrom(
-            backgroundColor: ShamsColors.solarYellow,
+            backgroundColor: Theme.of(context).colorScheme.secondary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -450,7 +452,7 @@ class _EditPostScreenState extends State<EditPostScreen> {
             style: GoogleFonts.tajawal(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onSecondary,
             ),
           ),
         ),
@@ -479,7 +481,7 @@ class _EditAttachmentThumbnail extends StatelessWidget {
           child: Container(
             width: 85,
             height: 85,
-            color: Colors.grey.shade100,
+            color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
             child: _buildMediaPreview(),
           ),
         ),
@@ -490,8 +492,8 @@ class _EditAttachmentThumbnail extends StatelessWidget {
             onTap: onRemove,
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
-                color: Colors.red,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.error,
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.close, size: 14, color: Colors.white),
@@ -556,14 +558,14 @@ class _EditAttachmentThumbnail extends StatelessWidget {
         media.path,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.broken_image, color: Colors.grey),
+            Icon(Icons.broken_image, color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint),
       );
     }
     return Image.file(
       File(media.path),
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) =>
-          const Icon(Icons.broken_image, color: Colors.grey),
+          Icon(Icons.broken_image, color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint),
     );
   }
 }

@@ -1,6 +1,4 @@
-// الزر الابيض مع الحدود الصفراء
 import 'package:flutter/material.dart';
-import 'package:shams_mobile_app/utils/constants.dart';
 
 class CustomOutlinedButton extends StatelessWidget {
   final String title;
@@ -16,10 +14,13 @@ class CustomOutlinedButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     final buttonStyle = OutlinedButton.styleFrom(
-      foregroundColor: ShamsColors.solarYellow,
-      side: const BorderSide(color: ShamsColors.solarYellow, width: 1.5),
+      foregroundColor: colorScheme.secondary,
+      side: BorderSide(color: colorScheme.secondary, width: 1.5),
     );
+
     if (icon != null) {
       return OutlinedButton.icon(
         onPressed: onPressed,
@@ -30,6 +31,7 @@ class CustomOutlinedButton extends StatelessWidget {
     }
     return OutlinedButton(
       onPressed: onPressed,
+      style: buttonStyle,
       child: Text(title),
     );
   }

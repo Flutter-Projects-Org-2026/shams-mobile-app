@@ -8,7 +8,7 @@ import 'package:provider/provider.dart';
 import '../models/comment_model.dart';
 import '../providers/feed_provider.dart';
 import '../providers/user_provider.dart';
-import 'package:timeago/timeago.dart' as timeago; // For timeAgo logic
+import 'package:timeago/timeago.dart' as timeago;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // دالة مساعدة لعرض التعليقات كـ Modal Bottom Sheet
@@ -22,8 +22,7 @@ Future<void> showCommentsSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) =>
-        CommentsComponent(postId: postId),
+    builder: (_) => CommentsComponent(postId: postId),
   );
 }
 
@@ -31,8 +30,7 @@ Future<void> showCommentsSheet(
 // CommentsComponent — نافذة التعليقات
 //
 // • Uses context.watch<FeedProvider>() instead of Consumer<FeedProvider>.
-// • All mutations (addComment, deleteComment, toggleCommentLike) use
-//   context.read<FeedProvider>() inside callbacks — never inside build().
+// • All mutations use context.read<FeedProvider>() inside callbacks.
 // ─────────────────────────────────────────────────────────────────────────────
 
 class CommentsComponent extends StatefulWidget {
@@ -78,11 +76,10 @@ class _CommentsComponentState extends State<CommentsComponent> {
 
   @override
   Widget build(BuildContext context) {
-    // نجعل الورقة تغطي ~85% من الشاشة
     final screenH = MediaQuery.of(context).size.height;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
 
-    // ── Single source of truth — no Consumer wrapper needed ──────────────────
     final feed = context.watch<FeedProvider>();
     final post = feed.posts.firstWhere(
       (p) => p.id == widget.postId,
@@ -94,31 +91,28 @@ class _CommentsComponentState extends State<CommentsComponent> {
       textDirection: TextDirection.rtl,
       child: Container(
         height: screenH * 0.85 + bottomInset,
-        decoration: const BoxDecoration(
-          color: ShamsColors.backgroundLight,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        decoration: BoxDecoration(
+          color: ext.backgroundLight,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
           children: [
-            // ── مقبض ───────────────────────────────────────────────
-            _buildHandle(),
-
-            // ── عنوان + قائمة التعليقات ────────────────────────────
+            _buildHandle(ext),
             Expanded(
               child: Column(
                 children: [
                   _buildTitle(currentComments.length),
-                  const Divider(height: 1, thickness: 1, color: ShamsColors.borderLight),
+                  Divider(height: 1, thickness: 1, color: ext.borderLight),
                   Expanded(
                     child: currentComments.isEmpty
                         ? _buildEmpty()
                         : ListView.separated(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             itemCount: currentComments.length,
-                            separatorBuilder: (_, _) => const Divider(
+                            separatorBuilder: (_, _) => Divider(
                               height: 1,
                               thickness: 1,
-                              color: ShamsColors.dividerLight,
+                              color: ext.dividerLight,
                               indent: 70,
                             ),
                             itemBuilder: (context, index) {
@@ -134,7 +128,8 @@ class _CommentsComponentState extends State<CommentsComponent> {
                                   comment: comment,
                                   onLikeTap: () => context
                                       .read<FeedProvider>()
-                                      .toggleCommentLike(widget.postId, comment.id),
+                                      .toggleCommentLike(
+                                          widget.postId, comment.id),
                                 ),
                               );
                             },
@@ -143,10 +138,7 @@ class _CommentsComponentState extends State<CommentsComponent> {
                 ],
               ),
             ),
-
-            const Divider(height: 1, thickness: 1, color: ShamsColors.borderLight),
-
-            // ── شريط الإدخال ────────────────────────────────────
+            Divider(height: 1, thickness: 1, color: ext.borderLight),
             _buildInputBar(bottomInset),
           ],
         ),
@@ -154,19 +146,20 @@ class _CommentsComponentState extends State<CommentsComponent> {
     );
   }
 
-  Widget _buildHandle() {
+  Widget _buildHandle(ShamsExtendedColors ext) {
     return Container(
       width: 40,
       height: 4,
       margin: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: ShamsColors.handleBar,
+        color: ext.handleBar,
         borderRadius: BorderRadius.circular(99),
       ),
     );
   }
 
   Widget _buildTitle(int count) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       child: Row(
@@ -176,14 +169,14 @@ class _CommentsComponentState extends State<CommentsComponent> {
             style: GoogleFonts.tajawal(
               fontSize: 17,
               fontWeight: FontWeight.w700,
-              color: ShamsColors.textGray,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: ShamsColors.primaryBlue.withValues(alpha: 0.1),
+              color: colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(99),
             ),
             child: Text(
@@ -191,7 +184,7 @@ class _CommentsComponentState extends State<CommentsComponent> {
               style: GoogleFonts.tajawal(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: ShamsColors.primaryBlue,
+                color: colorScheme.primary,
               ),
             ),
           ),
@@ -201,6 +194,8 @@ class _CommentsComponentState extends State<CommentsComponent> {
   }
 
   Widget _buildEmpty() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -208,7 +203,7 @@ class _CommentsComponentState extends State<CommentsComponent> {
           Icon(
             Icons.chat_bubble_outline_rounded,
             size: 52,
-            color: ShamsColors.primaryBlue.withValues(alpha: 0.2),
+            color: colorScheme.primary.withValues(alpha: 0.2),
           ),
           const SizedBox(height: 12),
           Text(
@@ -216,7 +211,7 @@ class _CommentsComponentState extends State<CommentsComponent> {
             textAlign: TextAlign.center,
             style: GoogleFonts.tajawal(
               fontSize: 14,
-              color: ShamsColors.textHint,
+              color: ext.textHint,
             ),
           ),
         ],
@@ -225,33 +220,33 @@ class _CommentsComponentState extends State<CommentsComponent> {
   }
 
   Widget _buildInputBar(double bottomInset) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
+
     return Container(
-      color: ShamsColors.bgWhite,
+      color: colorScheme.surface,
       padding: EdgeInsets.fromLTRB(12, 10, 12, 10 + bottomInset),
       child: Row(
         children: [
-          // زر الإرسال
           const SizedBox(width: 8),
-
-          // حقل الإدخال
           Expanded(
             child: Container(
               height: 42,
               decoration: BoxDecoration(
-                color: ShamsColors.backgroundLight,
+                color: ext.inputFill,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: ShamsColors.borderLight),
+                border: Border.all(color: ext.borderLight),
               ),
               child: Row(
                 children: [
                   GestureDetector(
                     onTap: () {},
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Icon(
                         Icons.emoji_emotions_outlined,
                         size: 22,
-                        color: ShamsColors.textHint,
+                        color: ext.textHint,
                       ),
                     ),
                   ),
@@ -262,13 +257,13 @@ class _CommentsComponentState extends State<CommentsComponent> {
                       textDirection: TextDirection.rtl,
                       style: GoogleFonts.tajawal(
                         fontSize: 14,
-                        color: ShamsColors.textGray,
+                        color: colorScheme.onSurface,
                       ),
                       decoration: InputDecoration(
                         hintText: 'اكتب تعليقك هنا...',
                         hintStyle: GoogleFonts.tajawal(
                           fontSize: 13.5,
-                          color: ShamsColors.textHint,
+                          color: ext.textHint,
                         ),
                         border: InputBorder.none,
                         isDense: true,
@@ -288,12 +283,12 @@ class _CommentsComponentState extends State<CommentsComponent> {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                color: ShamsColors.primaryBlue,
+                color: colorScheme.primary,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.send_rounded,
-                color: ShamsColors.bgWhite,
+                color: colorScheme.onPrimary,
                 size: 20,
               ),
             ),
@@ -313,7 +308,6 @@ class _CommentsComponentState extends State<CommentsComponent> {
     final currentUser = context.read<UserProvider>().currentUser;
     final commentAuthorId = comment.user.id;
 
-    // The comment can only be deleted by the comment author or the post author
     final bool canDelete = currentUser.id == commentAuthorId ||
         (postAuthorId != null && currentUser.id == postAuthorId);
 
@@ -323,9 +317,10 @@ class _CommentsComponentState extends State<CommentsComponent> {
       builder: (context) => Directionality(
         textDirection: TextDirection.rtl,
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(25)),
           ),
           padding: const EdgeInsets.fromLTRB(25, 15, 25, 30),
           child: Column(
@@ -335,14 +330,18 @@ class _CommentsComponentState extends State<CommentsComponent> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: Theme.of(context)
+                      .extension<ShamsExtendedColors>()!
+                      .handleBar,
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
               const SizedBox(height: 20),
               ListTile(
-                leading: const Icon(Icons.copy_rounded, color: ShamsColors.textGray),
-                title: Text('نسخ النص', style: GoogleFonts.tajawal(fontSize: 16)),
+                leading: Icon(Icons.copy_rounded,
+                    color: Theme.of(context).colorScheme.onSurface),
+                title:
+                    Text('نسخ النص', style: GoogleFonts.tajawal(fontSize: 16)),
                 onTap: () async {
                   Navigator.pop(context);
                   await Clipboard.setData(ClipboardData(text: comment.text));
@@ -351,9 +350,14 @@ class _CommentsComponentState extends State<CommentsComponent> {
                       SnackBar(
                         content: Text(
                           'تم نسخ التعليق',
-                          style: GoogleFonts.tajawal(fontSize: 14, color: Colors.white),
+                          style: GoogleFonts.tajawal(
+                              fontSize: 14,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onInverseSurface),
                         ),
-                        backgroundColor: ShamsColors.textGray,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.inverseSurface,
                         duration: const Duration(seconds: 2),
                         behavior: SnackBarBehavior.floating,
                       ),
@@ -363,14 +367,16 @@ class _CommentsComponentState extends State<CommentsComponent> {
               ),
               if (canDelete)
                 ListTile(
-                  leading: const Icon(Icons.delete_outline_rounded, color: ShamsColors.dangerRed),
+                  leading: Icon(Icons.delete_outline_rounded,
+                      color: Theme.of(context).colorScheme.error),
                   title: Text(
                     'حذف التعليق',
-                    style: GoogleFonts.tajawal(fontSize: 16, color: ShamsColors.dangerRed),
+                    style: GoogleFonts.tajawal(
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.error),
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    // context.read() in a callback — correct usage.
                     context
                         .read<FeedProvider>()
                         .deleteComment(widget.postId, comment.id);
@@ -396,8 +402,11 @@ class _CommentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final avatarPath = comment.user.profileImageUrl ?? 'assets/images/logo/shams logo.png';
+    final avatarPath =
+        comment.user.profileImageUrl ?? 'assets/images/logo/shams logo.png';
     final bool isNetwork = avatarPath.startsWith('http');
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -411,7 +420,7 @@ class _CommentTile extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: ShamsColors.primaryBlue.withValues(alpha: 0.15),
+                color: colorScheme.primary.withValues(alpha: 0.15),
                 width: 1.5,
               ),
             ),
@@ -420,21 +429,24 @@ class _CommentTile extends StatelessWidget {
                   ? Image.network(
                       avatarPath,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _avatarFallback(),
+                      errorBuilder: (_, _, _) =>
+                          _avatarFallback(colorScheme, ext),
                     )
                   : (avatarPath.startsWith('assets/')
                       ? Image.asset(
                           avatarPath,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => _avatarFallback(),
+                          errorBuilder: (_, _, _) =>
+                              _avatarFallback(colorScheme, ext),
                         )
                       : (File(avatarPath).existsSync()
                           ? Image.file(
                               File(avatarPath),
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => _avatarFallback(),
+                              errorBuilder: (_, _, _) =>
+                                  _avatarFallback(colorScheme, ext),
                             )
-                          : _avatarFallback())),
+                          : _avatarFallback(colorScheme, ext))),
             ),
           ),
 
@@ -453,7 +465,7 @@ class _CommentTile extends StatelessWidget {
                       style: GoogleFonts.tajawal(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
-                        color: ShamsColors.textGray,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const Spacer(),
@@ -461,7 +473,7 @@ class _CommentTile extends StatelessWidget {
                       timeago.format(comment.timestamp, locale: 'ar'),
                       style: GoogleFonts.tajawal(
                         fontSize: 11.5,
-                        color: ShamsColors.textHint,
+                        color: ext.textHint,
                       ),
                     ),
                   ],
@@ -475,13 +487,13 @@ class _CommentTile extends StatelessWidget {
                   style: GoogleFonts.tajawal(
                     fontSize: 13.5,
                     height: 1.5,
-                    color: ShamsColors.textGray,
+                    color: colorScheme.onSurface,
                   ),
                 ),
 
                 const SizedBox(height: 6),
 
-                // زر الإعجاب — reactive via comment.isLiked
+                // زر الإعجاب
                 GestureDetector(
                   onTap: onLikeTap,
                   child: Row(
@@ -492,9 +504,7 @@ class _CommentTile extends StatelessWidget {
                             ? Icons.favorite_rounded
                             : Icons.favorite_border_rounded,
                         size: 15,
-                        color: comment.isLiked
-                            ? ShamsColors.dangerRed
-                            : ShamsColors.textHint,
+                        color: comment.isLiked ? colorScheme.error : ext.textHint,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -505,8 +515,8 @@ class _CommentTile extends StatelessWidget {
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: comment.isLiked
-                              ? ShamsColors.dangerRed
-                              : ShamsColors.textHint,
+                              ? colorScheme.error
+                              : ext.textHint,
                         ),
                       ),
                     ],
@@ -520,16 +530,16 @@ class _CommentTile extends StatelessWidget {
     );
   }
 
-  Widget _avatarFallback() {
+  Widget _avatarFallback(ColorScheme colorScheme, ShamsExtendedColors ext) {
     return Container(
-      color: ShamsColors.avatarFallbackBg,
+      color: ext.avatarFallbackBg,
       child: Center(
         child: Text(
           comment.user.name.isNotEmpty ? comment.user.name[0] : '؟',
           style: GoogleFonts.tajawal(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: ShamsColors.primaryBlue,
+            color: colorScheme.primary,
           ),
         ),
       ),

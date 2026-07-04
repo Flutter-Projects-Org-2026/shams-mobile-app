@@ -64,16 +64,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget build(BuildContext context) {
     // جعل شريط الحالة شفافاً ليتناسب مع لون الهيدر
     SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
+      SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness: Theme.of(context).brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
       ),
     );
 
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: SingleChildScrollView(
           child: Column(
             children: [
@@ -100,9 +102,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final currentUser = context.watch<UserProvider>().currentUser;
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Color(0xFFFFF9E7), // لون كريمي فاتح
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight, // لون مطابق لخلفيات شاشة إضافة ورشة
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(40), // زيادة درجة الانحناء لتطابق الصورة
           bottomRight: Radius.circular(40),
         ),
@@ -121,11 +123,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 height: 85,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 4),
+                  border: Border.all(color: Theme.of(context).colorScheme.surface, width: 4),
                 ),
                 child: CircleAvatar(
                   radius: 40,
-                  backgroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).colorScheme.surface,
                   backgroundImage: _getProfileImageProvider(currentUser.profileImageUrl),
                 ),
               ),
@@ -146,19 +148,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: ShamsColors.solarYellow.withValues(alpha: 0.2),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .secondary
+                          .withValues(alpha: 0.2),
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.edit_outlined,
                         size: 14,
-                        color: ShamsColors.solarYellow,
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -166,7 +171,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         style: GoogleFonts.tajawal(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: ShamsColors.solarYellow,
+                          color: Theme.of(context).colorScheme.secondary,
                         ),
                       ),
                     ],
@@ -190,7 +195,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       style: GoogleFonts.tajawal(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: ShamsColors.textGray,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ],
@@ -199,7 +204,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   '@${currentUser.email.split('@').first}',
                   style: GoogleFonts.tajawal(
                     fontSize: 14,
-                    color: Colors.grey.shade600,
+                    color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
                   ),
                 ),
                 if (currentUser.phone != null &&
@@ -207,17 +212,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.phone_outlined,
                         size: 14,
-                        color: ShamsColors.solarYellow,
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         currentUser.phone!,
                         style: GoogleFonts.tajawal(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
                         ),
                       ),
                     ],
@@ -229,10 +234,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   children: [
                     if (currentUser.bio != null &&
                         currentUser.bio!.isNotEmpty) ...[
-                      const Icon(
+                      Icon(
                         Icons.info_outline_rounded,
                         size: 14,
-                        color: ShamsColors.solarYellow,
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
@@ -240,17 +245,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           currentUser.bio!,
                           style: GoogleFonts.tajawal(
                             fontSize: 12,
-                            color: Colors.grey.shade500,
+                            color: Theme.of(context)
+                                .extension<ShamsExtendedColors>()!
+                                .textHint,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ] else ...[
-                      const Icon(
+                      Icon(
                         Icons.location_on_rounded,
                         size: 14,
-                        color: ShamsColors.solarYellow,
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                       const SizedBox(width: 4),
                     ],
@@ -293,12 +300,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 25),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
             color: hasWorkshop
-                ? ShamsColors.solarYellow.withValues(alpha: 0.35)
-                : const Color(0xFFF2F4F7),
+                ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.35)
+                : Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
           ),
           boxShadow: [
             BoxShadow(
@@ -315,12 +322,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               width: 45,
               height: 45,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF9E7),
+                color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 hasWorkshop ? Icons.dashboard_customize_rounded : Icons.add,
-                color: ShamsColors.solarYellow,
+                color: Theme.of(context).colorScheme.secondary,
                 size: 24,
               ),
             ),
@@ -335,7 +342,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     style: GoogleFonts.tajawal(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: ShamsColors.textGray,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   Text(
@@ -396,7 +403,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: ShamsColors.verifiedGreen,
+        backgroundColor: Theme.of(context).colorScheme.tertiary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 3),
@@ -416,7 +423,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           margin: const EdgeInsets.symmetric(horizontal: 25),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             // إزالة الحواف الخارجية كما طلب المستخدم
           ),
@@ -436,7 +443,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           setState(() => _isNotificationsEnabled = v),
                       activeThumbColor:
                           Colors.white, // الي بالصورة لون الزر أبيض
-                      activeTrackColor: ShamsColors.solarYellow, // والمسار أصفر
+                      activeTrackColor: Theme.of(context).colorScheme.secondary, // والمسار أصفر
                     ),
                   ),
                 ),
@@ -493,14 +500,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: ShamsColors.solarYellow),
+          Icon(icon, size: 20, color: Theme.of(context).colorScheme.secondary),
           const SizedBox(width: 8),
           Text(
             title,
             style: GoogleFonts.tajawal(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
@@ -528,19 +535,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             width: 45, // تكبير الأيقونة قليلاً
             height: 45,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFFDF5), // لون أفتح وأرقى
+              color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight, // لون مطابق لخلفيات شاشة إضافة ورشة
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFFFF9E7)),
             ),
-            child: Icon(icon, color: ShamsColors.solarYellow, size: 22),
+            child: Icon(icon, color: Theme.of(context).colorScheme.secondary, size: 22),
           ),
           title: Text(
             title,
             textAlign: TextAlign.right,
             style: GoogleFonts.tajawal(
-              fontSize: 15, // تكبير الخط ليطابق الأصل
+              fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           trailing:
@@ -565,7 +571,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB), // خلفية رمادية فاتحة جداً
+        color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -578,7 +584,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             style: GoogleFonts.tajawal(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: ShamsColors.solarYellow,
+              color: Theme.of(context).colorScheme.secondary,
             ),
           ),
         ],
@@ -630,7 +636,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             color: Colors.white,
           ),
         ),
-        backgroundColor: isError ? ShamsColors.dangerRed : ShamsColors.verifiedGreen,
+        backgroundColor: isError
+            ? Theme.of(context).colorScheme.error
+            : Theme.of(context).colorScheme.tertiary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 3),
@@ -646,9 +654,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       builder: (context) => Directionality(
         textDirection: TextDirection.rtl,
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
           ),
           padding: const EdgeInsets.fromLTRB(25, 15, 25, 30),
           child: Column(
@@ -700,9 +708,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(
+                leading: Icon(
                   Icons.phone_in_talk_outlined,
-                  color: ShamsColors.primaryBlue,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 title: Text(
                   'اتصال هاتفي',
@@ -758,9 +766,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       builder: (context) => Directionality(
         textDirection: TextDirection.rtl,
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
           ),
           padding: const EdgeInsets.fromLTRB(25, 15, 25, 30),
           child: Column(
@@ -780,7 +788,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 style: GoogleFonts.tajawal(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: ShamsColors.dangerRed,
+                  color: Theme.of(context).colorScheme.error,
                 ),
               ),
               const SizedBox(height: 10),
@@ -788,7 +796,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 'هل أنت متأكد أنك تريد تسجيل الخروج؟',
                 style: GoogleFonts.tajawal(
                   fontSize: 15,
-                  color: ShamsColors.textGray,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 25),
@@ -840,7 +848,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: ShamsColors.dangerRed,
+                        backgroundColor: Theme.of(context).colorScheme.error,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -876,9 +884,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         builder: (context, setModalState) => Directionality(
           textDirection: TextDirection.rtl,
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
             ),
             padding: const EdgeInsets.fromLTRB(25, 15, 25, 30),
             child: Column(
@@ -936,11 +944,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: selected
-            ? const Color(0xFFFFF9E7)
-            : (isDisabled ? Colors.grey.shade100 : const Color(0xFFF9FAFB)),
+            ? Theme.of(context).colorScheme.secondaryContainer
+            : (isDisabled
+                ? Theme.of(context).colorScheme.surfaceContainerHighest
+                : Theme.of(context).colorScheme.surface),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: selected ? ShamsColors.solarYellow : Colors.transparent,
+          color: selected
+              ? Theme.of(context).colorScheme.secondary
+              : Colors.transparent,
         ),
       ),
       child: Row(
@@ -952,7 +964,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 label,
                 style: GoogleFonts.tajawal(
                   fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                  color: isDisabled ? Colors.grey.shade400 : Colors.black87,
+                  color: isDisabled ? Colors.grey.shade400 : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               if (badgeText != null) ...[
@@ -963,7 +975,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: ShamsColors.solarYellow.withValues(alpha: 0.2),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .secondary
+                        .withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -971,7 +986,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     style: GoogleFonts.tajawal(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: ShamsColors.solarYellow,
+                      color: Theme.of(context).colorScheme.secondary,
                     ),
                   ),
                 ),
@@ -979,7 +994,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ],
           ),
           if (selected)
-            const Icon(Icons.check_box, color: ShamsColors.solarYellow)
+            Icon(Icons.check_box, color: Theme.of(context).colorScheme.secondary)
           else
             Icon(
               Icons.check_box_outline_blank,

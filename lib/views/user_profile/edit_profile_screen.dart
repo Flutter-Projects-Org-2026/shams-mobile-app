@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../providers/user_provider.dart';
+import '../../utils/constants.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -24,30 +25,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
 
-  // قائمة الـ 21 محافظة يمنية المطلوبة
-  final List<String> _cities = [
-    'صنعاء',
-    'عدن',
-    'تعز',
-    'الحديدة',
-    'إب',
-    'حضرموت',
-    'ذمار',
-    'عمران',
-    'الضالع',
-    'لحج',
-    'أبين',
-    'المهرة',
-    'شبوة',
-    'البيضاء',
-    'مأرب',
-    'الجوف',
-    'صعدة',
-    'المحويت',
-    'حجة',
-    'ريمة',
-    'سقطرى',
-  ];
+
 
   @override
   void initState() {
@@ -159,7 +137,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               'فشل رفع الصورة: $uploadError',
               style: GoogleFonts.tajawal(),
             ),
-            backgroundColor: const Color(0xFFD32F2F), // لون أحمر للفشل
+            backgroundColor: Theme.of(context).colorScheme.error, // لون أحمر للفشل
             duration: const Duration(seconds: 4),
           ),
         );
@@ -217,7 +195,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               'تم تحديث الملف الشخصي بنجاح',
               style: GoogleFonts.tajawal(),
             ),
-            backgroundColor: const Color(0xFF2CC069), // لون أخضر للنجاح
+            backgroundColor: Theme.of(context).colorScheme.tertiary, // لون أخضر للنجاح
             duration: const Duration(seconds: 2),
           ),
         );
@@ -229,7 +207,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               'حدث خطأ أثناء حفظ التعديلات في السيرفر: ${dbError ?? ''}',
               style: GoogleFonts.tajawal(),
             ),
-            backgroundColor: const Color(0xFFD32F2F), // لون أحمر للفشل
+            backgroundColor: Theme.of(context).colorScheme.error, // لون أحمر للفشل
             duration: const Duration(seconds: 4),
           ),
         );
@@ -246,14 +224,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Directionality(
       textDirection: TextDirection.rtl, // لضمان الاتجاه من اليمين لليسار
       child: Scaffold(
-        backgroundColor: Colors.white, // الخلفية البيضاء السادة كما في التصميم
+        backgroundColor: Theme.of(context).colorScheme.surface, // الخلفية البيضاء السادة كما في التصميم
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_forward_rounded,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
             ), // سهم خلف أسود
             onPressed: () => Navigator.pop(context),
           ),
@@ -262,7 +240,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             style: GoogleFonts.tajawal(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           centerTitle: true,
@@ -292,7 +270,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       child: CircleAvatar(
                         radius: 55, // الحجم مطابق للتصميم
-                        backgroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).colorScheme.surface,
                         backgroundImage: _selectedImage != null
                             ? FileImage(_selectedImage!) as ImageProvider
                             : _getProfileImageProvider(
@@ -309,12 +287,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(
-                              0xFFFFD600,
-                            ), // اللون الأصفر الشمسي
+                            color: Theme.of(context).colorScheme.secondary, // اللون الأصفر الشمسي
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.surface,
                               width: 3,
                             ), // حد أبيض سميك
                           ),
@@ -386,8 +362,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _saveChanges,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFD600), // الأصفر الشمسي
-                    foregroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).colorScheme.secondary, // الأصفر الشمسي
+                    foregroundColor: Theme.of(context).colorScheme.onSecondary,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
@@ -396,11 +372,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   child: _isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSecondary,
                             strokeWidth: 2.5,
                           ),
                         )
@@ -429,7 +405,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         style: GoogleFonts.tajawal(
           fontSize: 14,
           fontWeight: FontWeight.w700, // Bold
-          color: Colors.black87,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
@@ -443,32 +419,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }) {
     return TextFormField(
       controller: controller,
-      style: GoogleFonts.tajawal(fontSize: 15, color: Colors.black87),
+      style: GoogleFonts.tajawal(fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: GoogleFonts.tajawal(
-          color: const Color(0xFFBFC3CE),
+          color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
           fontSize: 14,
         ),
-        prefixIcon: Icon(icon, color: const Color(0xFF9EA3B0), size: 22),
+        prefixIcon: Icon(icon, color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint, size: 22),
         filled: false, // لا توجد خلفية ممتلئة
         contentPadding: const EdgeInsets.symmetric(
           vertical: 16,
           horizontal: 16,
         ),
         // الحدود الرمادية الفاتحة والنحيفة كما في التصميم
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
-        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
+          borderSide: BorderSide(color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFFFD600),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.secondary,
             width: 1.5,
           ), // تحديد بلون التطبيق عند الوقوف عليه
         ),
@@ -476,49 +448,4 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // ويدجت مساعدة لبناء قائمة الموقع المنسدلة بنفس تصميم الحدود
-  Widget _buildDropdownField() {
-    return DropdownButtonFormField<String>(
-      initialValue: _selectedLocation,
-      icon: const Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: Color(0xFF9EA3B0),
-      ),
-      decoration: InputDecoration(
-        prefixIcon: const Icon(
-          Icons.location_on_outlined,
-          color: Color(0xFF9EA3B0),
-          size: 22,
-        ),
-        filled: false,
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 16,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFFD600), width: 1.5),
-        ),
-      ),
-      items: _cities.map((city) {
-        return DropdownMenuItem(
-          value: city,
-          child: Text(city, style: GoogleFonts.tajawal(fontSize: 15)),
-        );
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedLocation = value;
-        });
-      },
-    );
-  }
 }

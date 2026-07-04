@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../utils/constants.dart'; // تأكد من مسار ملف الثوابت
+import '../utils/constants.dart';
 
 class CityMultiSelectFilter extends StatefulWidget {
-  /// دالة نمررها للشاشة الرئيسية لنخبرها بالمدن التي تم اختيارها لتقوم بفلترة الورش
   final ValueChanged<List<String>> onSelectionChanged;
 
   const CityMultiSelectFilter({super.key, required this.onSelectionChanged});
@@ -13,51 +12,50 @@ class CityMultiSelectFilter extends StatefulWidget {
 }
 
 class _CityMultiSelectFilterState extends State<CityMultiSelectFilter> {
-  // 1. قاعدة بيانات المدن المتاحة
   final List<String> _availableCities = [
     'تعز',
     'صنعاء',
     'عدن',
     'حضرموت',
     'مأرب',
-    'الحديدة'
+    'الحديدة',
   ];
 
-  // 2. الذاكرة (State) التي تحفظ المدن المختارة حالياً
   final List<String> _selectedCities = [];
 
-  // دالة فتح نافذة الاختيار
   void _showMultiSelectDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        // StatefulBuilder مهم جداً هنا لكي يتم تحديث الـ Checkbox داخل النافذة
+        final colorScheme = Theme.of(context).colorScheme;
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              backgroundColor: ShamsColors.bgWhite,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               title: Text(
                 'اختر المحافظات',
-                style: GoogleFonts.tajawal(fontWeight: FontWeight.bold, color: ShamsColors.primaryBlue),
+                style: GoogleFonts.tajawal(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary),
                 textAlign: TextAlign.center,
               ),
               content: SizedBox(
                 width: double.maxFinite,
                 child: ListView.builder(
-                  shrinkWrap: true, // لكي لا تأخذ النافذة كل طول الشاشة
+                  shrinkWrap: true,
                   itemCount: _availableCities.length,
                   itemBuilder: (context, index) {
                     final city = _availableCities[index];
                     final isChecked = _selectedCities.contains(city);
 
                     return CheckboxListTile(
-                      title: Text(city, style: GoogleFonts.tajawal(fontSize: 15)),
+                      title: Text(city,
+                          style: GoogleFonts.tajawal(fontSize: 15)),
                       value: isChecked,
-                      activeColor: ShamsColors.solarYellow, // لون التحديد من التصميم
-                      checkColor: ShamsColors.textGray,
+                      activeColor: colorScheme.secondary,
+                      checkColor: colorScheme.onSecondary,
                       onChanged: (bool? value) {
-                        // تحديث حالة النافذة
                         setStateDialog(() {
                           if (value == true) {
                             _selectedCities.add(city);
@@ -65,7 +63,6 @@ class _CityMultiSelectFilterState extends State<CityMultiSelectFilter> {
                             _selectedCities.remove(city);
                           }
                         });
-                        // تحديث حالة الويدجت الأصلية وإرسال البيانات للشاشة
                         setState(() {});
                         widget.onSelectionChanged(_selectedCities);
                       },
@@ -76,7 +73,12 @@ class _CityMultiSelectFilterState extends State<CityMultiSelectFilter> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('تم', style: GoogleFonts.tajawal(color: ShamsColors.primaryBlue, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    'تم',
+                    style: GoogleFonts.tajawal(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             );
@@ -86,64 +88,71 @@ class _CityMultiSelectFilterState extends State<CityMultiSelectFilter> {
     );
   }
 
-  // دالة حذف مدينة من الرقاقات (Chips)
   void _removeCity(String city) {
-    setState(() {
-      _selectedCities.remove(city);
-    });
+    setState(() => _selectedCities.remove(city));
     widget.onSelectionChanged(_selectedCities);
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ── 1. زر الفلتر (المحافظات) ──
+        // ── Filter button ──
         GestureDetector(
           onTap: _showMultiSelectDialog,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: ShamsColors.bgWhite,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFEEF0F4), width: 1.5),
+              border:
+                  Border.all(color: ext.borderLight, width: 1.5),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.filter_alt_outlined, size: 20, color: ShamsColors.textGray),
+                Icon(Icons.filter_alt_outlined,
+                    size: 20, color: colorScheme.onSurface),
                 const SizedBox(width: 8),
                 Text(
                   'المحافظات',
-                  style: GoogleFonts.tajawal(fontSize: 14, fontWeight: FontWeight.w600, color: ShamsColors.textGray),
+                  style: GoogleFonts.tajawal(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface),
                 ),
                 const SizedBox(width: 12),
-                const Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: ShamsColors.textGray),
-                
-                // شارة (Badge) تظهر فقط إذا كان هناك مدن مختارة
+                Icon(Icons.keyboard_arrow_down_rounded,
+                    size: 20, color: colorScheme.onSurface),
                 if (_selectedCities.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: ShamsColors.solarYellow,
+                    decoration: BoxDecoration(
+                      color: colorScheme.secondary,
                       shape: BoxShape.circle,
                     ),
                     child: Text(
                       '${_selectedCities.length}',
-                      style: GoogleFonts.tajawal(fontSize: 12, fontWeight: FontWeight.bold, color: ShamsColors.textGray),
+                      style: GoogleFonts.tajawal(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSecondary),
                     ),
                   ),
-                ]
+                ],
               ],
             ),
           ),
         ),
 
-        // ── 2. الرقاقات (Chips) للمدن المختارة ──
-        // تظهر فقط إذا كانت القائمة غير فارغة
+        // ── Selected city chips ──
         if (_selectedCities.isNotEmpty) ...[
           const SizedBox(height: 12),
           SingleChildScrollView(
@@ -151,19 +160,23 @@ class _CityMultiSelectFilterState extends State<CityMultiSelectFilter> {
             child: Row(
               children: _selectedCities.map((city) {
                 return Padding(
-                  padding: const EdgeInsets.only(left: 8.0), // مسافة بين الرقاقات
+                  padding: const EdgeInsets.only(left: 8.0),
                   child: InputChip(
                     label: Text(
                       city,
-                      style: GoogleFonts.tajawal(fontSize: 13, color: ShamsColors.textGray, fontWeight: FontWeight.w500),
+                      style: GoogleFonts.tajawal(
+                          fontSize: 13,
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w500),
                     ),
-                    backgroundColor: ShamsColors.solarYellow.withValues(alpha: 0.15),
-                    deleteIconColor: ShamsColors.textGray,
+                    backgroundColor:
+                        colorScheme.secondary.withValues(alpha: 0.15),
+                    deleteIconColor: colorScheme.onSurface,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                      side: const BorderSide(color: ShamsColors.solarYellow),
+                      side: BorderSide(color: colorScheme.secondary),
                     ),
-                    onDeleted: () => _removeCity(city), // تفعيل زر الحذف (X)
+                    onDeleted: () => _removeCity(city),
                   ),
                 );
               }).toList(),

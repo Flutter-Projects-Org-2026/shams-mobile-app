@@ -1,37 +1,114 @@
 # ☀️ Shams Platform | منصة شمس
 > **The first specialized solar energy community platform in Yemen.**
+> 
+> **المنصة المجتمعية الأولى المتخصصة في الطاقة الشمسية في اليمن.**
 
 ---
 
 ## 📖 Overview | نبذة عن المشروع
-**Shams Platform** is a mobile application designed to bridge the gap between solar energy technicians, workshops, and customers in Yemen. It focuses on building a trusted ecosystem through verified professional identities and high-quality service documentation.
+**Shams Platform** is a Flutter-based mobile application designed to bridge the gap between solar energy technicians, workshops, and customers in Yemen. It focuses on building a trusted ecosystem through high-quality service documentation and seamless communication.
+
+**منصة شمس** هي تطبيق للهواتف المحمولة مبني باستخدام Flutter، يهدف إلى ردم الفجوة بين فنيي وورش الطاقة الشمسية والعملاء في اليمن. يركز التطبيق على بناء بيئة موثوقة من خلال توثيق جودة الخدمات وتسهيل التواصل المباشر.
 
 ---
 
 ## 🚀 Key Features | المميزات الرئيسية
-- **🛡️ Verified Identity:** Strict verification process for technicians and workshops to ensure reliability.
-- **🛠️ Workshop Hub:** A dedicated space for technicians to showcase their expertise, specialized services, and contact info.
-- **📱 Technical Feed:** A social timeline for sharing project documentation (Before & After), tips, and solar insights.
-- **💬 Direct Service Requests:** Seamless communication between customers and technical workshops.
-- **📍 Location-Based Search:** Find the nearest qualified technician based on Yemeni governorates.
+- **🛠️ Workshop Hub & Dashboard | دليل ولوحة تحكم الورش:** A dedicated space for technicians to showcase their expertise, specialized services, and contact info, with a dashboard to manage their posts and profile.
+  *(مساحة مخصصة للورش لعرض خبراتهم، خدماتهم المتخصصة، ومعلومات التواصل، مع لوحة تحكم لإدارة منشورات الورشة).*
+- **📱 Technical Feed | التغذية الفنية:** A social timeline for sharing solar project documentation ("Before & After"), tips, and solar insights with like and comment support.
+  *(خط زمني اجتماعي لمشاركة توثيق مشاريع الطاقة الشمسية "قبل وبعد"، النصائح، والرؤى الفنية مع دعم الإعجابات والتعليقات).*
+- **💬 Realtime Chats | المحادثات اللحظية:** Seamless, instant messaging between customers and technical workshops powered by Supabase Realtime.
+  *(تواصل فوري سلس بين العملاء والورش الفنية مدعوم بنظام Supabase اللحظي).*
+- **📝 Maintenance Requests | طلبات الصيانة:** Direct service requests from customers detailing inverter brands, battery types, and service requirements.
+  *(طلبات صيانة مباشرة من العملاء تتضمن تفاصيل عن الأجهزة مثل العواكس، أنواع البطاريات، ونوع الخدمة المطلوبة).*
+- **📍 Location & Service Filtering | التصفية الجغرافية والخدمية:** Easily filter workshops and technicians by Yemeni governorates and solar service categories.
+  *(تصفية الورش والفنيين بسهولة حسب المحافظات اليمنية ونوع الخدمة المطلوبة).*
 
 ---
 
 ## 🛠️ Tech Stack | التقنيات المستخدمة
-- **Frontend:** [Flutter](https://flutter.dev/) (Multi-platform)
-- **Backend:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + Storage)
-- **State Management:** Provider / GetX
-- **Fonts:** Tajawal (via Google Fonts)
-- **Architecture:** MVC (Model-View-Controller)
+- **Frontend | الواجهة الأمامية:** [Flutter](https://flutter.dev/) (Multi-platform support)
+- **Backend | الواجهة الخارجية:** [Supabase](https://supabase.com/) (PostgreSQL database, Authentication, Storage, and Realtime listeners)
+- **State Management | إدارة الحالة:** [Provider](https://pub.dev/packages/provider) package
+- **Local Storage | التخزين المحلي:** `SharedPreferences` (via `LocalStorageService` to persist session details locally)
+- **Typography & Theme | الخط والثيم:** Tajawal (via Google Fonts) with a custom Material 3 Light Theme.
 
 ---
 
-## 📂 Project Structure (MVC) | هيكلية المشروع
+## 🎨 Design System & Colors | نظام التصميم والألوان
+The application follows a defined branding palette configured in [constants.dart](file:///d:/projects/flutter-projects/shams-mobile-app/lib/utils/constants.dart):
+- **Primary Brand Blue | الأزرق الأساسي:** `#0052CC` (Used for primary buttons, headers, and main actions)
+- **Solar Yellow | الأصفر الشمسي:** `#FFC53D` (Used for highlights, ratings, and active indicators)
+- **Verified Green | الأخضر الموثق:** `#27AE60` (Used for success states and validation indicators)
+- **Danger Red | الأحمر:** `#E53935` / `#BA1A1A` (Used for likes, deletes, and errors)
+
+---
+
+## 📂 Project Structure | هيكلية المشروع
+The project is structured into clear logic and UI layers:
 ```text
 lib/
-├── controllers/    # Business logic & State management
-├── models/         # Data models & Serialization
-├── views/          # UI Screens (Screens & Layouts)
-├── widgets/        # Reusable UI components (Buttons, Cards, etc.)
-├── services/       # External APIs & Supabase integration
-└── utils/          # App constants, Theme data, & Helpers
+├── models/         # Data models and Supabase serialization (UserModel, PostModel, etc.)
+├── providers/      # State management utilizing Provider (UserProvider, FeedProvider, etc.)
+├── services/       # Interaction with Supabase (Auth, Database, Storage, Realtime) & Local Storage
+├── utils/          # Brand colors (ShamsColors), theme definition, and domain constants
+├── views/          # UI Screens categorized by features (Auth, Home, Chat, Workshops, Profile)
+├── widgets/        # Reusable UI components (App bars, custom buttons, post cards, inputs)
+└── main.dart       # App entry point, Supabase initialization, and Provider injection
+```
+
+### Folder Breakdown:
+- **`lib/models/`**: Defines structures like `UserModel`, `PostModel`, `CommentModel`, `PublicWorkshopModel`, `ReviewModel`, `ChatModel`, `MessageModel`, `NotificationModel`, and `MaintenanceRequestModel`.
+- **`lib/providers/`**: Coordinates state changes and notifies listeners (`UserProvider`, `WorkshopProvider`, `FeedProvider`, `ChatProvider`, `NotificationProvider`).
+- **`lib/services/`**: Low-level database, cloud, and local operations (`SupabaseService`, `LocalStorageService`, `StorageService`, `PostService`, `ChatService`, `WorkshopService`, `MaintenanceService`, `NotificationService`, and `ReviewService`).
+- **`lib/views/`**: UI screens grouped by features:
+  - `auth/`: Login (`signin.dart`), register (`signup.dart`), welcome onboarding, and profile setup.
+  - `workshops/`: Workshop list directory, filtering, public profiles, owner dashboard, and post creation/editing screens.
+  - `posts/`: Detailed post page (`post_detail_screen.dart`).
+  - `chat/`: Chat mailbox list and active messaging interfaces with realtime support.
+  - `notifications/`: Inbox displaying user notifications.
+  - `user_profile/`: User profile home, edit profile details, add workshop, about page, and privacy settings.
+- **`lib/widgets/`**: Common reusable components like `AuthGate`, `ShamsPlatformAppBar`, `PostCard`, `MessageBubble`, inputs, and dialogs.
+
+---
+
+## 🗄️ Supabase Database & Security | قاعدة البيانات والحماية
+The application database relies on PostgreSQL on Supabase. SQL setup scripts are provided in the root directory:
+- **[supabase_chats_setup.sql](file:///d:/projects/flutter-projects/shams-mobile-app/supabase_chats_setup.sql)**: Setting up chats, messages, and participants with Row Level Security (RLS) policies and RPC functions (like `create_new_chat`).
+- **[supabase_notifications_setup.sql](file:///d:/projects/flutter-projects/shams-mobile-app/supabase_notifications_setup.sql)**: Realtime notifications table configuration, RLS, and trigger options.
+
+### Storage Buckets Used:
+- `avatars`: Stores user profile pictures.
+- `workshops`: Stores workshop logos, covers, and portfolio images.
+- `posts`: Stores images uploaded within feed posts.
+
+---
+
+## 📖 Deep-Dive Documentation | التوثيق التفصيلي للهيكلية
+For an in-depth explanation of the application flow, sequence diagrams, database tables, and native configurations, please refer to the Arabic documentation file:
+- **[PROJECT_STRUCTURE_AR.md](file:///d:/projects/flutter-projects/shams-mobile-app/PROJECT_STRUCTURE_AR.md)**
+
+---
+
+## 🚀 Getting Started | كيف تبدأ
+
+### Prerequisites
+- Flutter SDK (Recommended: `^3.10.0`)
+- Dart SDK
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd shams-mobile-app
+   ```
+2. Install dependencies:
+   ```bash
+   flutter pub get
+   ```
+3. Setup Environment:
+   Ensure your Supabase project contains the tables matching the models. Apply `supabase_chats_setup.sql` and `supabase_notifications_setup.sql` in your Supabase SQL Editor.
+4. Run the project:
+   ```bash
+   flutter run
+   ```

@@ -46,13 +46,15 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    final d = widget.workshopData ?? context.read<WorkshopProvider>().myWorkshop;
+    final d =
+        widget.workshopData ?? context.read<WorkshopProvider>().myWorkshop;
     _coverImage = d?.coverImage;
     _profileImage = d?.profileImage;
     _extraImages = List.from(d?.extraImages ?? []);
     _workshopName = d?.name ?? 'ورشتي على شمس';
-    _workshopHandle =
-        d?.username != null && d!.username.isNotEmpty ? '@${d.username}' : '@workshop';
+    _workshopHandle = d?.username != null && d!.username.isNotEmpty
+        ? '@${d.username}'
+        : '@workshop';
     _workshopCity = d?.city ?? 'صنعاء';
     if (d != null) {
       _prevWorkshopId = d.id;
@@ -65,19 +67,34 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
   void _updateProviderWorkshop() {
     final currentWorkshop = context.read<WorkshopProvider>().myWorkshop;
     final updatedWorkshop = WorkshopData(
-      id: currentWorkshop?.id ?? widget.workshopData?.id ?? 'my_workshop_default_id',
-      ownerId: currentWorkshop?.ownerId ?? widget.workshopData?.ownerId ?? context.read<UserProvider>().currentUser.id,
+      id:
+          currentWorkshop?.id ??
+          widget.workshopData?.id ??
+          'my_workshop_default_id',
+      ownerId:
+          currentWorkshop?.ownerId ??
+          widget.workshopData?.ownerId ??
+          context.read<UserProvider>().currentUser.id,
       name: _workshopName,
       username: _workshopHandle.replaceFirst('@', ''),
       city: _workshopCity,
-      description: currentWorkshop?.description ?? widget.workshopData?.description ?? '',
-      yearsOfExperience: currentWorkshop?.yearsOfExperience ?? widget.workshopData?.yearsOfExperience ?? 0,
+      description:
+          currentWorkshop?.description ??
+          widget.workshopData?.description ??
+          '',
+      yearsOfExperience:
+          currentWorkshop?.yearsOfExperience ??
+          widget.workshopData?.yearsOfExperience ??
+          0,
       profileImage: _profileImage,
       coverImage: _coverImage,
       extraImages: List.from(_extraImages),
       logoUrl: currentWorkshop?.logoUrl ?? widget.workshopData?.logoUrl,
       coverUrl: currentWorkshop?.coverUrl ?? widget.workshopData?.coverUrl,
-      galleryUrls: currentWorkshop?.galleryUrls ?? widget.workshopData?.galleryUrls ?? const [],
+      galleryUrls:
+          currentWorkshop?.galleryUrls ??
+          widget.workshopData?.galleryUrls ??
+          const [],
     );
     context.read<WorkshopProvider>().setMyWorkshop(updatedWorkshop);
   }
@@ -85,130 +102,140 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
   // ── Image pickers ─────────────────────────────────────────────────────────
 
   Future<void> _pickCoverImage() async {
-    _showImageSourceSheet(onPicked: (file) async {
-      setState(() => _coverImage = file);
-      _updateProviderWorkshop();
+    _showImageSourceSheet(
+      onPicked: (file) async {
+        setState(() => _coverImage = file);
+        _updateProviderWorkshop();
 
-      final workshop = context.read<WorkshopProvider>().myWorkshop;
-      if (workshop != null) {
-        try {
-          final url = await StorageService.uploadImage(
-            bucket: 'workshops',
-            path: '${workshop.ownerId}/cover_edit_${DateTime.now().millisecondsSinceEpoch}.jpg',
-            file: file,
-          );
-          await WorkshopService.updateWorkshop(
-            workshopId: workshop.id,
-            updates: {'cover_url': url},
-          );
-          // Update local provider state with new cover URL
-          context.read<WorkshopProvider>().setMyWorkshop(
-            WorkshopData(
-              id: workshop.id,
-              ownerId: workshop.ownerId,
-              name: _workshopName,
-              username: _workshopHandle.replaceFirst('@', ''),
-              city: _workshopCity,
-              description: workshop.description,
-              yearsOfExperience: workshop.yearsOfExperience,
-              logoUrl: workshop.logoUrl,
-              coverUrl: url,
-              galleryUrls: workshop.galleryUrls,
-            ),
-          );
-        } catch (e) {
-          debugPrint('Error uploading cover image: $e');
+        final workshop = context.read<WorkshopProvider>().myWorkshop;
+        if (workshop != null) {
+          try {
+            final url = await StorageService.uploadImage(
+              bucket: 'workshops',
+              path:
+                  '${workshop.ownerId}/cover_edit_${DateTime.now().millisecondsSinceEpoch}.jpg',
+              file: file,
+            );
+            await WorkshopService.updateWorkshop(
+              workshopId: workshop.id,
+              updates: {'cover_url': url},
+            );
+            // Update local provider state with new cover URL
+            context.read<WorkshopProvider>().setMyWorkshop(
+              WorkshopData(
+                id: workshop.id,
+                ownerId: workshop.ownerId,
+                name: _workshopName,
+                username: _workshopHandle.replaceFirst('@', ''),
+                city: _workshopCity,
+                description: workshop.description,
+                yearsOfExperience: workshop.yearsOfExperience,
+                logoUrl: workshop.logoUrl,
+                coverUrl: url,
+                galleryUrls: workshop.galleryUrls,
+              ),
+            );
+          } catch (e) {
+            debugPrint('Error uploading cover image: $e');
+          }
         }
-      }
-    });
+      },
+    );
   }
 
   Future<void> _pickProfileImage() async {
-    _showImageSourceSheet(onPicked: (file) async {
-      setState(() => _profileImage = file);
-      _updateProviderWorkshop();
+    _showImageSourceSheet(
+      onPicked: (file) async {
+        setState(() => _profileImage = file);
+        _updateProviderWorkshop();
 
-      final workshop = context.read<WorkshopProvider>().myWorkshop;
-      if (workshop != null) {
-        try {
-          final url = await StorageService.uploadImage(
-            bucket: 'workshops',
-            path: '${workshop.ownerId}/logo_edit_${DateTime.now().millisecondsSinceEpoch}.jpg',
-            file: file,
-          );
-          await WorkshopService.updateWorkshop(
-            workshopId: workshop.id,
-            updates: {'logo_url': url},
-          );
-          // Update local provider state with new logo URL
-          context.read<WorkshopProvider>().setMyWorkshop(
-            WorkshopData(
-              id: workshop.id,
-              ownerId: workshop.ownerId,
-              name: _workshopName,
-              username: _workshopHandle.replaceFirst('@', ''),
-              city: _workshopCity,
-              description: workshop.description,
-              yearsOfExperience: workshop.yearsOfExperience,
-              logoUrl: url,
-              coverUrl: workshop.coverUrl,
-              galleryUrls: workshop.galleryUrls,
-            ),
-          );
-        } catch (e) {
-          debugPrint('Error uploading profile logo: $e');
+        final workshop = context.read<WorkshopProvider>().myWorkshop;
+        if (workshop != null) {
+          try {
+            final url = await StorageService.uploadImage(
+              bucket: 'workshops',
+              path:
+                  '${workshop.ownerId}/logo_edit_${DateTime.now().millisecondsSinceEpoch}.jpg',
+              file: file,
+            );
+            await WorkshopService.updateWorkshop(
+              workshopId: workshop.id,
+              updates: {'logo_url': url},
+            );
+            // Update local provider state with new logo URL
+            context.read<WorkshopProvider>().setMyWorkshop(
+              WorkshopData(
+                id: workshop.id,
+                ownerId: workshop.ownerId,
+                name: _workshopName,
+                username: _workshopHandle.replaceFirst('@', ''),
+                city: _workshopCity,
+                description: workshop.description,
+                yearsOfExperience: workshop.yearsOfExperience,
+                logoUrl: url,
+                coverUrl: workshop.coverUrl,
+                galleryUrls: workshop.galleryUrls,
+              ),
+            );
+          } catch (e) {
+            debugPrint('Error uploading profile logo: $e');
+          }
         }
-      }
-    });
+      },
+    );
   }
 
   Future<void> _pickAndAddImage() async {
-    _showImageSourceSheet(onPicked: (file) async {
-      setState(() => _extraImages.add(file));
-      _updateProviderWorkshop();
+    _showImageSourceSheet(
+      onPicked: (file) async {
+        setState(() => _extraImages.add(file));
+        _updateProviderWorkshop();
 
-      final workshop = context.read<WorkshopProvider>().myWorkshop;
-      if (workshop != null) {
-        try {
-          final url = await StorageService.uploadImage(
-            bucket: 'workshops',
-            path: '${workshop.ownerId}/gallery_${DateTime.now().millisecondsSinceEpoch}.jpg',
-            file: file,
-          );
-          final updatedGallery = List<String>.from(workshop.galleryUrls)..add(url);
-          await WorkshopService.updateWorkshop(
-            workshopId: workshop.id,
-            updates: {'images': updatedGallery},
-          );
-          // Remove local file since it's uploaded now
-          setState(() {
-            _extraImages.remove(file);
-          });
-          context.read<WorkshopProvider>().setMyWorkshop(
-            WorkshopData(
-              id: workshop.id,
-              ownerId: workshop.ownerId,
-              name: _workshopName,
-              username: _workshopHandle.replaceFirst('@', ''),
-              city: _workshopCity,
-              description: workshop.description,
-              yearsOfExperience: workshop.yearsOfExperience,
-              logoUrl: workshop.logoUrl,
-              coverUrl: workshop.coverUrl,
-              galleryUrls: updatedGallery,
-            ),
-          );
-        } catch (e) {
-          debugPrint('Error uploading gallery image: $e');
+        final workshop = context.read<WorkshopProvider>().myWorkshop;
+        if (workshop != null) {
+          try {
+            final url = await StorageService.uploadImage(
+              bucket: 'workshops',
+              path:
+                  '${workshop.ownerId}/gallery_${DateTime.now().millisecondsSinceEpoch}.jpg',
+              file: file,
+            );
+            final updatedGallery = List<String>.from(workshop.galleryUrls)
+              ..add(url);
+            await WorkshopService.updateWorkshop(
+              workshopId: workshop.id,
+              updates: {'images': updatedGallery},
+            );
+            // Remove local file since it's uploaded now
+            setState(() {
+              _extraImages.remove(file);
+            });
+            context.read<WorkshopProvider>().setMyWorkshop(
+              WorkshopData(
+                id: workshop.id,
+                ownerId: workshop.ownerId,
+                name: _workshopName,
+                username: _workshopHandle.replaceFirst('@', ''),
+                city: _workshopCity,
+                description: workshop.description,
+                yearsOfExperience: workshop.yearsOfExperience,
+                logoUrl: workshop.logoUrl,
+                coverUrl: workshop.coverUrl,
+                galleryUrls: updatedGallery,
+              ),
+            );
+          } catch (e) {
+            debugPrint('Error uploading gallery image: $e');
+          }
         }
-      }
-    });
+      },
+    );
   }
 
   void _showImageSourceSheet({required void Function(File file) onPicked}) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -226,14 +253,16 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: ShamsColors.handleBar,
+                    color: Theme.of(
+                      context,
+                    ).extension<ShamsExtendedColors>()!.handleBar,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
                 _buildSheetOption(
                   icon: Icons.photo_library_outlined,
                   label: 'اختر من المعرض',
-                  color: ShamsColors.primaryBlue,
+                  color: Theme.of(context).colorScheme.primary,
                   onTap: () async {
                     Navigator.pop(ctx);
                     final xf = await _picker.pickImage(
@@ -246,7 +275,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                 _buildSheetOption(
                   icon: Icons.camera_alt_outlined,
                   label: 'التقط صورة',
-                  color: ShamsColors.solarYellow,
+                  color: Theme.of(context).colorScheme.secondary,
                   onTap: () async {
                     Navigator.pop(ctx);
                     try {
@@ -309,12 +338,14 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
       text: _workshopHandle.replaceFirst('@', ''),
     );
     // تحديد المدينة الحالية إذا كانت موجودة في القائمة
-    String? selectedCity = _cities.contains(_workshopCity) ? _workshopCity : null;
+    String? selectedCity = _cities.contains(_workshopCity)
+        ? _workshopCity
+        : null;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -340,7 +371,9 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
-                      color: ShamsColors.handleBar,
+                      color: Theme.of(
+                        ctx,
+                      ).extension<ShamsExtendedColors>()!.handleBar,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -350,7 +383,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                   style: GoogleFonts.tajawal(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: ShamsColors.textGray,
+                    color: Theme.of(ctx).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -373,19 +406,25 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                   'المحافظة',
                   style: GoogleFonts.tajawal(
                     fontSize: 13,
-                    color: ShamsColors.textHint,
+                    color: Theme.of(
+                      ctx,
+                    ).extension<ShamsExtendedColors>()!.textHint,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: ShamsColors.backgroundLight,
+                    color: Theme.of(
+                      ctx,
+                    ).extension<ShamsExtendedColors>()!.backgroundLight,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: selectedCity != null
-                          ? ShamsColors.primaryBlue
-                          : ShamsColors.borderLight,
+                          ? Theme.of(ctx).colorScheme.primary
+                          : Theme.of(
+                              ctx,
+                            ).extension<ShamsExtendedColors>()!.borderLight,
                       width: selectedCity != null ? 1.5 : 1,
                     ),
                   ),
@@ -400,9 +439,9 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                           color: Colors.grey.shade400,
                         ),
                       ),
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        color: ShamsColors.primaryBlue,
+                        color: Theme.of(ctx).colorScheme.primary,
                       ),
                       items: _cities
                           .map(
@@ -412,14 +451,13 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                                 city,
                                 style: GoogleFonts.tajawal(
                                   fontSize: 14,
-                                  color: ShamsColors.textGray,
+                                  color: Theme.of(ctx).colorScheme.onSurface,
                                 ),
                               ),
                             ),
                           )
                           .toList(),
-                      onChanged: (v) =>
-                          setSheetState(() => selectedCity = v),
+                      onChanged: (v) => setSheetState(() => selectedCity = v),
                     ),
                   ),
                 ),
@@ -444,7 +482,9 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                       _updateProviderWorkshop();
 
                       // Update in database
-                      final currentWorkshop = context.read<WorkshopProvider>().myWorkshop;
+                      final currentWorkshop = context
+                          .read<WorkshopProvider>()
+                          .myWorkshop;
                       if (currentWorkshop != null) {
                         try {
                           await WorkshopService.updateWorkshop(
@@ -468,7 +508,9 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                               'تم حفظ معلومات الورشة بنجاح',
                               style: GoogleFonts.tajawal(),
                             ),
-                            backgroundColor: ShamsColors.verifiedGreen,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.tertiary,
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -479,7 +521,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: ShamsColors.solarYellow,
+                      backgroundColor: Theme.of(ctx).colorScheme.secondary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -490,7 +532,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                       style: GoogleFonts.tajawal(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: Theme.of(ctx).colorScheme.onSecondary,
                       ),
                     ),
                   ),
@@ -511,28 +553,44 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
   }) {
     return TextField(
       controller: controller,
-      style: GoogleFonts.tajawal(fontSize: 14, color: ShamsColors.textGray),
+      style: GoogleFonts.tajawal(
+        fontSize: 14,
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.tajawal(color: ShamsColors.textHint),
-        prefixIcon: Icon(icon, color: ShamsColors.primaryBlue, size: 20),
+        labelStyle: GoogleFonts.tajawal(
+          color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
+        ),
+        prefixIcon: Icon(
+          icon,
+          color: Theme.of(context).colorScheme.primary,
+          size: 20,
+        ),
         prefixText: prefix,
         prefixStyle: GoogleFonts.tajawal(
-          color: ShamsColors.textGray,
+          color: Theme.of(context).colorScheme.onSurface,
           fontWeight: FontWeight.bold,
         ),
         filled: true,
-        fillColor: ShamsColors.backgroundLight,
+        fillColor: Theme.of(
+          context,
+        ).extension<ShamsExtendedColors>()!.backgroundLight,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: ShamsColors.primaryBlue, width: 1.5),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 1.5,
+          ),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
     );
   }
@@ -561,14 +619,20 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
               onPressed: () => Navigator.pop(ctx, false),
               child: Text(
                 'إلغاء',
-                style: GoogleFonts.tajawal(color: ShamsColors.textHint),
+                style: GoogleFonts.tajawal(
+                  color: Theme.of(
+                    ctx,
+                  ).extension<ShamsExtendedColors>()!.textHint,
+                ),
               ),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: Text(
                 'حذف',
-                style: GoogleFonts.tajawal(color: ShamsColors.dangerRed),
+                style: GoogleFonts.tajawal(
+                  color: Theme.of(ctx).colorScheme.error,
+                ),
               ),
             ),
           ],
@@ -580,10 +644,11 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('تم حذف المنشور بنجاح', style: GoogleFonts.tajawal()),
-            backgroundColor: ShamsColors.dangerRed,
+            backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -623,15 +688,15 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
 
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_forward_rounded,
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () => Navigator.pop(context),
           ),
@@ -640,7 +705,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
             style: GoogleFonts.tajawal(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           centerTitle: true,
@@ -666,15 +731,17 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                       style: GoogleFonts.tajawal(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: ShamsColors.textGray,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '(${ (workshopState.myWorkshop?.galleryUrls.length ?? 0) + _extraImages.length })',
+                      '(${(workshopState.myWorkshop?.galleryUrls.length ?? 0) + _extraImages.length})',
                       style: GoogleFonts.tajawal(
                         fontSize: 13,
-                        color: ShamsColors.textHint,
+                        color: Theme.of(
+                          context,
+                        ).extension<ShamsExtendedColors>()!.textHint,
                       ),
                     ),
                   ],
@@ -690,10 +757,13 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                   ],
                   onAddTap: _pickAndAddImage,
                   onRemoveTap: (i) async {
-                    final galleryCount = workshopState.myWorkshop?.galleryUrls.length ?? 0;
+                    final galleryCount =
+                        workshopState.myWorkshop?.galleryUrls.length ?? 0;
                     if (i < galleryCount) {
                       // Remove remote image
-                      final updatedGallery = List<String>.from(workshopState.myWorkshop!.galleryUrls)..removeAt(i);
+                      final updatedGallery = List<String>.from(
+                        workshopState.myWorkshop!.galleryUrls,
+                      )..removeAt(i);
                       try {
                         await WorkshopService.updateWorkshop(
                           workshopId: workshopState.myWorkshop!.id,
@@ -708,7 +778,8 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                             username: _workshopHandle.replaceFirst('@', ''),
                             city: _workshopCity,
                             description: workshopState.myWorkshop!.description,
-                            yearsOfExperience: workshopState.myWorkshop!.yearsOfExperience,
+                            yearsOfExperience:
+                                workshopState.myWorkshop!.yearsOfExperience,
                             logoUrl: workshopState.myWorkshop!.logoUrl,
                             coverUrl: workshopState.myWorkshop!.coverUrl,
                             galleryUrls: updatedGallery,
@@ -780,7 +851,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                       style: GoogleFonts.tajawal(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: ShamsColors.textGray,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -800,7 +871,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                                   Icon(
                                     Icons.article_outlined,
                                     size: 48,
-                                    color: ShamsColors.primaryBlue
+                                    color: Theme.of(context).colorScheme.primary
                                         .withValues(alpha: 0.2),
                                   ),
                                   const SizedBox(height: 12),
@@ -809,7 +880,9 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.tajawal(
                                       fontSize: 14,
-                                      color: ShamsColors.textHint,
+                                      color: Theme.of(context)
+                                          .extension<ShamsExtendedColors>()!
+                                          .textHint,
                                     ),
                                   ),
                                 ],
@@ -859,7 +932,7 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),
@@ -880,8 +953,8 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: ShamsColors.solarYellow,
-                  foregroundColor: Colors.black,
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  foregroundColor: Theme.of(context).colorScheme.onSecondary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -906,9 +979,11 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
   // ── Header: cover + avatar with tappable camera badges ───────────────────
 
   Widget _buildHeader(WorkshopProvider workshopState) {
-    final hasCoverUrl = workshopState.myWorkshop?.coverUrl != null &&
+    final hasCoverUrl =
+        workshopState.myWorkshop?.coverUrl != null &&
         workshopState.myWorkshop!.coverUrl!.isNotEmpty;
-    final hasLogoUrl = workshopState.myWorkshop?.logoUrl != null &&
+    final hasLogoUrl =
+        workshopState.myWorkshop?.logoUrl != null &&
         workshopState.myWorkshop!.logoUrl!.isNotEmpty;
 
     return SizedBox(
@@ -927,34 +1002,33 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                   child: _coverImage != null
                       ? Image.file(_coverImage!, fit: BoxFit.cover)
                       : hasCoverUrl
-                          ? Image.network(
-                              workshopState.myWorkshop!.coverUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                color: ShamsColors.primaryBlue.withValues(alpha: 0.08),
-                                child: const Icon(
-                                  Icons.image_outlined,
-                                  size: 50,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            )
-                          : Container(
-                              color:
-                                  ShamsColors.primaryBlue.withValues(alpha: 0.08),
-                              child: const Icon(
-                                  Icons.image_outlined,
-                                  size: 50,
-                                  color: Colors.grey,
-                                ),
+                      ? Image.network(
+                          workshopState.myWorkshop!.coverUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.08),
+                            child: const Icon(
+                              Icons.image_outlined,
+                              size: 50,
+                              color: Colors.grey,
                             ),
+                          ),
+                        )
+                      : Container(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.08),
+                          child: const Icon(
+                            Icons.image_outlined,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        ),
                 ),
                 // طبقة شفافة للنقر على صورة الغلاف
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: _buildCameraBadge(),
-                ),
+                Positioned(top: 16, right: 16, child: _buildCameraBadge()),
               ],
             ),
           ),
@@ -969,8 +1043,8 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
                       shape: BoxShape.circle,
                     ),
                     child: _profileImage != null
@@ -983,32 +1057,32 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                             ),
                           )
                         : hasLogoUrl
-                            ? ClipOval(
-                                child: Image.network(
-                                  workshopState.myWorkshop!.logoUrl!,
-                                  width: 90,
-                                  height: 90,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const CircleAvatar(
-                                    radius: 45,
-                                    backgroundColor: Color(0xFFF0F2F5),
-                                    child: Icon(
-                                      Icons.store_rounded,
-                                      size: 40,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : const CircleAvatar(
+                        ? ClipOval(
+                            child: Image.network(
+                              workshopState.myWorkshop!.logoUrl!,
+                              width: 90,
+                              height: 90,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => CircleAvatar(
                                 radius: 45,
-                                backgroundColor: Color(0xFFF0F2F5),
-                                child: Icon(
+                                backgroundColor: Theme.of(context).extension<ShamsExtendedColors>()!.avatarFallbackBg,
+                                child: const Icon(
                                   Icons.store_rounded,
                                   size: 40,
                                   color: Colors.grey,
                                 ),
                               ),
+                            ),
+                          )
+                        : CircleAvatar(
+                            radius: 45,
+                            backgroundColor: Theme.of(context).extension<ShamsExtendedColors>()!.avatarFallbackBg,
+                            child: const Icon(
+                              Icons.store_rounded,
+                              size: 40,
+                              color: Colors.grey,
+                            ),
+                          ),
                   ),
                   _buildCameraBadge(),
                 ],
@@ -1028,31 +1102,31 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
           style: GoogleFonts.tajawal(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: ShamsColors.textGray,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         Text(
           _workshopHandle,
           style: GoogleFonts.tajawal(
             fontSize: 13,
-            color: ShamsColors.textHint,
+            color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
           ),
         ),
         const SizedBox(height: 4),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.location_on_outlined,
               size: 16,
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             const SizedBox(width: 4),
             Text(
               _workshopCity,
               style: GoogleFonts.tajawal(
                 fontSize: 12,
-                color: ShamsColors.textGray,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -1065,19 +1139,16 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 6,
-          ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 6),
         ],
       ),
-      child: const Icon(
+      child: Icon(
         Icons.camera_alt_rounded,
         size: 16,
-        color: ShamsColors.textGray,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
@@ -1096,18 +1167,22 @@ class _WorkshopDashboardScreenState extends State<WorkshopDashboardScreen> {
                   style: GoogleFonts.tajawal(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: ShamsColors.textGray,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(width: 4),
-                Icon(icon, size: 16, color: ShamsColors.textGray),
+                Icon(
+                  icon,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ],
             ),
             Text(
               label,
               style: GoogleFonts.tajawal(
                 fontSize: 12,
-                color: const Color(0xFF9EA3B0),
+                color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
               ),
             ),
           ],

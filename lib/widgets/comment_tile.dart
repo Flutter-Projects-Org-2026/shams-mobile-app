@@ -28,10 +28,10 @@ class ShamsCommentTile extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: const Color(0xFFEEF0F4),
+            backgroundColor: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
             backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-            child: avatarUrl == null 
-                ? const Icon(Icons.person, color: ShamsColors.textGray) 
+            child: avatarUrl == null
+                ? Icon(Icons.person, color: Theme.of(context).colorScheme.onSurfaceVariant)
                 : null,
           ),
           const SizedBox(width: 12),
@@ -48,7 +48,7 @@ class ShamsCommentTile extends StatelessWidget {
                     ),
                     Text(
                       timeAgo,
-                      style: textTheme.bodySmall?.copyWith(color: ShamsColors.textGray),
+                      style: textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -67,11 +67,11 @@ class ShamsCommentTile extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.thumb_up_alt_outlined, size: 16, color: ShamsColors.textGray),
+                          Icon(Icons.thumb_up_alt_outlined, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                           const SizedBox(width: 4),
                           Text(
                             'إعجاب',
-                            style: textTheme.labelMedium?.copyWith(color: ShamsColors.textGray),
+                            style: textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),

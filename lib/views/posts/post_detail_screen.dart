@@ -40,14 +40,15 @@ class PostDetailScreen extends StatelessWidget {
       return Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(
-          backgroundColor: ShamsColors.backgroundLight,
+          backgroundColor:
+              Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
           appBar: _buildAppBar(context),
           body: Center(
             child: Text(
               'لم يُعثر على المنشور',
               style: GoogleFonts.tajawal(
                 fontSize: 16,
-                color: ShamsColors.textHint,
+                color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
               ),
             ),
           ),
@@ -77,7 +78,8 @@ class PostDetailScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: ShamsColors.backgroundLight,
+        backgroundColor:
+            Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
 
         // ── AppBar ───────────────────────────────────────────────────────────
         appBar: _buildAppBar(context),
@@ -160,9 +162,11 @@ class PostDetailScreen extends StatelessWidget {
       SnackBar(
         content: Text(
           'تمت مشاركة المنشور',
-          style: GoogleFonts.tajawal(color: ShamsColors.bgWhite),
+          style: GoogleFonts.tajawal(
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),
         ),
-        backgroundColor: ShamsColors.primaryBlue,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
@@ -177,9 +181,9 @@ class PostDetailScreen extends StatelessWidget {
       builder: (_) => Directionality(
         textDirection: TextDirection.rtl,
         child: Container(
-          decoration: const BoxDecoration(
-            color: ShamsColors.bgWhite,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
           child: Column(
@@ -190,7 +194,8 @@ class PostDetailScreen extends StatelessWidget {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: ShamsColors.handleBar,
+                  color:
+                      Theme.of(context).extension<ShamsExtendedColors>()!.handleBar,
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
@@ -207,7 +212,7 @@ class PostDetailScreen extends StatelessWidget {
               _MenuOption(
                 icon: Icons.flag_outlined,
                 label: 'الإبلاغ عن المنشور',
-                color: ShamsColors.dangerDark,
+                color: Theme.of(context).colorScheme.error,
                 onTap: () => Navigator.pop(context),
               ),
             ],
@@ -221,7 +226,7 @@ class PostDetailScreen extends StatelessWidget {
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
       child: Container(
-        color: ShamsColors.solarYellow,
+        color: Theme.of(context).colorScheme.secondary,
         child: SafeArea(
           bottom: false,
           child: SizedBox(
@@ -239,10 +244,10 @@ class PostDetailScreen extends StatelessWidget {
                         color: Colors.black.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.arrow_back_ios_new_rounded,
                         size: 18,
-                        color: ShamsColors.textGray,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -252,16 +257,16 @@ class PostDetailScreen extends StatelessWidget {
                     style: GoogleFonts.tajawal(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: ShamsColors.textGray,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => _onShare(context),
-                    child: const Icon(
+                    child: Icon(
                       Icons.share_outlined,
                       size: 22,
-                      color: ShamsColors.textGray,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -299,11 +304,11 @@ class _CommentsSection extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: ShamsColors.bgWhite,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: ShamsColors.primaryBlue.withValues(alpha: 0.06),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -322,7 +327,7 @@ class _CommentsSection extends StatelessWidget {
                   style: GoogleFonts.tajawal(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: ShamsColors.textGray,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -333,7 +338,7 @@ class _CommentsSection extends StatelessWidget {
                     vertical: 2,
                   ),
                   decoration: BoxDecoration(
-                    color: ShamsColors.primaryBlue.withValues(alpha: 0.1),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(99),
                   ),
                   child: Text(
@@ -341,7 +346,7 @@ class _CommentsSection extends StatelessWidget {
                     style: GoogleFonts.tajawal(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
-                      color: ShamsColors.primaryBlue,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),
@@ -354,7 +359,7 @@ class _CommentsSection extends StatelessWidget {
                     style: GoogleFonts.tajawal(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: ShamsColors.primaryBlue,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),
@@ -365,7 +370,6 @@ class _CommentsSection extends StatelessWidget {
           const Divider(
             height: 1,
             thickness: 1,
-            color: ShamsColors.dividerLight,
           ),
 
           // ── معاينة أول تعليقين ─────────────────────────────────────────────
@@ -384,7 +388,6 @@ class _CommentsSection extends StatelessWidget {
                   const Divider(
                     height: 1,
                     thickness: 1,
-                    color: ShamsColors.dividerLight,
                     indent: 62,
                   ),
               ];
@@ -398,24 +401,26 @@ class _CommentsSection extends StatelessWidget {
               margin: const EdgeInsets.all(14),
               height: 42,
               decoration: BoxDecoration(
-                color: ShamsColors.backgroundLight,
+                color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: ShamsColors.borderLight),
+                border: Border.all(
+                  color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
+                ),
               ),
               child: Row(
                 children: [
                   const SizedBox(width: 14),
-                  const Icon(
+                  Icon(
                     Icons.chat_bubble_outline_rounded,
                     size: 18,
-                    color: ShamsColors.textHint,
+                    color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'اكتب تعليقك هنا...',
                     style: GoogleFonts.tajawal(
                       fontSize: 13.5,
-                      color: ShamsColors.textHint,
+                      color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
                     ),
                   ),
                 ],
@@ -466,7 +471,10 @@ class _PreviewComment extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: ShamsColors.primaryBlue.withValues(alpha: 0.15),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.15),
               ),
             ),
             child: ClipOval(
@@ -477,13 +485,15 @@ class _PreviewComment extends StatelessWidget {
                           avatarPath,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) => Container(
-                            color: ShamsColors.avatarFallbackBg,
+                            color: Theme.of(context)
+                                .extension<ShamsExtendedColors>()!
+                                .avatarFallbackBg,
                             child: Center(
                               child: Text(
                                 userName.isNotEmpty ? userName[0] : '؟',
                                 style: GoogleFonts.tajawal(
                                   fontWeight: FontWeight.w700,
-                                  color: ShamsColors.primaryBlue,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
                               ),
                             ),
@@ -494,26 +504,30 @@ class _PreviewComment extends StatelessWidget {
                               File(avatarPath),
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) => Container(
-                                color: ShamsColors.avatarFallbackBg,
+                                color: Theme.of(context)
+                                    .extension<ShamsExtendedColors>()!
+                                    .avatarFallbackBg,
                                 child: Center(
                                   child: Text(
                                     userName.isNotEmpty ? userName[0] : '؟',
                                     style: GoogleFonts.tajawal(
                                       fontWeight: FontWeight.w700,
-                                      color: ShamsColors.primaryBlue,
+                                      color: Theme.of(context).colorScheme.primary,
                                     ),
                                   ),
                                 ),
                               ),
                             )
                           : Container(
-                              color: ShamsColors.avatarFallbackBg,
+                              color: Theme.of(context)
+                                  .extension<ShamsExtendedColors>()!
+                                  .avatarFallbackBg,
                               child: Center(
                                 child: Text(
                                   userName.isNotEmpty ? userName[0] : '؟',
                                   style: GoogleFonts.tajawal(
                                     fontWeight: FontWeight.w700,
-                                    color: ShamsColors.primaryBlue,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -532,7 +546,7 @@ class _PreviewComment extends StatelessWidget {
                       style: GoogleFonts.tajawal(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: ShamsColors.textGray,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const Spacer(),
@@ -540,7 +554,7 @@ class _PreviewComment extends StatelessWidget {
                       timeAgo,
                       style: GoogleFonts.tajawal(
                         fontSize: 11,
-                        color: ShamsColors.textHint,
+                        color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
                       ),
                     ),
                   ],
@@ -551,7 +565,7 @@ class _PreviewComment extends StatelessWidget {
                   style: GoogleFonts.tajawal(
                     fontSize: 13,
                     height: 1.4,
-                    color: ShamsColors.textGray,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -582,7 +596,7 @@ class _MenuOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = color ?? ShamsColors.textGray;
+    final effectiveColor = color ?? Theme.of(context).colorScheme.onSurface;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),

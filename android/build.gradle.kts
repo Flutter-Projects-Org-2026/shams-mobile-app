@@ -19,6 +19,14 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+subprojects {
+    tasks.configureEach {
+        if (name.contains("buildCMake")) {
+            doNotTrackState("Bypassing state tracking for CMake tasks to resolve unreadable/missing file issues on different drives")
+        }
+    }
+}
+
 
 
 

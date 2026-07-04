@@ -105,7 +105,10 @@ class _ImageThumbnail extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: ShamsColors.solarYellow, width: 1.5),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.secondary,
+              width: 1.5,
+            ),
           ),
           clipBehavior: Clip.hardEdge,
           child: imageWidget,
@@ -120,9 +123,12 @@ class _ImageThumbnail extends StatelessWidget {
               width: 22,
               height: 22,
               decoration: BoxDecoration(
-                color: ShamsColors.dangerRed,
+                color: Theme.of(context).colorScheme.error,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.5),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.surface,
+                  width: 1.5,
+                ),
               ),
               child: const Icon(Icons.close, color: Colors.white, size: 13),
             ),
@@ -143,25 +149,28 @@ class _AddImageButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: const Color(0xFFFAFAFA),
+          color: ext.inputFill,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: ShamsColors.solarYellow.withValues(alpha: 0.5),
+            color: colorScheme.secondary.withValues(alpha: 0.5),
             width: 1.5,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.add_photo_alternate_outlined,
-              color: ShamsColors.solarYellow,
+              color: colorScheme.secondary,
               size: 28,
             ),
             const SizedBox(height: 4),
@@ -169,7 +178,7 @@ class _AddImageButton extends StatelessWidget {
               'إضافة',
               style: GoogleFonts.tajawal(
                 fontSize: 11,
-                color: ShamsColors.solarYellow,
+                color: colorScheme.secondary,
                 fontWeight: FontWeight.w600,
               ),
             ),

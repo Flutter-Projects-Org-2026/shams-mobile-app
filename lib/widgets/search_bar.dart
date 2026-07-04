@@ -3,53 +3,39 @@ import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
 
 /// ShamsSearchDelegate — شريط بحث مُحسَّن بتصميم Shams Platform
-///
-/// الاستخدام:
-/// ```dart
-/// showSearch(
-///   context: context,
-///   delegate: ShamsSearchDelegate(searchSuggestions: myList),
-/// );
-/// ```
 class ShamsSearchDelegate extends SearchDelegate<String?> {
-  /// قائمة الاقتراحات الكاملة
   final List<String> searchSuggestions;
 
   ShamsSearchDelegate({required this.searchSuggestions});
-
-  // ── إعدادات عامة ─────────────────────────────────────────────────────────
 
   @override
   String get searchFieldLabel => 'ابحث هنا...';
 
   @override
-  TextStyle get searchFieldStyle => GoogleFonts.tajawal(
-        fontSize: 15,
-        color: ShamsColors.textGray,
-      );
+  TextStyle get searchFieldStyle => GoogleFonts.tajawal(fontSize: 15);
 
   @override
   ThemeData appBarTheme(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Theme.of(context).copyWith(
-      appBarTheme: const AppBarTheme(
-        backgroundColor: ShamsColors.primaryBlue,
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.primary,
         elevation: 0,
-        iconTheme: IconThemeData(color: ShamsColors.bgWhite),
+        iconTheme: IconThemeData(color: colorScheme.onPrimary),
       ),
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: GoogleFonts.tajawal(
           fontSize: 15,
-          color: Colors.white70,
+          color: colorScheme.onPrimary.withValues(alpha: 0.7),
         ),
         border: InputBorder.none,
       ),
     );
   }
 
-  // ── الأيقونات الجانبية ────────────────────────────────────────────────────
-
   @override
   List<Widget> buildActions(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return [
       if (query.isNotEmpty)
         IconButton(
@@ -58,29 +44,26 @@ class ShamsSearchDelegate extends SearchDelegate<String?> {
             query = '';
             showSuggestions(context);
           },
-          icon: const Icon(Icons.close_rounded, color: ShamsColors.bgWhite),
+          icon: Icon(Icons.close_rounded, color: colorScheme.onPrimary),
         ),
     ];
   }
 
   @override
   Widget buildLeading(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return IconButton(
       tooltip: 'رجوع',
       onPressed: () => close(context, null),
-      icon: const Icon(Icons.arrow_back_ios_rounded, color: ShamsColors.bgWhite),
+      icon: Icon(Icons.arrow_back_ios_rounded, color: colorScheme.onPrimary),
     );
   }
-
-  // ── نتائج البحث ───────────────────────────────────────────────────────────
 
   @override
   Widget buildResults(BuildContext context) {
     final results = _filterList(query);
     return _buildList(context, results, isResult: true);
   }
-
-  // ── الاقتراحات ────────────────────────────────────────────────────────────
 
   @override
   Widget buildSuggestions(BuildContext context) {
@@ -89,13 +72,9 @@ class ShamsSearchDelegate extends SearchDelegate<String?> {
     return _buildList(context, suggestions, isResult: false);
   }
 
-  // ── مساعد: فلترة القائمة ──────────────────────────────────────────────────
-
   List<String> _filterList(String q) => searchSuggestions
       .where((e) => e.toLowerCase().contains(q.toLowerCase()))
       .toList();
-
-  // ── واجهة مشتركة للقائمة ─────────────────────────────────────────────────
 
   Widget _buildList(
     BuildContext context,
@@ -103,7 +82,7 @@ class ShamsSearchDelegate extends SearchDelegate<String?> {
     required bool isResult,
   }) {
     if (items.isEmpty) {
-      return _buildEmptyState();
+      return _buildEmptyState(context);
     }
 
     return ListView.separated(
@@ -124,9 +103,8 @@ class ShamsSearchDelegate extends SearchDelegate<String?> {
     );
   }
 
-  // ── حالة فارغة ───────────────────────────────────────────────────────────
-
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -134,7 +112,7 @@ class ShamsSearchDelegate extends SearchDelegate<String?> {
           Icon(
             Icons.search_off_rounded,
             size: 64,
-            color: ShamsColors.primaryBlue.withValues(alpha: 0.25),
+            color: colorScheme.primary.withValues(alpha: 0.25),
           ),
           const SizedBox(height: 16),
           Text(
@@ -142,7 +120,7 @@ class ShamsSearchDelegate extends SearchDelegate<String?> {
             style: GoogleFonts.tajawal(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF9EA3B0),
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
@@ -150,7 +128,7 @@ class ShamsSearchDelegate extends SearchDelegate<String?> {
             'جرّب كلمة مختلفة',
             style: GoogleFonts.tajawal(
               fontSize: 13,
-              color: const Color(0xFFBFC3CE),
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -160,7 +138,7 @@ class ShamsSearchDelegate extends SearchDelegate<String?> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// _SearchTile — عنصر قائمة بحث مع تمييز الكلمة المطابقة
+// _SearchTile
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _SearchTile extends StatelessWidget {
@@ -178,6 +156,9 @@ class _SearchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
+
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(12),
@@ -185,14 +166,15 @@ class _SearchTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: ShamsColors.bgWhite,
+            color: ext.cardSurface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFEEF0F4)),
+            border: Border.all(color: ext.borderLight),
             boxShadow: [
               BoxShadow(
-                color: ShamsColors.primaryBlue.withValues(alpha: 0.05),
+                color: colorScheme.primary.withValues(alpha: 0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -204,17 +186,17 @@ class _SearchTile extends StatelessWidget {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  color: ShamsColors.primaryBlue.withValues(alpha: 0.08),
+                  color: colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, size: 18, color: ShamsColors.primaryBlue),
+                child: Icon(icon, size: 18, color: colorScheme.primary),
               ),
               const SizedBox(width: 12),
-              Expanded(child: _highlightedText(label, query)),
-              const Icon(
+              Expanded(child: _highlightedText(context, label, query)),
+              Icon(
                 Icons.north_west_rounded,
                 size: 16,
-                color: Color(0xFFBFC3CE),
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               ),
             ],
           ),
@@ -223,16 +205,13 @@ class _SearchTile extends StatelessWidget {
     );
   }
 
-  /// يُلوّن الجزء المطابق من النص بالأصفر الشمسي
-  Widget _highlightedText(String text, String query) {
+  Widget _highlightedText(BuildContext context, String text, String query) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (query.isEmpty) {
-      return Text(
-        text,
-        style: GoogleFonts.tajawal(
-          fontSize: 15,
-          color: ShamsColors.textGray,
-        ),
-      );
+      return Text(text,
+          style: GoogleFonts.tajawal(
+              fontSize: 15, color: colorScheme.onSurface));
     }
 
     final lowerText = text.toLowerCase();
@@ -240,27 +219,26 @@ class _SearchTile extends StatelessWidget {
     final matchIndex = lowerText.indexOf(lowerQuery);
 
     if (matchIndex == -1) {
-      return Text(
-        text,
-        style: GoogleFonts.tajawal(
-          fontSize: 15,
-          color: ShamsColors.textGray,
-        ),
-      );
+      return Text(text,
+          style: GoogleFonts.tajawal(
+              fontSize: 15, color: colorScheme.onSurface));
     }
 
     return RichText(
       text: TextSpan(
-        style: GoogleFonts.tajawal(fontSize: 15, color: ShamsColors.textGray),
+        style:
+            GoogleFonts.tajawal(fontSize: 15, color: colorScheme.onSurface),
         children: [
-          if (matchIndex > 0) TextSpan(text: text.substring(0, matchIndex)),
+          if (matchIndex > 0)
+            TextSpan(text: text.substring(0, matchIndex)),
           TextSpan(
             text: text.substring(matchIndex, matchIndex + query.length),
             style: GoogleFonts.tajawal(
               fontSize: 15,
               fontWeight: FontWeight.w700,
-              color: ShamsColors.primaryBlue,
-              backgroundColor: ShamsColors.solarYellow.withValues(alpha: 0.25),
+              color: colorScheme.primary,
+              backgroundColor:
+                  colorScheme.secondary.withValues(alpha: 0.25),
             ),
           ),
           if (matchIndex + query.length < text.length)

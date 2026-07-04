@@ -18,16 +18,19 @@ class InlineSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
+
     return Container(
-      color: ShamsColors.bgWhite,
+      color: colorScheme.surface,
       padding: padding,
       child: Container(
         height: 46,
         decoration: BoxDecoration(
-          color: ShamsColors.backgroundLight,
+          color: ext.inputFill,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: ShamsColors.borderLight,
+            color: ext.borderLight,
             width: 1.2,
           ),
         ),
@@ -35,10 +38,10 @@ class InlineSearchBar extends StatelessWidget {
           textDirection: TextDirection.rtl,
           children: [
             const SizedBox(width: 14),
-            const Icon(
+            Icon(
               Icons.search_rounded,
               size: 20,
-              color: ShamsColors.textHint,
+              color: ext.textHint,
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -47,13 +50,13 @@ class InlineSearchBar extends StatelessWidget {
                 textDirection: TextDirection.rtl,
                 style: GoogleFonts.tajawal(
                   fontSize: 14,
-                  color: ShamsColors.textGray,
+                  color: colorScheme.onSurface,
                 ),
                 decoration: InputDecoration(
                   hintText: hintText,
                   hintStyle: GoogleFonts.tajawal(
                     fontSize: 13.5,
-                    color: ShamsColors.textHint,
+                    color: ext.textHint,
                   ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.only(bottom: 6),
@@ -63,7 +66,7 @@ class InlineSearchBar extends StatelessWidget {
             if (onClose != null)
               IconButton(
                 onPressed: onClose,
-                icon: const Icon(Icons.close_rounded, size: 20, color: ShamsColors.textHint),
+                icon: Icon(Icons.close_rounded, size: 20, color: ext.textHint),
               ),
           ],
         ),

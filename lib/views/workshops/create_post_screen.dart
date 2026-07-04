@@ -75,7 +75,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               onPressed: () => _handlePick(ImageSource.gallery, false),
               child: Text(
                 'المعرض (صور)',
-                style: GoogleFonts.tajawal(color: Colors.blue),
+                style: GoogleFonts.tajawal(color: Theme.of(context).colorScheme.primary),
               ),
             ),
             TextButton(
@@ -96,7 +96,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'إلغاء',
-                style: GoogleFonts.tajawal(color: Colors.grey),
+                style: GoogleFonts.tajawal(color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint),
               ),
             ),
           ],
@@ -185,7 +185,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('حدث خطأ أثناء النشر: $e', style: GoogleFonts.tajawal()),
-            backgroundColor: ShamsColors.dangerRed,
+            backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -200,14 +200,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: _buildAppBar(),
         body: Column(
           children: [
             const Divider(
               height: 1,
               thickness: 1,
-              color: ShamsColors.dividerLight,
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -255,7 +254,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       elevation: 0,
       centerTitle: true,
       automaticallyImplyLeading: false,
@@ -264,15 +263,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         style: GoogleFonts.tajawal(
           fontSize: 18,
           fontWeight: FontWeight.w700,
-          color: ShamsColors.textGray,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
-      // زر الرجوع (يمين في RTL)
       leading: IconButton(
         onPressed: () => Navigator.pop(context),
-        icon: const Icon(
+        icon: Icon(
           Icons.arrow_forward_rounded,
-          color: ShamsColors.textGray,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
@@ -288,9 +286,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 32),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade200, width: 1.5),
+            border: Border.all(color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight, width: 1.5),
           ),
           child: Column(
             children: [
@@ -301,13 +299,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.camera_alt_outlined,
                       size: 28,
-                      color: Colors.black54,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                   Positioned(
@@ -315,14 +313,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     right: 2,
                     child: Container(
                       padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        color: ShamsColors.solarYellow,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.secondary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.add,
                         size: 14,
-                        color: Colors.black,
+                        color: Theme.of(context).colorScheme.onSecondary,
                       ),
                     ),
                   ),
@@ -334,13 +332,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 style: GoogleFonts.tajawal(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: ShamsColors.textGray,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 'وثّق إنجازاتك في الطاقة الشمسية',
-                style: GoogleFonts.tajawal(fontSize: 13, color: Colors.grey),
+                style: GoogleFonts.tajawal(fontSize: 13, color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint),
               ),
             ],
           ),
@@ -375,15 +373,15 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           style: GoogleFonts.tajawal(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: ShamsColors.textGray,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight),
           ),
           child: TextField(
             controller: _contentController,
@@ -391,7 +389,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             decoration: InputDecoration(
               hintText: 'اكتب تفاصيل المنشور هنا',
               hintStyle: GoogleFonts.tajawal(
-                color: Colors.grey.shade400,
+                color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
                 fontSize: 14,
               ),
               border: InputBorder.none,
@@ -407,7 +405,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -421,13 +419,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   style: GoogleFonts.tajawal(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: ShamsColors.textGray,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   'سيظهر في أعلى صفحتك الشخصية',
-                  style: GoogleFonts.tajawal(fontSize: 13, color: Colors.grey),
+                  style: GoogleFonts.tajawal(fontSize: 13, color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint),
                 ),
               ],
             ),
@@ -435,7 +433,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           Switch(
             value: _isHighlighted,
             onChanged: (val) => setState(() => _isHighlighted = val),
-            activeThumbColor: ShamsColors.solarYellow,
+            activeThumbColor: Theme.of(context).colorScheme.secondary,
           ),
         ],
       ),
@@ -447,12 +445,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         children: [
-          Icon(Icons.info_outline, size: 16, color: Colors.grey.shade400),
+          Icon(Icons.info_outline, size: 16, color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'المنشورات المميزة تساعدك في الوصول لأفضل أعمالك بسرعة أكبر',
-              style: GoogleFonts.tajawal(fontSize: 11, color: Colors.grey),
+              style: GoogleFonts.tajawal(fontSize: 11, color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint),
             ),
           ),
         ],
@@ -469,7 +467,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         child: ElevatedButton(
           onPressed: _publish,
           style: ElevatedButton.styleFrom(
-            backgroundColor: ShamsColors.solarYellow,
+            backgroundColor: Theme.of(context).colorScheme.secondary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -480,7 +478,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             style: GoogleFonts.tajawal(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: Colors.black,
+              color: Theme.of(context).colorScheme.onSecondary,
             ),
           ),
         ),
@@ -562,9 +560,9 @@ class _AttachmentThumbnail extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) =>
                         Container(
-                          color: Colors.grey.shade200,
-                          child: const Icon(Icons.broken_image,
-                              color: Colors.grey),
+                          color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
+                          child: Icon(Icons.broken_image,
+                              color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint),
                         ),
                   ),
           ),
@@ -576,8 +574,8 @@ class _AttachmentThumbnail extends StatelessWidget {
             onTap: onRemove,
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
-                color: Colors.red,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.error,
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.close, size: 14, color: Colors.white),

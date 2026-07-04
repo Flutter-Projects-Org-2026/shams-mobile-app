@@ -39,7 +39,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
   Widget _buildCoverImage(String path) {
     if (path.isEmpty) {
       return Container(
-        color: const Color(0xFFEEF0F4),
+        color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
         child: const Center(
           child: Icon(Icons.broken_image_outlined, color: Colors.grey),
         ),
@@ -51,7 +51,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
         path,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
-          color: const Color(0xFFEEF0F4),
+          color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
           child: const Center(
             child: Icon(Icons.broken_image_outlined, color: Colors.grey),
           ),
@@ -62,7 +62,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
         path,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) => Container(
-          color: const Color(0xFFEEF0F4),
+          color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
           child: const Center(
             child: Icon(Icons.broken_image_outlined, color: Colors.grey),
           ),
@@ -75,7 +75,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
           file,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) => Container(
-            color: const Color(0xFFEEF0F4),
+            color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
             child: const Center(
               child: Icon(Icons.broken_image_outlined, color: Colors.grey),
             ),
@@ -83,7 +83,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
         );
       } else {
         return Container(
-          color: const Color(0xFFEEF0F4),
+          color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
           child: const Center(
             child: Icon(Icons.broken_image_outlined, color: Colors.grey),
           ),
@@ -124,19 +124,21 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
   }
 
   Widget _buildFallbackAvatar(String name) {
-    return Container(
-      color: ShamsColors.avatarFallbackBg,
-      child: Center(
-        child: Text(
-          name.isNotEmpty ? name[0] : '؟',
-          style: GoogleFonts.tajawal(
-            fontWeight: FontWeight.w700,
-            color: ShamsColors.primaryBlue,
-            fontSize: 24,
+    return Builder(builder: (context) {
+      return Container(
+        color: Theme.of(context).extension<ShamsExtendedColors>()!.avatarFallbackBg,
+        child: Center(
+          child: Text(
+            name.isNotEmpty ? name[0] : '؟',
+            style: GoogleFonts.tajawal(
+              fontWeight: FontWeight.w700,
+              color: Theme.of(context).colorScheme.primary,
+              fontSize: 24,
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   void _toggleFollow() {
@@ -163,9 +165,9 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                 bottom: MediaQuery.of(ctx).viewInsets.bottom,
               ),
               child: Container(
-                decoration: const BoxDecoration(
-                  color: ShamsColors.bgWhite,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                decoration: BoxDecoration(
+                  color: Theme.of(ctx).colorScheme.surface,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                 child: SingleChildScrollView(
@@ -179,7 +181,8 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                           width: 40,
                           height: 4,
                           decoration: BoxDecoration(
-                            color: ShamsColors.handleBar,
+                            color:
+                                Theme.of(ctx).extension<ShamsExtendedColors>()!.handleBar,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -190,7 +193,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                         style: GoogleFonts.tajawal(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: ShamsColors.textGray,
+                          color: Theme.of(ctx).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -238,7 +241,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                         decoration: _inputDecoration().copyWith(
                           hintText: 'حجم المنظومة (بالوات) - اختياري',
                         ),
-                        style: GoogleFonts.tajawal(fontSize: 14, color: ShamsColors.textGray),
+                        style: GoogleFonts.tajawal(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
                       ),
                       const SizedBox(height: 12),
 
@@ -249,7 +252,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                         decoration: _inputDecoration().copyWith(
                           hintText: 'تفاصيل المشكلة (مثال: الشحن ضعيف وقت الظهيرة...)',
                         ),
-                        style: GoogleFonts.tajawal(fontSize: 14, color: ShamsColors.textGray),
+                        style: GoogleFonts.tajawal(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
                       ),
                       const SizedBox(height: 20),
 
@@ -260,7 +263,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                             ScaffoldMessenger.of(ctx).showSnackBar(
                               SnackBar(
                                 content: Text('يرجى تحديد نوع الخدمة وتفاصيل المشكلة', style: GoogleFonts.tajawal(color: Colors.white)),
-                                backgroundColor: ShamsColors.dangerRed,
+                                backgroundColor: Theme.of(ctx).colorScheme.error,
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
@@ -274,7 +277,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('جاري إرسال الطلب وإنشاء المحادثة...', style: GoogleFonts.tajawal(color: Colors.white)),
-                              backgroundColor: ShamsColors.primaryBlue,
+                              backgroundColor: Theme.of(context).colorScheme.primary,
                               behavior: SnackBarBehavior.floating,
                               duration: const Duration(seconds: 2),
                             ),
@@ -312,7 +315,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('فشل في إرسال الطلب: $e', style: GoogleFonts.tajawal(color: Colors.white)),
-                                  backgroundColor: ShamsColors.dangerRed,
+                                  backgroundColor: Theme.of(context).colorScheme.error,
                                   behavior: SnackBarBehavior.floating,
                                 ),
                               );
@@ -335,7 +338,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('فشل في إرسال الطلب، يرجى المحاولة لاحقاً', style: GoogleFonts.tajawal(color: Colors.white)),
-                                  backgroundColor: ShamsColors.dangerRed,
+                                  backgroundColor: Theme.of(context).colorScheme.error,
                                   behavior: SnackBarBehavior.floating,
                                 ),
                               );
@@ -357,21 +360,31 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
   InputDecoration _inputDecoration() {
     return InputDecoration(
       filled: true,
-      fillColor: const Color(0xFFF8F9FE),
+      fillColor: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: ShamsColors.borderLight),
+        borderSide: BorderSide(
+          color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: ShamsColors.primaryBlue, width: 1.5),
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.primary,
+          width: 1.5,
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: ShamsColors.borderLight),
+        borderSide: BorderSide(
+          color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
+        ),
       ),
-      hintStyle: GoogleFonts.tajawal(fontSize: 13, color: ShamsColors.textHint),
+      hintStyle: GoogleFonts.tajawal(
+        fontSize: 13,
+        color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
+      ),
     );
   }
 
@@ -385,18 +398,20 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
       return Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(
-          backgroundColor: const Color(0xFFF8F9FE),
+          backgroundColor: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             elevation: 0.5,
-            iconTheme: const IconThemeData(color: ShamsColors.textGray),
+            iconTheme: IconThemeData(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           body: Center(
             child: Text(
               'الورشة المطلوبة غير متوفرة حالياً.',
               style: GoogleFonts.tajawal(
                 fontSize: 16,
-                color: ShamsColors.textGray,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -409,21 +424,23 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FE),
+        backgroundColor: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
         extendBodyBehindAppBar: false,
         appBar: AppBar(
           title: Text(
             workshop.name,
             style: GoogleFonts.tajawal(
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
               fontSize: 18,
             ),
           ),
           centerTitle: true,
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0.5,
-          iconTheme: const IconThemeData(color: ShamsColors.textGray),
+          iconTheme: IconThemeData(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20),
             onPressed: () => Navigator.pop(context),
@@ -443,13 +460,18 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                   value: 'search',
                   child: Row(
                     children: [
-                      const Icon(Icons.search_rounded,
-                          size: 20, color: ShamsColors.textGray),
+                      Icon(
+                        Icons.search_rounded,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                       const SizedBox(width: 8),
-                      Text('بحث',
-                          style: GoogleFonts.tajawal(
-                            color: ShamsColors.textGray,
-                          )),
+                      Text(
+                        'بحث',
+                        style: GoogleFonts.tajawal(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -503,7 +525,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
         Container(
           height: 220,
           width: double.infinity,
-          color: const Color(0xFFEEF0F4),
+          color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
           child: _buildCoverImage(workshop.coverImagePath),
         ),
         // Overlay for better back button visibility
@@ -529,16 +551,16 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
           child: Center(
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
                 shape: BoxShape.circle,
               ),
               child: Container(
                 width: 90,
                 height: 90,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Color(0xFFEEF0F4),
+                  color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: _buildProfileImage(workshop.logoPath, workshop.name),
@@ -558,7 +580,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
           style: GoogleFonts.tajawal(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: ShamsColors.textGray,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 2),
@@ -580,10 +602,10 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
               ),
             ),
             const SizedBox(width: 12),
-            const Icon(
+            Icon(
               Icons.star_rounded,
               size: 16,
-              color: ShamsColors.solarYellow,
+              color: Theme.of(context).colorScheme.secondary,
             ),
             const SizedBox(width: 4),
             Text(
@@ -591,7 +613,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
               style: GoogleFonts.tajawal(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: ShamsColors.textGray,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(width: 12),
@@ -630,15 +652,16 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                   child: ElevatedButton(
                     onPressed: _toggleFollow,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isFollowing ? Colors.white : ShamsColors.solarYellow,
+                      backgroundColor: isFollowing
+                          ? Theme.of(context).colorScheme.surface
+                          : Theme.of(context).colorScheme.secondary,
                       foregroundColor: isFollowing
-                          ? const Color(0xFF9EA3B0)
-                          : Colors.white,
+                          ? Theme.of(context).extension<ShamsExtendedColors>()!.textHint
+                          : Theme.of(context).colorScheme.onSecondary,
                       elevation: 0,
                       side: isFollowing
-                          ? const BorderSide(
-                              color: Color(0xFFD0D5DD),
+                          ? BorderSide(
+                              color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
                               width: 1.5,
                             )
                           : BorderSide.none,
@@ -663,7 +686,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
               ),
               _buildCircularSocialIcon(
                 Icons.phone_in_talk_rounded,
-                Colors.black87,
+                Theme.of(context).colorScheme.onSurface,
               ),
               _buildCircularSocialIcon(
                 Icons.camera_alt_rounded,
@@ -684,7 +707,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('ميزة التواصل متوفرة قريباً', style: GoogleFonts.tajawal(color: Colors.white)),
-            backgroundColor: ShamsColors.textGray,
+            backgroundColor: Theme.of(context).colorScheme.onSurface,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             duration: const Duration(seconds: 2),
@@ -696,7 +719,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
         margin: const EdgeInsets.symmetric(horizontal: 4),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           shape: BoxShape.circle,
           border: Border.all(color: Colors.grey.shade200),
         ),
@@ -722,7 +745,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                 style: GoogleFonts.tajawal(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: ShamsColors.textGray,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               GestureDetector(
@@ -730,7 +753,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('فتح سجل الأعمال بالكامل (قريباً)...', style: GoogleFonts.tajawal(color: Colors.white)),
-                      backgroundColor: ShamsColors.primaryBlue,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       duration: const Duration(seconds: 2),
@@ -742,7 +765,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                   style: GoogleFonts.tajawal(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: ShamsColors.solarYellow,
+                    color: Theme.of(context).colorScheme.secondary,
                   ),
                 ),
               ),
@@ -758,7 +781,9 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
                 'لا توجد أعمال في هذا السجل حالياً.',
                 style: GoogleFonts.tajawal(
                   fontSize: 14,
-                  color: ShamsColors.textHint,
+                  color: Theme.of(context)
+                      .extension<ShamsExtendedColors>()!
+                      .textHint,
                 ),
               ),
             ),
@@ -778,7 +803,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -797,7 +822,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F9FE),
+                color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -827,7 +852,7 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
             style: GoogleFonts.tajawal(
               fontSize: 14,
               height: 1.6,
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 12),
@@ -882,3 +907,4 @@ class _WorkshopProfileState extends State<WorkshopProfile> {
     );
   }
 }
+

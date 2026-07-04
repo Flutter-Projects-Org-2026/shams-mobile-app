@@ -45,12 +45,15 @@ class _ManagedPostCardState extends State<ManagedPostCard> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: ShamsColors.bgWhite,
+        color: ext.cardSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF0F2F5)),
+        border: Border.all(color: ext.borderLight),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -70,14 +73,14 @@ class _ManagedPostCardState extends State<ManagedPostCard> {
               children: [
                 // القائمة المنسدلة الثلاثية (...)
                 PopupMenuButton<String>(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.more_horiz_rounded,
-                    color: ShamsColors.textGray,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  color: Colors.white,
+                  color: ext.cardSurface,
                   onSelected: (value) {
                     if (value == 'edit') widget.onEdit();
                     if (value == 'delete') widget.onDelete();
@@ -109,14 +112,14 @@ class _ManagedPostCardState extends State<ManagedPostCard> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F7FF),
+                    color: ext.inputFill,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     widget.timeAgo,
                     style: GoogleFonts.tajawal(
                       fontSize: 11,
-                      color: const Color(0xFF9EA3B0),
+                      color: ext.textHint,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -133,7 +136,7 @@ class _ManagedPostCardState extends State<ManagedPostCard> {
               style: GoogleFonts.tajawal(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: ShamsColors.textGray,
+                color: colorScheme.onSurface,
                 height: 1.5,
               ),
             ),
@@ -227,16 +230,16 @@ class _ManagedPostCardState extends State<ManagedPostCard> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.visibility_outlined,
                       size: 16,
-                      color: Color(0xFF9EA3B0),
+                      color: ext.textHint,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       widget.viewsCount,
                       style: GoogleFonts.tajawal(
-                        color: const Color(0xFF9EA3B0),
+                        color: ext.textHint,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -247,16 +250,16 @@ class _ManagedPostCardState extends State<ManagedPostCard> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.favorite_border_rounded,
                       size: 16,
-                      color: Color(0xFF9EA3B0),
+                      color: ext.textHint,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       '${widget.likesCount}',
                       style: GoogleFonts.tajawal(
-                        color: const Color(0xFF9EA3B0),
+                        color: ext.textHint,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -273,9 +276,11 @@ class _ManagedPostCardState extends State<ManagedPostCard> {
   }
 
   Widget _buildPlaceholder() {
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
     return Container(
-      color: Colors.grey.shade200,
-      child: const Icon(Icons.image, color: Colors.grey, size: 50),
+      color: ext.imageErrorPlaceholder,
+      child: Icon(Icons.image,
+          color: Theme.of(context).colorScheme.onSurfaceVariant, size: 50),
     );
   }
 

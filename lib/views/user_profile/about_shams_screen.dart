@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../utils/constants.dart';
+import 'package:shams_mobile_app/utils/constants.dart';
 
 class AboutShamsScreen extends StatelessWidget {
   const AboutShamsScreen({super.key});
@@ -10,11 +10,11 @@ class AboutShamsScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
 
         // ── AppBar ──────────────────────────────────────────────────────────
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
@@ -28,9 +28,9 @@ class AboutShamsScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_forward,
-                  color: Color(0xFF2D2D2D),
+                  color: Theme.of(context).colorScheme.onSurface,
                   size: 26,
                 ),
                 onPressed: () => Navigator.pop(context),
@@ -46,7 +46,7 @@ class AboutShamsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // ── شعار التطبيق ──────────────────────────────────────────────
-              _buildLogo(),
+              _buildLogo(context),
               const SizedBox(height: 10),
 
               // ── اسم التطبيق ───────────────────────────────────────────────
@@ -55,13 +55,13 @@ class AboutShamsScreen extends StatelessWidget {
                 style: GoogleFonts.tajawal(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF2D2D2D),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 28),
 
               // ── من نحن؟ ──────────────────────────────────────────────────
-              _buildSectionHeader('من نحن؟'),
+              _buildSectionHeader(context, 'من نحن؟'),
               const SizedBox(height: 10),
               _buildBodyText(
                 'نحن في "شمس" نؤمن بأن الطاقة المستقبلية يجب أن '
@@ -72,20 +72,20 @@ class AboutShamsScreen extends StatelessWidget {
               const SizedBox(height: 28),
 
               // ── رؤيتنا ───────────────────────────────────────────────────
-              _buildVisionCard(),
+              _buildVisionCard(context),
               const SizedBox(height: 28),
 
               // ── لماذا تختارنا؟ ────────────────────────────────────────────
               Align(
                 alignment: Alignment.centerRight,
-                child: _buildSectionHeader('لماذا تختارنا؟'),
+                child: _buildSectionHeader(context, 'لماذا تختارنا؟'),
               ),
               const SizedBox(height: 16),
-              _buildFeaturesGrid(),
+              _buildFeaturesGrid(context),
               const SizedBox(height: 36),
 
               // ── وسائل التواصل ─────────────────────────────────────────────
-              _buildSocialRow(),
+              _buildSocialRow(context),
               const SizedBox(height: 16),
 
               // ── رقم الإصدار ───────────────────────────────────────────────
@@ -117,12 +117,12 @@ class AboutShamsScreen extends StatelessWidget {
   // شعار التطبيق
   // ─────────────────────────────────────────────────────────────────────────────
 
-  Widget _buildLogo() {
+  Widget _buildLogo(BuildContext context) {
     return Container(
       width: 150,
       height: 150,
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF9E7),
+        color: Theme.of(context).colorScheme.secondaryContainer,
         borderRadius: BorderRadius.circular(100),
       ),
       // padding: const EdgeInsets.all(1),
@@ -137,7 +137,7 @@ class AboutShamsScreen extends StatelessWidget {
   // عنوان قسم
   // ─────────────────────────────────────────────────────────────────────────────
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -145,7 +145,7 @@ class AboutShamsScreen extends StatelessWidget {
           width: 4,
           height: 20,
           decoration: BoxDecoration(
-            color: ShamsColors.solarYellow,
+            color: Theme.of(context).colorScheme.secondary,
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -155,7 +155,7 @@ class AboutShamsScreen extends StatelessWidget {
           style: GoogleFonts.tajawal(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF2D2D2D),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],
@@ -182,10 +182,10 @@ class AboutShamsScreen extends StatelessWidget {
   // كارد الرؤية
   // ─────────────────────────────────────────────────────────────────────────────
 
-  Widget _buildVisionCard() {
+  Widget _buildVisionCard(BuildContext context) {
     return Card(
       elevation: 0,
-      color: const Color(0xFFFFF9E7),
+      color: Theme.of(context).colorScheme.secondaryContainer,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -195,12 +195,12 @@ class AboutShamsScreen extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: ShamsColors.solarYellow.withValues(alpha: 0.2),
+                color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.remove_red_eye_outlined,
-                color: ShamsColors.solarYellow,
+                color: Theme.of(context).colorScheme.secondary,
                 size: 26,
               ),
             ),
@@ -210,7 +210,7 @@ class AboutShamsScreen extends StatelessWidget {
               style: GoogleFonts.tajawal(
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF2D2D2D),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
@@ -235,7 +235,7 @@ class AboutShamsScreen extends StatelessWidget {
   // شبكة المميزات — 3 أعمدة
   // ─────────────────────────────────────────────────────────────────────────────
 
-  Widget _buildFeaturesGrid() {
+  Widget _buildFeaturesGrid(BuildContext context) {
     // قائمة المميزات
     final List<Map<String, dynamic>> features = [
       {'icon': Icons.bolt_rounded, 'label': 'سهولة الوصول'},
@@ -259,6 +259,7 @@ class AboutShamsScreen extends StatelessWidget {
       itemCount: features.length,
       itemBuilder: (context, index) {
         return _buildFeatureItem(
+          context: context,
           icon: features[index]['icon'] as IconData,
           label: features[index]['label'] as String,
         );
@@ -266,7 +267,7 @@ class AboutShamsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureItem({required IconData icon, required String label}) {
+  Widget _buildFeatureItem({required BuildContext context, required IconData icon, required String label}) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -274,10 +275,10 @@ class AboutShamsScreen extends StatelessWidget {
           width: 54,
           height: 54,
           decoration: BoxDecoration(
-            color: ShamsColors.solarYellow.withValues(alpha: 0.12),
+            color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: ShamsColors.solarYellow, size: 26),
+          child: Icon(icon, color: Theme.of(context).colorScheme.secondary, size: 26),
         ),
         const SizedBox(height: 8),
         Text(
@@ -286,7 +287,7 @@ class AboutShamsScreen extends StatelessWidget {
           style: GoogleFonts.tajawal(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF2D2D2D),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],
@@ -297,28 +298,28 @@ class AboutShamsScreen extends StatelessWidget {
   // أيقونات وسائل التواصل الاجتماعي
   // ─────────────────────────────────────────────────────────────────────────────
 
-  Widget _buildSocialRow() {
+  Widget _buildSocialRow(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildSocialIcon(Icons.camera_alt_outlined), // Instagram
+        _buildSocialIcon(context, Icons.camera_alt_outlined), // Instagram
         const SizedBox(width: 20),
-        _buildSocialIcon(Icons.alternate_email), // X (Twitter)
+        _buildSocialIcon(context, Icons.alternate_email), // X (Twitter)
         const SizedBox(width: 20),
-        _buildSocialIcon(Icons.facebook_outlined), // Facebook
+        _buildSocialIcon(context, Icons.facebook_outlined), // Facebook
       ],
     );
   }
 
-  Widget _buildSocialIcon(IconData icon) {
+  Widget _buildSocialIcon(BuildContext context, IconData icon) {
     return Container(
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, size: 22, color: Colors.grey.shade600),
+      child: Icon(icon, size: 22, color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint),
     );
   }
 }

@@ -5,17 +5,17 @@ import '../utils/constants.dart';
 
 class WorkshopCard extends StatefulWidget {
   final String username;
-  final String userHandle; // جديد: معرف المستخدم مثل @techzone_sa
-  final String imagePath; // صورة الملف الشخصي الدائرية
-  final String coverImagePath; // جديد: صورة الغلاف العلوية للورشة
+  final String userHandle;
+  final String imagePath;
+  final String coverImagePath;
   final String cityName;
   final double rating;
   final bool isFollowing;
-  final int? followersCount; // يمكن الاستغناء عنه لاحقاً إذا لم يكن في التصميم
+  final int? followersCount;
   final ValueChanged<bool>? onFollowToggle;
-  final VoidCallback? onEnterTap; // جديد: أمر الضغط على زر دخول الورشة
+  final VoidCallback? onEnterTap;
   final VoidCallback? onTap;
- 
+
   const WorkshopCard({
     super.key,
     required this.username,
@@ -69,102 +69,68 @@ class _WorkshopCardState extends State<WorkshopCard>
     super.dispose();
   }
 
-  Widget _buildCoverImage(String path) {
-    if (path.isEmpty) {
-      return Container(
-        color: const Color(0xFFEEF0F4),
-        child: const Center(
-          child: Icon(Icons.broken_image_outlined, color: Colors.grey),
-        ),
-      );
-    }
+  Widget _buildCoverImage(
+      String path, ShamsExtendedColors ext, ColorScheme colorScheme) {
+    final placeholder = Container(
+      color: ext.imageErrorPlaceholder,
+      child: Center(
+        child: Icon(Icons.broken_image_outlined,
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
+      ),
+    );
 
+    if (path.isEmpty) return placeholder;
     if (path.startsWith('http')) {
-      return Image.network(
-        path,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Container(
-          color: const Color(0xFFEEF0F4),
-          child: const Center(
-            child: Icon(Icons.broken_image_outlined, color: Colors.grey),
-          ),
-        ),
-      );
+      return Image.network(path,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => placeholder);
     } else if (path.startsWith('assets/')) {
-      return Image.asset(
-        path,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Container(
-          color: const Color(0xFFEEF0F4),
-          child: const Center(
-            child: Icon(Icons.broken_image_outlined, color: Colors.grey),
-          ),
-        ),
-      );
+      return Image.asset(path,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => placeholder);
     } else {
       final file = File(path);
       if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Container(
-            color: const Color(0xFFEEF0F4),
-            child: const Center(
-              child: Icon(Icons.broken_image_outlined, color: Colors.grey),
-            ),
-          ),
-        );
-      } else {
-        return Container(
-          color: const Color(0xFFEEF0F4),
-          child: const Center(
-            child: Icon(Icons.broken_image_outlined, color: Colors.grey),
-          ),
-        );
+        return Image.file(file,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => placeholder);
       }
+      return placeholder;
     }
   }
 
-  Widget _buildProfileImage(String path, String name) {
-    if (path.isEmpty) {
-      return _buildFallbackAvatar(name);
-    }
-
+  Widget _buildProfileImage(
+      String path, String name, ShamsExtendedColors ext, ColorScheme colorScheme) {
+    if (path.isEmpty) return _buildFallbackAvatar(name, ext, colorScheme);
     if (path.startsWith('http')) {
-      return Image.network(
-        path,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
-      );
+      return Image.network(path,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => _buildFallbackAvatar(name, ext, colorScheme));
     } else if (path.startsWith('assets/')) {
-      return Image.asset(
-        path,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
-      );
+      return Image.asset(path,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => _buildFallbackAvatar(name, ext, colorScheme));
     } else {
       final file = File(path);
       if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _buildFallbackAvatar(name),
-        );
-      } else {
-        return _buildFallbackAvatar(name);
+        return Image.file(file,
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => _buildFallbackAvatar(name, ext, colorScheme));
       }
+      return _buildFallbackAvatar(name, ext, colorScheme);
     }
   }
 
-  Widget _buildFallbackAvatar(String name) {
+  Widget _buildFallbackAvatar(
+      String name, ShamsExtendedColors ext, ColorScheme colorScheme) {
     return Container(
-      color: ShamsColors.avatarFallbackBg,
+      color: ext.avatarFallbackBg,
       child: Center(
         child: Text(
           name.isNotEmpty ? name[0] : '؟',
           style: GoogleFonts.tajawal(
             fontWeight: FontWeight.w700,
-            color: ShamsColors.primaryBlue,
+            color: colorScheme.primary,
             fontSize: 16,
           ),
         ),
@@ -181,16 +147,16 @@ class _WorkshopCardState extends State<WorkshopCard>
 
   @override
   Widget build(BuildContext context) {
-    final bool isNetworkAvatar = widget.imagePath.startsWith('http');
-    final bool isNetworkCover = widget.coverImagePath.startsWith('http');
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
 
     return GestureDetector(
       onTap: widget.onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: ShamsColors.bgWhite,
-          borderRadius: BorderRadius.circular(16), // حواف دائرية أنعم
+          color: ext.cardSurface,
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -203,38 +169,34 @@ class _WorkshopCardState extends State<WorkshopCard>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── 1. قسم الصور (الغلاف + الدائرية) ─────────────────────────
-            _buildImagesSection(isNetworkCover, isNetworkAvatar),
-
-            // ── 2. قسم النصوص والبيانات ──────────────────────────────────
-            _buildInfoSection(),
+            _buildImagesSection(ext, colorScheme),
+            _buildInfoSection(colorScheme, ext),
           ],
         ),
       ),
     );
   }
 
-  // بناء قسم الصور (تداخل الصورة الشخصية مع الغلاف)
-  Widget _buildImagesSection(bool isNetworkCover, bool isNetworkAvatar) {
+  Widget _buildImagesSection(ShamsExtendedColors ext, ColorScheme colorScheme) {
     return SizedBox(
-      height: 140, // 110 للغلاف + 30 لبروز الصورة الشخصية للأسفل
+      height: 140,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // صورة الغلاف
+          // Cover image
           Container(
             height: 110,
             width: double.infinity,
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.vertical(
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(16),
               ),
-              color: Color(0xFFEEF0F4), // لون احتياطي
+              color: ext.imageErrorPlaceholder,
             ),
             clipBehavior: Clip.antiAlias,
-            child: _buildCoverImage(widget.coverImagePath),
+            child: _buildCoverImage(widget.coverImagePath, ext, colorScheme),
           ),
-          // الصورة الشخصية الدائرية (على اليمين وتبرز للأسفل)
+          // Profile circle
           Positioned(
             bottom: 0,
             right: 16,
@@ -243,11 +205,8 @@ class _WorkshopCardState extends State<WorkshopCard>
               height: 60,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: ShamsColors.bgWhite, // خلفية بيضاء قبل الصورة
-                border: Border.all(
-                  color: ShamsColors.bgWhite,
-                  width: 3,
-                ), // إطار أبيض
+                color: ext.cardSurface,
+                border: Border.all(color: ext.cardSurface, width: 3),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.1),
@@ -257,7 +216,8 @@ class _WorkshopCardState extends State<WorkshopCard>
                 ],
               ),
               child: ClipOval(
-                child: _buildProfileImage(widget.imagePath, widget.username),
+                child: _buildProfileImage(
+                    widget.imagePath, widget.username, ext, colorScheme),
               ),
             ),
           ),
@@ -266,8 +226,7 @@ class _WorkshopCardState extends State<WorkshopCard>
     );
   }
 
-  // بناء قسم النصوص والأزرار
-  Widget _buildInfoSection() {
+  Widget _buildInfoSection(ColorScheme colorScheme, ShamsExtendedColors ext) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Column(
@@ -278,7 +237,7 @@ class _WorkshopCardState extends State<WorkshopCard>
             style: GoogleFonts.tajawal(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: ShamsColors.textGray,
+              color: colorScheme.onSurface,
             ),
           ),
           Text(
@@ -286,53 +245,41 @@ class _WorkshopCardState extends State<WorkshopCard>
             style: GoogleFonts.tajawal(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF9EA3B0),
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 12),
-
           Row(
             children: [
-              const Icon(
-                Icons.location_on_outlined,
-                size: 16,
-                color: Color(0xFF9EA3B0),
-              ),
+              Icon(Icons.location_on_outlined,
+                  size: 16, color: colorScheme.onSurfaceVariant),
               const SizedBox(width: 4),
               Text(
                 widget.cityName,
                 style: GoogleFonts.tajawal(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: const Color(0xFF9EA3B0),
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(width: 16),
-              const Icon(
-                Icons.star_rounded,
-                size: 16,
-                color: ShamsColors.solarYellow,
-              ),
+              Icon(Icons.star_rounded,
+                  size: 16, color: colorScheme.secondary),
               const SizedBox(width: 4),
               Text(
                 '${widget.rating}/5',
                 style: GoogleFonts.tajawal(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: ShamsColors.solarYellow,
+                  color: colorScheme.secondary,
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
-          // ── صف الأزرار الجديد والمضمون ──
           Row(
-            mainAxisAlignment:
-                MainAxisAlignment.spaceBetween, // يضمن توزيع المساحات
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // هذه هي المسافة الإجبارية الفاصلة بين الزرين
               Expanded(
                 child: ScaleTransition(
                   scale: _followScaleAnim,
@@ -340,6 +287,8 @@ class _WorkshopCardState extends State<WorkshopCard>
                     label: _isFollowing ? 'إلغاء المتابعة' : 'متابعة',
                     isPrimary: !_isFollowing,
                     onTap: _handleFollowTap,
+                    colorScheme: colorScheme,
+                    ext: ext,
                   ),
                 ),
               ),
@@ -349,6 +298,8 @@ class _WorkshopCardState extends State<WorkshopCard>
                   label: 'دخول الورشة',
                   isPrimary: true,
                   onTap: widget.onEnterTap ?? () {},
+                  colorScheme: colorScheme,
+                  ext: ext,
                 ),
               ),
             ],
@@ -360,18 +311,22 @@ class _WorkshopCardState extends State<WorkshopCard>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// زر الإجراءات الموحد (Action Button) - مصمم ليطابق التصميم الأصفر
+// _ActionBtn
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _ActionBtn extends StatelessWidget {
   final String label;
   final bool isPrimary;
   final VoidCallback onTap;
+  final ColorScheme colorScheme;
+  final ShamsExtendedColors ext;
 
   const _ActionBtn({
     required this.label,
     required this.isPrimary,
     required this.onTap,
+    required this.colorScheme,
+    required this.ext,
   });
 
   @override
@@ -381,16 +336,12 @@ class _ActionBtn extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(
-          vertical: 8,
-        ), // تم تصغير الزر ليكون أنيقاً
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isPrimary ? ShamsColors.solarYellow : Colors.transparent,
+          color: isPrimary ? colorScheme.secondary : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isPrimary
-                ? ShamsColors.solarYellow
-                : const Color(0xFFD0D5DD),
+            color: isPrimary ? colorScheme.secondary : colorScheme.outline,
             width: 1.5,
           ),
         ),
@@ -399,7 +350,9 @@ class _ActionBtn extends StatelessWidget {
           style: GoogleFonts.tajawal(
             fontSize: 13.5,
             fontWeight: FontWeight.w700,
-            color: isPrimary ? ShamsColors.bgWhite : const Color(0xFF9EA3B0),
+            color: isPrimary
+                ? colorScheme.onSecondary
+                : colorScheme.onSurfaceVariant,
           ),
         ),
       ),

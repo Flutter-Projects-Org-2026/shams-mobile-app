@@ -59,10 +59,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: ShamsColors.dangerRed.withValues(alpha: 0.08),
+        color: Theme.of(context).colorScheme.error.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: ShamsColors.dangerRed.withValues(alpha: 0.2),
+          color: Theme.of(context).colorScheme.error.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -74,7 +74,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
               IconButton(
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
-                icon: const Icon(Icons.close, color: ShamsColors.dangerRed, size: 20),
+                icon: Icon(
+                  Icons.close,
+                  color: Theme.of(context).colorScheme.error,
+                  size: 20,
+                ),
                 onPressed: _clearSelection,
               ),
               const SizedBox(width: 8),
@@ -83,7 +87,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 style: GoogleFonts.tajawal(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
-                  color: ShamsColors.dangerRed,
+                  color: Theme.of(context).colorScheme.error,
                 ),
               ),
             ],
@@ -100,14 +104,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 icon: Icon(
                   allSelected ? Icons.deselect : Icons.select_all,
                   size: 16,
-                  color: ShamsColors.primaryBlue,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
                 label: Text(
                   allSelected ? 'إلغاء تحديد الكل' : 'تحديد الكل',
                   style: GoogleFonts.tajawal(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: ShamsColors.primaryBlue,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),
@@ -115,7 +119,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ElevatedButton.icon(
                 onPressed: () => _showDeleteConfirmationDialog(context, _selectedChatIds.toList()),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: ShamsColors.dangerRed,
+                  backgroundColor: Theme.of(context).colorScheme.error,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   minimumSize: Size.zero,
@@ -161,9 +165,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor:
+            Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
         appBar: AppBar(
-          backgroundColor: ShamsColors.primaryBlue,
+          backgroundColor: Theme.of(context).colorScheme.primary,
           elevation: 0,
           title: Text(
             'المحادثات',
@@ -195,7 +200,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   style: GoogleFonts.tajawal(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: ShamsColors.textGray,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -209,7 +214,10 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                 Icon(
                                   Icons.chat_bubble_outline_rounded,
                                   size: 56,
-                                  color: ShamsColors.textHint.withValues(alpha: 0.35),
+                                  color: Theme.of(context)
+                                      .extension<ShamsExtendedColors>()!
+                                      .textHint
+                                      .withValues(alpha: 0.35),
                                 ),
                                 const SizedBox(height: 14),
                                 Text(
@@ -217,7 +225,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                   style: GoogleFonts.tajawal(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
-                                    color: ShamsColors.textGray,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 6),
@@ -225,7 +233,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                                   'ابدأ محادثة من صفحة ورشة لطلب الصيانة',
                                   style: GoogleFonts.tajawal(
                                     fontSize: 13,
-                                    color: ShamsColors.textHint,
+                                    color: Theme.of(context)
+                                        .extension<ShamsExtendedColors>()!
+                                        .textHint,
                                   ),
                                 ),
                               ],
@@ -233,7 +243,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           : Text(
                               'لا توجد محادثات تطابق "$_searchQuery"',
                               style: GoogleFonts.tajawal(
-                                color: ShamsColors.textHint,
+                                color: Theme.of(context)
+                                    .extension<ShamsExtendedColors>()!
+                                    .textHint,
                                 fontSize: 15,
                               ),
                               textAlign: TextAlign.center,
@@ -241,8 +253,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     )
                   : ListView.separated(
                       itemCount: filteredChats.length,
-                      separatorBuilder: (context, index) =>
-                          Divider(color: Colors.grey.shade100, height: 1),
+                      separatorBuilder: (context, index) => Divider(
+                        color: Theme.of(context)
+                            .extension<ShamsExtendedColors>()!
+                            .dividerLight,
+                        height: 1,
+                      ),
                       itemBuilder: (context, index) {
                         final chat = filteredChats[index];
                         final otherParticipant = chat.participants.isEmpty
@@ -313,7 +329,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             count == 1 ? 'حذف المحادثة' : 'حذف المحادثات المحددة',
             style: GoogleFonts.tajawal(
               fontWeight: FontWeight.bold,
-              color: ShamsColors.dangerRed,
+              color: Theme.of(context).colorScheme.error,
             ),
           ),
           content: Text(
@@ -322,7 +338,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 : 'هل أنت متأكد أنك تريد حذف المحادثات المحددة (عددها: $count) نهائياً؟ لا يمكن التراجع عن هذا الإجراء.',
             style: GoogleFonts.tajawal(
               fontSize: 14.5,
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           actions: [
@@ -331,7 +347,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               child: Text(
                 'إلغاء',
                 style: GoogleFonts.tajawal(
-                  color: ShamsColors.textHint,
+                  color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -344,11 +360,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 showDialog(
                   context: context,
                   barrierDismissible: false,
-                  builder: (context) => const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(ShamsColors.primaryBlue),
+                    builder: (context) => Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
                     ),
-                  ),
                 );
 
                 try {
@@ -365,7 +383,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           count == 1 ? 'تم حذف المحادثة بنجاح' : 'تم حذف المحادثات بنجاح',
                           style: GoogleFonts.tajawal(),
                         ),
-                        backgroundColor: ShamsColors.dangerRed,
+                        backgroundColor: Theme.of(context).colorScheme.error,
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -381,7 +399,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           'حدث خطأ أثناء الحذف: $e',
                           style: GoogleFonts.tajawal(),
                         ),
-                        backgroundColor: ShamsColors.dangerRed,
+                        backgroundColor: Theme.of(context).colorScheme.error,
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -389,7 +407,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: ShamsColors.dangerRed,
+                backgroundColor: Theme.of(context).colorScheme.error,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),

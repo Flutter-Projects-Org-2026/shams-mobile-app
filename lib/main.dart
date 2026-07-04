@@ -10,12 +10,12 @@ import 'providers/user_provider.dart';
 import 'providers/feed_provider.dart';
 import 'providers/chat_provider.dart';
 import 'providers/notification_provider.dart';
+import 'providers/theme_provider.dart';
 import 'utils/theme.dart';
 
 Future<void> main() async {
   // Ensure Flutter engine is fully initialized before calling native code.
   WidgetsFlutterBinding.ensureInitialized();
-
   // Lock orientation to portrait for a consistent mobile experience.
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -33,9 +33,14 @@ Future<void> main() async {
     debugPrint('Continuing in offline mode for UI testing.');
   }
 
+  // Load persisted theme preference before rendering the first frame.
+  final themeProvider = ThemeProvider();
+  await themeProvider.loadSavedTheme();
+
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider.value(value: themeProvider),
         ChangeNotifierProvider(create: (_) => WorkshopProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProxyProvider<WorkshopProvider, FeedProvider>(
@@ -60,6 +65,8 @@ class ShamsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return MaterialApp(
       // ── App Identity ────────────────────────────────────────────
       title: 'شمس',
@@ -67,6 +74,8 @@ class ShamsApp extends StatelessWidget {
 
       // ── Theme ───────────────────────────────────────────────────
       theme: ShamsTheme.light,
+      darkTheme: ShamsTheme.dark,
+      themeMode: themeProvider.themeMode,
 
       // ── Locale & RTL ────────────────────────────────────────────
       locale: const Locale('ar', 'SA'),
@@ -82,7 +91,6 @@ class ShamsApp extends StatelessWidget {
 
       // ── Entry Point ─────────────────────────────────────────────
       home: const AuthGate(),
-      // home: const EditProfileScreen(),
     );
   }
 }

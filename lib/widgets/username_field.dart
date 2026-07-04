@@ -6,17 +6,9 @@ import '../utils/constants.dart';
 // Username Validator — pure logic, no Flutter dependency
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Validates a username against global standards.
-///
-/// Rules:
-/// • 3–30 characters
-/// • Only `a-z`, `A-Z`, `0-9`, `.` and `_`
-/// • Cannot start or end with `.` or `_`
-/// • No two consecutive special characters (`.`, `_`)
 class UsernameValidator {
   UsernameValidator._();
 
-  /// Returns an Arabic error message, or `null` if the value is valid.
   static String? validate(String value) {
     if (value.isEmpty) return 'اسم المستخدم مطلوب';
     if (value.length < 3) return 'يجب أن يكون 3 أحرف على الأقل';
@@ -37,7 +29,6 @@ class UsernameValidator {
     return null;
   }
 
-  /// Returns `true` when the value passes all rules.
   static bool isValid(String value) => validate(value) == null;
 }
 
@@ -45,10 +36,6 @@ class UsernameValidator {
 // UsernameField widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// A styled text field for username input with real-time inline validation.
-///
-/// The parent is responsible for supplying the [controller] and reading
-/// `UsernameValidator.validate(controller.text)` on form submission.
 class UsernameField extends StatefulWidget {
   final TextEditingController controller;
 
@@ -60,7 +47,7 @@ class UsernameField extends StatefulWidget {
 
 class _UsernameFieldState extends State<UsernameField> {
   String? _error;
-  bool _touched = false; // only show errors after the first character
+  bool _touched = false;
 
   void _onChanged(String value) {
     setState(() {
@@ -73,54 +60,53 @@ class _UsernameFieldState extends State<UsernameField> {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = !_touched
-        ? Colors.grey.shade200
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
+
+    final Color borderColor = !_touched
+        ? ext.borderLight
         : _isValid
-            ? ShamsColors.verifiedGreen
-            : ShamsColors.dangerRed;
+            ? colorScheme.tertiary
+            : colorScheme.error;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Input field ────────────────────────────────────────────────────
         TextField(
           controller: widget.controller,
           onChanged: _onChanged,
-          // Force LTR so the "@" prefix and Latin characters display correctly
           textDirection: TextDirection.ltr,
           textAlign: TextAlign.left,
           style: GoogleFonts.tajawal(
             fontSize: 14,
-            color: ShamsColors.textGray,
+            color: colorScheme.onSurface,
             letterSpacing: 0.3,
           ),
           decoration: InputDecoration(
             hintText: 'your_username',
             hintStyle: GoogleFonts.tajawal(
               fontSize: 13,
-              color: Colors.grey.shade400,
+              color: ext.textHint,
             ),
             prefixIcon: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 13),
               child: Text(
                 '@',
                 style: GoogleFonts.tajawal(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: _isValid
-                      ? ShamsColors.verifiedGreen
-                      : ShamsColors.textHint,
+                  color: _isValid ? colorScheme.tertiary : ext.textHint,
                 ),
               ),
             ),
             prefixIconConstraints: const BoxConstraints(),
-            // Live status icon (checkmark / X)
             suffixIcon: _touched
                 ? Icon(
-                    _isValid ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                    color: _isValid
-                        ? ShamsColors.verifiedGreen
-                        : ShamsColors.dangerRed,
+                    _isValid
+                        ? Icons.check_circle_rounded
+                        : Icons.cancel_rounded,
+                    color: _isValid ? colorScheme.tertiary : colorScheme.error,
                     size: 20,
                   )
                 : null,
@@ -129,7 +115,7 @@ class _UsernameFieldState extends State<UsernameField> {
               vertical: 14,
             ),
             filled: true,
-            fillColor: const Color(0xFFF9FAFB),
+            fillColor: ext.inputFill,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(color: borderColor),
@@ -144,23 +130,21 @@ class _UsernameFieldState extends State<UsernameField> {
             ),
           ),
         ),
-
-        // ── Inline rule feedback ───────────────────────────────────────────
         AnimatedSize(
           duration: const Duration(milliseconds: 200),
-          child: _buildFeedback(),
+          child: _buildFeedback(colorScheme, ext),
         ),
       ],
     );
   }
 
-  Widget _buildFeedback() {
+  Widget _buildFeedback(ColorScheme colorScheme, ShamsExtendedColors ext) {
     if (!_touched) {
       return Padding(
         padding: const EdgeInsets.only(top: 6),
         child: Text(
           'مثال: ahmed_solar.99  |  3–30 حرفاً، إنجليزية فقط',
-          style: GoogleFonts.tajawal(fontSize: 11, color: ShamsColors.textHint),
+          style: GoogleFonts.tajawal(fontSize: 11, color: ext.textHint),
         ),
       );
     }
@@ -170,18 +154,13 @@ class _UsernameFieldState extends State<UsernameField> {
         padding: const EdgeInsets.only(top: 6),
         child: Row(
           children: [
-            const Icon(
-              Icons.check_circle_rounded,
-              size: 13,
-              color: ShamsColors.verifiedGreen,
-            ),
+            Icon(Icons.check_circle_rounded,
+                size: 13, color: colorScheme.tertiary),
             const SizedBox(width: 4),
             Text(
               'اسم المستخدم متاح ومقبول',
               style: GoogleFonts.tajawal(
-                fontSize: 11,
-                color: ShamsColors.verifiedGreen,
-              ),
+                  fontSize: 11, color: colorScheme.tertiary),
             ),
           ],
         ),
@@ -192,15 +171,13 @@ class _UsernameFieldState extends State<UsernameField> {
       padding: const EdgeInsets.only(top: 6),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, size: 13, color: ShamsColors.dangerRed),
+          Icon(Icons.error_outline, size: 13, color: colorScheme.error),
           const SizedBox(width: 4),
           Expanded(
             child: Text(
               _error ?? '',
-              style: GoogleFonts.tajawal(
-                fontSize: 11,
-                color: ShamsColors.dangerRed,
-              ),
+              style:
+                  GoogleFonts.tajawal(fontSize: 11, color: colorScheme.error),
             ),
           ),
         ],

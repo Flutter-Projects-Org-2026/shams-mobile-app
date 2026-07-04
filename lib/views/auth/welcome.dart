@@ -14,7 +14,8 @@ class WelcomeScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FE),
+        backgroundColor:
+            Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -26,19 +27,26 @@ class WelcomeScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(
                   'شمس',
-                  style: GoogleFonts.tajawal(fontSize: 32, fontWeight: FontWeight.bold, color: ShamsColors.solarYellow),
+                  style: GoogleFonts.tajawal(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
                 Text(
                   'طاقة موثوقة.. لمجتمع متصل',
-                  style: GoogleFonts.tajawal(fontSize: 14, color: const Color(0xFF9EA3B0)),
+                  style: GoogleFonts.tajawal(
+                    fontSize: 14,
+                    color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
+                  ),
                 ),
                 const Spacer(),
                 // ── بطاقات المميزات (Feature Highlights) ──
                 Row(
                   children: [
-                    _buildFeatureCard(Icons.bolt_rounded, 'كفاءة عالية'),
+                    _buildFeatureCard(context, Icons.bolt_rounded, 'كفاءة عالية'),
                     const SizedBox(width: 16),
-                    _buildFeatureCard(Icons.settings_suggest_rounded, 'تحكم ذكي'),
+                    _buildFeatureCard(context, Icons.settings_suggest_rounded, 'تحكم ذكي'),
                   ],
                 ),
                 const Spacer(),
@@ -75,20 +83,32 @@ class WelcomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureCard(IconData icon, String label) {
+  Widget _buildFeatureCard(BuildContext context, IconData icon, String label) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10)],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+            ),
+          ],
         ),
         child: Column(
           children: [
-            Icon(icon, color: ShamsColors.primaryBlue, size: 28),
+            Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
             const SizedBox(height: 8),
-            Text(label, style: GoogleFonts.tajawal(fontSize: 13, fontWeight: FontWeight.w600, color: ShamsColors.textGray)),
+            Text(
+              label,
+              style: GoogleFonts.tajawal(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
           ],
         ),
       ),

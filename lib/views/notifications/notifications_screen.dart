@@ -30,23 +30,24 @@ class NotificationsScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor:
+            Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
         appBar: AppBar(
           title: Text(
             'الإشعارات',
             style: GoogleFonts.tajawal(
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
               fontSize: 18,
             ),
           ),
           centerTitle: true,
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0.5,
           leading: IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_forward_ios_rounded,
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
               size: 20,
             ),
             onPressed: () => Navigator.pop(context),
@@ -60,7 +61,7 @@ class NotificationsScreen extends StatelessWidget {
                   'قراءة الكل',
                   style: GoogleFonts.tajawal(
                     fontSize: 13,
-                    color: ShamsColors.primaryBlue,
+                    color: Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -68,12 +69,12 @@ class NotificationsScreen extends StatelessWidget {
           ],
         ),
         body: notifications.isEmpty
-            ? _buildEmptyState()
+            ? _buildEmptyState(context)
             : ListView.separated(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 itemCount: notifications.length,
-                separatorBuilder: (context, index) => const Divider(
-                  color: ShamsColors.dividerLight,
+                separatorBuilder: (context, index) => Divider(
+                  color: Theme.of(context).extension<ShamsExtendedColors>()!.dividerLight,
                   height: 1,
                   indent: 70,
                 ),
@@ -82,9 +83,9 @@ class NotificationsScreen extends StatelessWidget {
                   return Dismissible(
                     key: Key(notif.id),
                     // RTL: startToEnd = right-to-left swipe
-                    direction: DismissDirection.startToEnd,
+                    direction: DismissDirection.endToStart,
                     background: Container(
-                      color: ShamsColors.dangerRed,
+                      color: Theme.of(context).colorScheme.error,
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: const Icon(
@@ -94,19 +95,20 @@ class NotificationsScreen extends StatelessWidget {
                     ),
                     onDismissed: (_) {
                       // context.read() inside callback — correct usage.
-                      context
-                          .read<NotificationProvider>()
-                          .deleteNotification(notif.id);
+                      context.read<NotificationProvider>().deleteNotification(
+                        notif.id,
+                      );
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
                             'تم حذف الإشعار',
                             style: GoogleFonts.tajawal(
                               fontSize: 14,
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.onInverseSurface,
                             ),
                           ),
-                          backgroundColor: ShamsColors.textGray,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.inverseSurface,
                           duration: const Duration(seconds: 2),
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
@@ -164,9 +166,7 @@ class NotificationsScreen extends StatelessWidget {
           showDialog(
             context: context,
             barrierDismissible: false,
-            builder: (_) => const Center(
-              child: CircularProgressIndicator(),
-            ),
+            builder: (_) => const Center(child: CircularProgressIndicator()),
           );
 
           try {
@@ -195,9 +195,9 @@ class NotificationsScreen extends StatelessWidget {
           } catch (e) {
             if (context.mounted) {
               Navigator.pop(context); // Dismiss progress dialog
-              ScaffoldMessenger.of(context).showSnackBar(
-                _infoSnack('حدث خطأ أثناء تحميل المحادثة: $e'),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(_infoSnack('حدث خطأ أثناء تحميل المحادثة: $e'));
             }
           }
         }
@@ -218,14 +218,15 @@ class NotificationsScreen extends StatelessWidget {
   }
 
   SnackBar _infoSnack(String text) => SnackBar(
-        content: Text(text, style: GoogleFonts.tajawal(color: Colors.white)),
-        backgroundColor: ShamsColors.primaryBlue,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 2),
-      );
+    content: Text(text, style: GoogleFonts.tajawal()),
+    behavior: SnackBarBehavior.floating,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    duration: const Duration(seconds: 2),
+  );
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -233,7 +234,7 @@ class NotificationsScreen extends StatelessWidget {
           Icon(
             Icons.notifications_off_outlined,
             size: 60,
-            color: ShamsColors.textHint.withValues(alpha: 0.4),
+            color: ext.textHint.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 16),
           Text(
@@ -241,7 +242,7 @@ class NotificationsScreen extends StatelessWidget {
             style: GoogleFonts.tajawal(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: ShamsColors.textGray,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 6),
@@ -249,7 +250,7 @@ class NotificationsScreen extends StatelessWidget {
             'ستظهر إشعاراتك هنا عند وصولها',
             style: GoogleFonts.tajawal(
               fontSize: 13,
-              color: ShamsColors.textHint,
+              color: ext.textHint,
             ),
           ),
         ],
@@ -266,10 +267,7 @@ class _NotificationTile extends StatelessWidget {
   final NotificationModel notif;
   final VoidCallback onTap;
 
-  const _NotificationTile({
-    required this.notif,
-    required this.onTap,
-  });
+  const _NotificationTile({required this.notif, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -281,7 +279,7 @@ class _NotificationTile extends StatelessWidget {
       child: Container(
         // Unread items get a subtle blue tint
         color: isUnread
-            ? ShamsColors.primaryBlue.withValues(alpha: 0.04)
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.04)
             : Colors.transparent,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         child: Row(
@@ -294,8 +292,8 @@ class _NotificationTile extends StatelessWidget {
                 child: Container(
                   width: 7,
                   height: 7,
-                  decoration: const BoxDecoration(
-                    color: ShamsColors.primaryBlue,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -324,9 +322,8 @@ class _NotificationTile extends StatelessWidget {
                     notif.title,
                     style: GoogleFonts.tajawal(
                       fontSize: 14,
-                      fontWeight:
-                          isUnread ? FontWeight.bold : FontWeight.w500,
-                      color: ShamsColors.textGray,
+                      fontWeight: isUnread ? FontWeight.bold : FontWeight.w500,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -334,7 +331,7 @@ class _NotificationTile extends StatelessWidget {
                     notif.message,
                     style: GoogleFonts.tajawal(
                       fontSize: 12.5,
-                      color: ShamsColors.textHint,
+                      color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
                       height: 1.4,
                     ),
                     maxLines: 2,
@@ -345,7 +342,7 @@ class _NotificationTile extends StatelessWidget {
                     timeLabel,
                     style: GoogleFonts.tajawal(
                       fontSize: 11,
-                      color: ShamsColors.textHint,
+                      color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
                     ),
                   ),
                 ],

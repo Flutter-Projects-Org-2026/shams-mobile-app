@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         key: _scaffoldKey,
         drawer: const ShamsDrawer(activeIndex: 0),
-        backgroundColor: ShamsColors.backgroundLight,
+        backgroundColor: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
         // ── AppBar المُعاد استخدامه من widgets/appbar.dart ──────────
         appBar: ShamsPlatformAppBar(
           onMenuTap: () {
@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
               MaterialPageRoute(builder: (context) => const NotificationsScreen()),
             );
           },
-          onDarkModeTap: () {},
+          // onDarkModeTap intentionally omitted — AppBar uses ThemeProvider.toggleTheme() by default
         ),
         body: _buildBody(context),
       ),
@@ -62,8 +62,11 @@ class _HomeScreenState extends State<HomeScreen> {
   // ─── شريط البحث الثابت ────────────────────────────────────────────────────
 
   Widget _buildSearchBar(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
+
     return Material(
-      color: ShamsColors.bgWhite,
+      color: colorScheme.surface,
       elevation: 0,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -76,10 +79,10 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             },
           ),
-          const Divider(
+          Divider(
             height: 1,
             thickness: 1,
-            color: ShamsColors.dividerLight,
+            color: ext.dividerLight,
           ),
         ],
       ),
@@ -121,7 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Icon(
                           Icons.article_outlined,
                           size: 60,
-                          color: ShamsColors.textHint.withValues(alpha: 0.3),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -129,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: GoogleFonts.tajawal(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: ShamsColors.textGray,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],
@@ -137,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   : Text(
                       'لا توجد نتائج لـ "$_searchQuery"',
                       style: GoogleFonts.tajawal(
-                          color: ShamsColors.textHint, fontSize: 16),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
                     ),
             ),
           )
@@ -233,11 +236,14 @@ class _HomeScreenState extends State<HomeScreen> {
       SnackBar(
         content: Text(
           'تمت مشاركة المنشور',
-          style: GoogleFonts.tajawal(color: ShamsColors.bgWhite),
+          style: GoogleFonts.tajawal(
+              color: Theme.of(context).colorScheme.onInverseSurface),
         ),
-        backgroundColor: ShamsColors.primaryBlue,
+        backgroundColor:
+            Theme.of(context).colorScheme.inverseSurface,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -251,21 +257,23 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (_) => Directionality(
         textDirection: TextDirection.rtl,
         child: Container(
-          decoration: const BoxDecoration(
-            color: ShamsColors.bgWhite,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // مقبض
               Container(
                 width: 40,
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                  color: ShamsColors.handleBar,
+                  color: Theme.of(context)
+                      .extension<ShamsExtendedColors>()!
+                      .handleBar,
                   borderRadius: BorderRadius.circular(99),
                 ),
               ),
@@ -282,7 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
               _MenuOption(
                 icon: Icons.flag_outlined,
                 label: 'الإبلاغ عن المنشور',
-                color: ShamsColors.dangerDark,
+                color: Theme.of(context).colorScheme.error,
                 onTap: () => Navigator.pop(context),
               ),
             ],
@@ -344,7 +352,7 @@ class _MenuOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = color ?? ShamsColors.textGray;
+    final effectiveColor = color ?? Theme.of(context).colorScheme.onSurface;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),

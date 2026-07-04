@@ -1,68 +1,25 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
 
 /// PostCard — بطاقة منشور تفاعلية بتصميم Shams Platform
-///
-/// الاستخدام:
-/// ```dart
-/// PostCard(
-///   username: 'م. أحمد العمودي',
-///   userHandle: '@ahmed_solar',
-///   avatarPath: 'assets/images/avatar.png',
-///   content: 'تم الانتهاء اليوم من تركيب منظومة...',
-///   imagePaths: ['assets/images/solar1.jpg', 'assets/images/solar2.jpg'],
-///   likesCount: 124,
-///   commentsCount: 18,
-///   sharesCount: 5,
-///   isLiked: false,
-/// )
-/// ```
+import 'dart:io';
+
 class PostCard extends StatefulWidget {
-  /// الاسم الكامل للمستخدم
   final String username;
-
-  /// المعرّف مثل @ahmed_solar
   final String userHandle;
-
-  /// مسار صورة الملف الشخصي (asset أو network)
   final String avatarPath;
-
-  /// نص المنشور
   final String content;
-
-  /// قائمة صور المنشور (اختيارية)
   final List<String>? imagePaths;
-
-  /// عدد الإعجابات
   final int likesCount;
-
-  /// عدد التعليقات
   final int commentsCount;
-
-  /// عدد المشاركات
   final int sharesCount;
-
-  /// هل أعجب المستخدم بهذا المنشور؟
   final bool isLiked;
-
-  /// callback عند الإعجاب أو إلغائه
   final ValueChanged<bool>? onLikeToggle;
-
-  /// callback عند الضغط على التعليق
   final VoidCallback? onCommentTap;
-
-  /// callback عند الضغط على المشاركة
   final VoidCallback? onShareTap;
-
-  /// callback عند الضغط على القائمة (...)
   final VoidCallback? onMenuTap;
-
-  /// callback عند الضغط على اسم المستخدم / الصورة
   final VoidCallback? onUserTap;
-
-  /// الحد الأقصى لأسطر النص قبل عرض "قراءة المزيد"
   final int maxLines;
 
   const PostCard({
@@ -114,9 +71,6 @@ class _PostCardState extends State<PostCard>
     _likeScaleAnim = _likeAnimController;
   }
 
-  /// Keep local state in sync when the provider pushes a new value.
-  /// This fires whenever [widget.isLiked] or [widget.likesCount] changes
-  /// from the parent (e.g. after returning from PostDetailScreen).
   @override
   void didUpdateWidget(PostCard oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -145,14 +99,17 @@ class _PostCardState extends State<PostCard>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ext = Theme.of(context).extension<ShamsExtendedColors>()!;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: ShamsColors.bgWhite,
+        color: ext.cardSurface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: ShamsColors.primaryBlue.withValues(alpha: 0.07),
+            color: colorScheme.primary.withValues(alpha: 0.07),
             blurRadius: 20,
             offset: const Offset(0, 6),
           ),
@@ -166,29 +123,18 @@ class _PostCardState extends State<PostCard>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── رأس البطاقة ───────────────────────────────────────────
-          _buildHeader(),
-
-          // ── نص المنشور ────────────────────────────────────────────
-          _buildContent(),
-
-          // ── صور المنشور ───────────────────────────────────────────
+          _buildHeader(colorScheme, ext),
+          _buildContent(colorScheme),
           if (widget.imagePaths != null && widget.imagePaths!.isNotEmpty)
-            _buildImageCarousel(),
-
-          // ── خط فاصل ──────────────────────────────────────────────
-          const Divider(color: Color(0xFFF0F4FF), thickness: 1, height: 1),
-
-          // ── شريط التفاعلات ────────────────────────────────────────
-          _buildActions(),
+            _buildImageCarousel(ext),
+          Divider(color: ext.dividerLight, thickness: 1, height: 1),
+          _buildActions(colorScheme),
         ],
       ),
     );
   }
 
-  // ─── رأس البطاقة: الصورة + الاسم + المعرّف + قائمة ───────────────────────
-
-  Widget _buildHeader() {
+  Widget _buildHeader(ColorScheme colorScheme, ShamsExtendedColors ext) {
     final bool isNetwork = widget.avatarPath.startsWith('http');
 
     return Padding(
@@ -196,12 +142,8 @@ class _PostCardState extends State<PostCard>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // زر قائمة الخيارات (...)
-          _MenuButton(onTap: widget.onMenuTap),
-
+          _MenuButton(onTap: widget.onMenuTap, ext: ext, colorScheme: colorScheme),
           const Spacer(),
-
-          // الاسم والمعرّف
           GestureDetector(
             onTap: widget.onUserTap,
             child: Column(
@@ -212,7 +154,7 @@ class _PostCardState extends State<PostCard>
                   style: GoogleFonts.tajawal(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: ShamsColors.textGray,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 Text(
@@ -220,22 +162,21 @@ class _PostCardState extends State<PostCard>
                   style: GoogleFonts.tajawal(
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
-                    color: ShamsColors.primaryBlue,
+                    color: colorScheme.primary,
                   ),
                 ),
               ],
             ),
           ),
-
           const SizedBox(width: 10),
-
-          // الصورة الشخصية
           GestureDetector(
             onTap: widget.onUserTap,
             child: _Avatar(
               imagePath: widget.avatarPath,
               username: widget.username,
               isNetwork: isNetwork,
+              colorScheme: colorScheme,
+              ext: ext,
             ),
           ),
         ],
@@ -243,9 +184,7 @@ class _PostCardState extends State<PostCard>
     );
   }
 
-  // ─── نص المنشور مع خيار التمديد ───────────────────────────────────────────
-
-  Widget _buildContent() {
+  Widget _buildContent(ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Column(
@@ -260,7 +199,7 @@ class _PostCardState extends State<PostCard>
               style: GoogleFonts.tajawal(
                 fontSize: 14.5,
                 height: 1.65,
-                color: ShamsColors.textGray,
+                color: colorScheme.onSurface,
               ),
             ),
             secondChild: Text(
@@ -269,7 +208,7 @@ class _PostCardState extends State<PostCard>
               style: GoogleFonts.tajawal(
                 fontSize: 14.5,
                 height: 1.65,
-                color: ShamsColors.textGray,
+                color: colorScheme.onSurface,
               ),
             ),
             crossFadeState: _isExpanded
@@ -277,8 +216,6 @@ class _PostCardState extends State<PostCard>
                 : CrossFadeState.showFirst,
             duration: const Duration(milliseconds: 250),
           ),
-
-          // زر قراءة المزيد / أقل
           if (_shouldShowToggle())
             GestureDetector(
               onTap: () => setState(() => _isExpanded = !_isExpanded),
@@ -289,12 +226,11 @@ class _PostCardState extends State<PostCard>
                   style: GoogleFonts.tajawal(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w600,
-                    color: ShamsColors.primaryBlue,
+                    color: colorScheme.primary,
                   ),
                 ),
               ),
             ),
-
           const SizedBox(height: 12),
         ],
       ),
@@ -302,7 +238,6 @@ class _PostCardState extends State<PostCard>
   }
 
   bool _shouldShowToggle() {
-    // نحتاج TextPainter لمعرفة إن كان النص مقطوعاً فعلاً
     final tp = TextPainter(
       text: TextSpan(
         text: widget.content,
@@ -314,9 +249,7 @@ class _PostCardState extends State<PostCard>
     return tp.didExceedMaxLines;
   }
 
-  // ─── معرض الصور مع مؤشر الصفحة ───────────────────────────────────────────
-
-  Widget _buildImageCarousel() {
+  Widget _buildImageCarousel(ShamsExtendedColors ext) {
     final images = widget.imagePaths!;
 
     return Padding(
@@ -326,7 +259,6 @@ class _PostCardState extends State<PostCard>
         child: Stack(
           alignment: Alignment.bottomLeft,
           children: [
-            // الصور
             SizedBox(
               height: 210,
               child: PageView.builder(
@@ -340,14 +272,14 @@ class _PostCardState extends State<PostCard>
                       path,
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      errorBuilder: (_, _, _) => _imagePlaceholder(),
+                      errorBuilder: (_, _, _) => _imagePlaceholder(ext),
                     );
                   } else if (path.startsWith('assets/')) {
                     return Image.asset(
                       path,
                       fit: BoxFit.cover,
                       width: double.infinity,
-                      errorBuilder: (_, _, _) => _imagePlaceholder(),
+                      errorBuilder: (_, _, _) => _imagePlaceholder(ext),
                     );
                   } else {
                     final file = File(path);
@@ -356,17 +288,15 @@ class _PostCardState extends State<PostCard>
                         file,
                         fit: BoxFit.cover,
                         width: double.infinity,
-                        errorBuilder: (_, _, _) => _imagePlaceholder(),
+                        errorBuilder: (_, _, _) => _imagePlaceholder(ext),
                       );
                     } else {
-                      return _imagePlaceholder();
+                      return _imagePlaceholder(ext);
                     }
                   }
                 },
               ),
             ),
-
-            // مؤشر الصفحة (1/2)
             if (images.length > 1)
               Padding(
                 padding: const EdgeInsets.all(10),
@@ -381,47 +311,34 @@ class _PostCardState extends State<PostCard>
     );
   }
 
-  Widget _imagePlaceholder() {
+  Widget _imagePlaceholder(ShamsExtendedColors ext) {
     return Container(
-      color: const Color(0xFFF0F4FF),
+      color: ext.imageErrorPlaceholder,
       child: Center(
         child: Icon(
           Icons.image_not_supported_rounded,
           size: 48,
-          color: ShamsColors.primaryBlue.withValues(alpha: 0.3),
+          color: ext.textHint.withValues(alpha: 0.4),
         ),
       ),
     );
   }
 
-  // ─── شريط التفاعلات: إعجاب، تعليق، مشاركة ────────────────────────────────
-
-  Widget _buildActions() {
+  Widget _buildActions(ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // المشاركة (يسار)
-          // _ActionChip(
-          //   icon: Icons.reply_rounded,
-          //   count: widget.sharesCount,
-          //   color: ShamsColors.textGray.withValues(alpha: 0.7),
-          //   onTap: widget.onShareTap,
-          // ),
           Row(
             children: [
-              // التعليق
               _ActionChip(
                 icon: Icons.chat_bubble_outline_rounded,
                 count: widget.commentsCount,
-                color: ShamsColors.textGray.withValues(alpha: 0.7),
+                color: colorScheme.onSurfaceVariant,
                 onTap: widget.onCommentTap,
               ),
-
               const SizedBox(width: 18),
-
-              // الإعجاب مع أنيميشن
               ScaleTransition(
                 scale: _likeScaleAnim,
                 child: _ActionChip(
@@ -430,8 +347,8 @@ class _PostCardState extends State<PostCard>
                       : Icons.favorite_border_rounded,
                   count: _likesCount,
                   color: _isLiked
-                      ? const Color(0xFFE53935)
-                      : ShamsColors.textGray.withValues(alpha: 0.7),
+                      ? colorScheme.error
+                      : colorScheme.onSurfaceVariant,
                   onTap: _handleLikeTap,
                   isAnimated: true,
                 ),
@@ -444,19 +361,21 @@ class _PostCardState extends State<PostCard>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// _Avatar — صورة ملف شخصي دائرية
-// ─────────────────────────────────────────────────────────────────────────────
+// ── _Avatar ────────────────────────────────────────────────────────────────
 
 class _Avatar extends StatelessWidget {
   final String imagePath;
   final String username;
   final bool isNetwork;
+  final ColorScheme colorScheme;
+  final ShamsExtendedColors ext;
 
   const _Avatar({
     required this.imagePath,
     required this.username,
     required this.isNetwork,
+    required this.colorScheme,
+    required this.ext,
   });
 
   @override
@@ -467,12 +386,12 @@ class _Avatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: ShamsColors.primaryBlue.withValues(alpha: 0.2),
+          color: colorScheme.primary.withValues(alpha: 0.2),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: ShamsColors.primaryBlue.withValues(alpha: 0.15),
+            color: colorScheme.primary.withValues(alpha: 0.15),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -504,14 +423,14 @@ class _Avatar extends StatelessWidget {
 
   Widget _fallback() {
     return Container(
-      color: const Color(0xFFD6E4FF),
+      color: ext.avatarFallbackBg,
       child: Center(
         child: Text(
           username.isNotEmpty ? username[0] : '؟',
           style: GoogleFonts.tajawal(
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: ShamsColors.primaryBlue,
+            color: colorScheme.primary,
           ),
         ),
       ),
@@ -519,14 +438,14 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// _MenuButton — زر النقاط الثلاث (...)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── _MenuButton ──────────────────────────────────────────────────────────────
 
 class _MenuButton extends StatelessWidget {
   final VoidCallback? onTap;
+  final ShamsExtendedColors ext;
+  final ColorScheme colorScheme;
 
-  const _MenuButton({this.onTap});
+  const _MenuButton({this.onTap, required this.ext, required this.colorScheme});
 
   @override
   Widget build(BuildContext context) {
@@ -536,23 +455,21 @@ class _MenuButton extends StatelessWidget {
         width: 34,
         height: 34,
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F7FF),
+          color: ext.inputFill,
           borderRadius: BorderRadius.circular(9),
-          border: Border.all(color: const Color(0xFFEEF0F4)),
+          border: Border.all(color: ext.borderLight),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.more_horiz_rounded,
           size: 20,
-          color: ShamsColors.textGray,
+          color: colorScheme.onSurfaceVariant,
         ),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// _PageIndicatorBadge — شارة (1/2) فوق الصور
-// ─────────────────────────────────────────────────────────────────────────────
+// ── _PageIndicatorBadge ───────────────────────────────────────────────────────
 
 class _PageIndicatorBadge extends StatelessWidget {
   final int current;
@@ -580,9 +497,7 @@ class _PageIndicatorBadge extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// _ActionChip — زر تفاعل (إعجاب / تعليق / مشاركة)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── _ActionChip ───────────────────────────────────────────────────────────────
 
 class _ActionChip extends StatelessWidget {
   final IconData icon;

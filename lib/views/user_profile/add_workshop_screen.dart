@@ -161,7 +161,7 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: GoogleFonts.tajawal()),
-        backgroundColor: ShamsColors.dangerRed,
+        backgroundColor: Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
@@ -175,9 +175,9 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
           centerTitle: true,
           automaticallyImplyLeading: false,
@@ -193,12 +193,12 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
             style: GoogleFonts.tajawal(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF2D2D2D),
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.arrow_forward, color: Color(0xFF2D2D2D)),
+              icon: Icon(Icons.arrow_forward, color: Theme.of(context).colorScheme.onSurface),
               onPressed: () => Navigator.pop(context),
             ),
           ],
@@ -283,7 +283,9 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
                     '(${_images.length})',
                     style: GoogleFonts.tajawal(
                       fontSize: 13,
-                      color: ShamsColors.textHint,
+                      color: Theme.of(context)
+                          .extension<ShamsExtendedColors>()!
+                          .textHint,
                     ),
                   ),
                 ],
@@ -300,7 +302,11 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
               SizedBox(
                 width: double.infinity,
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: ShamsColors.primaryBlue))
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      )
                     : CustomSolidButton(
                         title: 'إنشاء الورشة',
                         onPressed: _onCreateTapped,
@@ -332,11 +338,11 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
               child: Container(
                 height: 165,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F7FF),
+                  color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: _coverImage != null
-                        ? ShamsColors.solarYellow
+                        ? Theme.of(context).colorScheme.secondary
                         : Colors.grey.shade300,
                     width: 1.5,
                   ),
@@ -359,9 +365,10 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
                         children: [
                           Icon(
                             Icons.add_photo_alternate_outlined,
-                            color: ShamsColors.solarYellow.withValues(
-                              alpha: 0.7,
-                            ),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondary
+                                .withValues(alpha: 0.7),
                             size: 34,
                           ),
                           const SizedBox(height: 8),
@@ -391,8 +398,8 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
                   height: 90,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white,
-                    border: Border.all(color: Colors.white, width: 3),
+                    color: Theme.of(context).colorScheme.surface,
+                    border: Border.all(color: Theme.of(context).colorScheme.surface, width: 3),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.12),
@@ -404,13 +411,13 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
                     child: _profileImage != null
                         ? Image.file(_profileImage!, fit: BoxFit.cover)
                         : Container(
-                            color: const Color(0xFFF5F7FF),
+                            color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   Icons.camera_alt_outlined,
-                                  color: ShamsColors.solarYellow,
+                                  color: Theme.of(context).colorScheme.secondary,
                                   size: 22,
                                 ),
                                 const SizedBox(height: 2),
@@ -418,7 +425,7 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
                                   'صورة',
                                   style: GoogleFonts.tajawal(
                                     fontSize: 10,
-                                    color: ShamsColors.solarYellow,
+                                    color: Theme.of(context).colorScheme.secondary,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -464,7 +471,7 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
       style: GoogleFonts.tajawal(
         fontSize: 14,
         fontWeight: FontWeight.w700,
-        color: ShamsColors.textGray,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
@@ -482,7 +489,10 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       maxLines: maxLines,
-      style: GoogleFonts.tajawal(fontSize: 14, color: ShamsColors.textGray),
+      style: GoogleFonts.tajawal(
+        fontSize: 14,
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: GoogleFonts.tajawal(
@@ -497,7 +507,7 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
           vertical: 14,
         ),
         filled: true,
-        fillColor: const Color(0xFFF9FAFB),
+        fillColor: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: Colors.grey.shade200),
@@ -508,8 +518,8 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(
-            color: ShamsColors.solarYellow,
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.secondary,
             width: 1.5,
           ),
         ),
@@ -521,7 +531,7 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
+        color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -545,7 +555,7 @@ class _AddWorkshopScreenState extends State<AddWorkshopScreen> {
                     city,
                     style: GoogleFonts.tajawal(
                       fontSize: 14,
-                      color: ShamsColors.textGray,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ),

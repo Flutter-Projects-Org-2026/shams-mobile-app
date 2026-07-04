@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../utils/constants.dart';
 
 class PrivacySecurityScreen extends StatelessWidget {
   const PrivacySecurityScreen({super.key});
@@ -10,11 +9,9 @@ class PrivacySecurityScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
-
-        // ── AppBar ──────────────────────────────────────────────────────────
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
@@ -57,6 +54,7 @@ class PrivacySecurityScreen extends StatelessWidget {
 
             // ── تشفير البيانات ──────────────────────────────────────────────
             _buildSection(
+              context: context,
               icon: Icons.lock_outline_rounded,
               title: 'تشفير البيانات',
               body:
@@ -67,6 +65,7 @@ class PrivacySecurityScreen extends StatelessWidget {
 
             // ── أمان الحساب ─────────────────────────────────────────────────
             _buildSection(
+              context: context,
               icon: Icons.security_rounded,
               title: 'أمان الحساب',
               body:
@@ -77,6 +76,7 @@ class PrivacySecurityScreen extends StatelessWidget {
 
             // ── مشاركة المعلومات ────────────────────────────────────────────
             _buildSection(
+              context: context,
               icon: Icons.share_outlined,
               title: 'مشاركة المعلومات',
               body:
@@ -87,6 +87,7 @@ class PrivacySecurityScreen extends StatelessWidget {
 
             // ── الوصول للموقع ───────────────────────────────────────────────
             _buildSection(
+              context: context,
               icon: Icons.location_on_outlined,
               title: 'الوصول للموقع',
               body:
@@ -96,7 +97,7 @@ class PrivacySecurityScreen extends StatelessWidget {
             const SizedBox(height: 40),
 
             // ── سياسة الخصوصية الكاملة ──────────────────────────────────────
-            _buildFullPolicyButton(),
+            _buildFullPolicyButton(context),
             const SizedBox(height: 20),
           ],
         ),
@@ -126,6 +127,7 @@ class PrivacySecurityScreen extends StatelessWidget {
   // ─────────────────────────────────────────────────────────────────────────────
 
   Widget _buildSection({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String body,
@@ -140,10 +142,17 @@ class PrivacySecurityScreen extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: ShamsColors.solarYellow.withValues(alpha: 0.15),
+                color: Theme.of(context)
+                    .colorScheme
+                    .secondary
+                    .withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 18, color: ShamsColors.solarYellow),
+              child: Icon(
+                icon,
+                size: 18,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
             ),
             const SizedBox(width: 10),
             Text(
@@ -177,7 +186,7 @@ class PrivacySecurityScreen extends StatelessWidget {
   // زر سياسة الخصوصية الكاملة
   // ─────────────────────────────────────────────────────────────────────────────
 
-  Widget _buildFullPolicyButton() {
+  Widget _buildFullPolicyButton(BuildContext context) {
     return Center(
       child: GestureDetector(
         onTap: () {
@@ -188,9 +197,9 @@ class PrivacySecurityScreen extends StatelessWidget {
           style: GoogleFonts.tajawal(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: ShamsColors.solarYellow,
+            color: Theme.of(context).colorScheme.secondary,
             decoration: TextDecoration.underline,
-            decorationColor: ShamsColors.solarYellow,
+            decorationColor: Theme.of(context).colorScheme.secondary,
           ),
         ),
       ),

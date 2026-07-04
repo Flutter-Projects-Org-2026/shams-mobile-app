@@ -108,8 +108,8 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('حدث خطأ أثناء رفع الصورة: $e', style: GoogleFonts.tajawal()), 
-                    backgroundColor: ShamsColors.dangerRed,
+                    content: Text('حدث خطأ أثناء رفع الصورة: $e', style: GoogleFonts.tajawal()),
+                    backgroundColor: Theme.of(context).colorScheme.error,
                     duration: const Duration(seconds: 5),
                   ),
                 );
@@ -138,8 +138,8 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('حدث خطأ أثناء تحديث بيانات الملف: $e', style: GoogleFonts.tajawal()), 
-                  backgroundColor: ShamsColors.dangerRed,
+                  content: Text('حدث خطأ أثناء تحديث بيانات الملف: $e', style: GoogleFonts.tajawal()),
+                  backgroundColor: Theme.of(context).colorScheme.error,
                 ),
               );
             }
@@ -165,8 +165,8 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
           }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(errorMessage, style: GoogleFonts.tajawal()), 
-              backgroundColor: ShamsColors.dangerRed,
+              content: Text(errorMessage, style: GoogleFonts.tajawal()),
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -174,8 +174,8 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('حدث خطأ أثناء إكمال الحساب: $e', style: GoogleFonts.tajawal()), 
-              backgroundColor: ShamsColors.dangerRed,
+              content: Text('حدث خطأ أثناء إكمال الحساب: $e', style: GoogleFonts.tajawal()),
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }
@@ -201,28 +201,49 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FE),
+        backgroundColor:
+            Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
         appBar: AppBar(
-          backgroundColor: Colors.transparent, 
-          elevation: 0, 
-          iconTheme: const IconThemeData(color: ShamsColors.textGray),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: IconThemeData(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              Text('أكمل ملفك الشخصي', style: GoogleFonts.tajawal(fontSize: 24, fontWeight: FontWeight.bold, color: ShamsColors.textGray)),
+              Text(
+                'أكمل ملفك الشخصي',
+                style: GoogleFonts.tajawal(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
               const SizedBox(height: 8),
-              Text('دع مجتمع شمس يتعرف عليك أكثر', style: GoogleFonts.tajawal(fontSize: 14, color: const Color(0xFF9EA3B0))),
+              Text(
+                'دع مجتمع شمس يتعرف عليك أكثر',
+                style: GoogleFonts.tajawal(
+                  fontSize: 14,
+                  color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
+                ),
+              ),
               const SizedBox(height: 32),
               
               // ── بطاقة الإدخال ──
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white, 
-                  borderRadius: BorderRadius.circular(20), 
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 20)],
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 20,
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -244,8 +265,8 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
                             ),
                             Container(
                               padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                color: ShamsColors.primaryBlue,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
@@ -279,9 +300,16 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
                     SizedBox(
                       width: double.infinity,
                       height: 50,
-                      child: _isLoading 
-                          ? const Center(child: CircularProgressIndicator(color: ShamsColors.primaryBlue))
-                          : CustomSolidButton(title: 'إنشاء الحساب', onPressed: _handleCreateAccount),
+                      child: _isLoading
+                          ? Center(
+                              child: CircularProgressIndicator(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            )
+                          : CustomSolidButton(
+                              title: 'إنشاء الحساب',
+                              onPressed: _handleCreateAccount,
+                            ),
                     ),
                   ],
                 ),
@@ -293,7 +321,19 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
     );
   }
 
-  Widget _inputLabel(String label) => Padding(padding: const EdgeInsets.only(bottom: 8), child: Text(label, style: GoogleFonts.tajawal(fontSize: 13, fontWeight: FontWeight.w600, color: ShamsColors.textGray)));
+  Widget _inputLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        label,
+        style: GoogleFonts.tajawal(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
+    );
+  }
 
   Widget _buildDropdownField() {
     return DropdownButtonFormField<String>(
@@ -314,7 +354,10 @@ class _SignUpProfileScreenState extends State<SignUpProfileScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: ShamsColors.solarYellow, width: 1.5),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.secondary,
+            width: 1.5,
+          ),
         ),
       ),
       items: _cities.map((city) {

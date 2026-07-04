@@ -56,7 +56,7 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
       child: Scaffold(
         key: _scaffoldKey,
         drawer: const ShamsDrawer(activeIndex: 1),
-        backgroundColor: const Color(0xFFF5F7FF),
+        backgroundColor: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
 
         // ── الشريط العلوي ──────────────────────────────────────────────────
         appBar: ShamsPlatformAppBar(
@@ -71,7 +71,7 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
                   builder: (context) => const NotificationsScreen()),
             );
           },
-          onDarkModeTap: () {},
+          // onDarkModeTap omitted — AppBar uses ThemeProvider.toggleTheme() by default
         ),
 
         body: Column(
@@ -89,7 +89,7 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
             // ── فلتر المدن ──────────────────────────────────────────────────
             Container(
               width: double.infinity,
-              color: ShamsColors.bgWhite,
+              color: Theme.of(context).colorScheme.surface,
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: CityMultiSelectFilter(
                 onSelectionChanged: (selectedCities) {
@@ -103,7 +103,7 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
             // ── فلتر الخدمات ────────────────────────────────────────────────
             Container(
               width: double.infinity,
-              color: ShamsColors.bgWhite,
+              color: Theme.of(context).colorScheme.surface,
               padding: const EdgeInsets.only(bottom: 12),
               child: SizedBox(
                 height: 40,
@@ -117,33 +117,43 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
                     return Padding(
                       padding: const EdgeInsets.only(left: 8.0),
                       child: FilterChip(
-                        label: Text(
-                          service,
-                          style: GoogleFonts.tajawal(
-                            fontSize: 13,
-                            color: isSelected ? Colors.black87 : ShamsColors.textHint,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          label: Text(
+                            service,
+                            style: GoogleFonts.tajawal(
+                              fontSize: 13,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.onSecondary
+                                  : Theme.of(context)
+                                      .extension<ShamsExtendedColors>()!
+                                      .textHint,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
                           ),
-                        ),
-                        selected: isSelected,
-                        onSelected: (bool selected) {
-                          setState(() {
-                            if (selected) {
-                              _selectedServices.add(service);
-                            } else {
-                              _selectedServices.remove(service);
-                            }
-                          });
-                        },
-                        selectedColor: ShamsColors.solarYellow,
-                        backgroundColor: ShamsColors.bgWhite,
-                        checkmarkColor: Colors.black87,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          side: BorderSide(
-                            color: isSelected ? ShamsColors.solarYellow : const Color(0xFFEEF0F4),
+                          selected: isSelected,
+                          onSelected: (bool selected) {
+                            setState(() {
+                              if (selected) {
+                                _selectedServices.add(service);
+                              } else {
+                                _selectedServices.remove(service);
+                              }
+                            });
+                          },
+                          selectedColor: Theme.of(context).colorScheme.secondary,
+                          backgroundColor: Theme.of(context).colorScheme.surface,
+                          checkmarkColor: Theme.of(context).colorScheme.onSecondary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.secondary
+                                  : Theme.of(context)
+                                      .extension<ShamsExtendedColors>()!
+                                      .borderLight,
+                            ),
                           ),
-                        ),
                       ),
                     );
                   },
@@ -151,7 +161,7 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
               ),
             ),
 
-            const Divider(height: 1, thickness: 1, color: Color(0xFFF0F4FF)),
+            Divider(height: 1, thickness: 1, color: Theme.of(context).extension<ShamsExtendedColors>()!.dividerLight),
 
             // ── قائمة الورش ────────────────────────────────────────────────
             Expanded(
@@ -161,7 +171,7 @@ class _WorkshopsListScreenState extends State<WorkshopsListScreen> {
                         'لا توجد ورش في المحافظات المحددة.',
                         style: GoogleFonts.tajawal(
                           fontSize: 16,
-                          color: ShamsColors.textGray,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     )

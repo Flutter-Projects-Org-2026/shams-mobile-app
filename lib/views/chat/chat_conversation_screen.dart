@@ -90,13 +90,13 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
 
   Widget _buildFallbackAvatar(String name) {
     return Container(
-      color: ShamsColors.avatarFallbackBg,
+      color: Theme.of(context).extension<ShamsExtendedColors>()!.avatarFallbackBg,
       child: Center(
         child: Text(
           name.isNotEmpty ? name[0] : '؟',
           style: GoogleFonts.tajawal(
             fontWeight: FontWeight.w700,
-            color: ShamsColors.primaryBlue,
+            color: Theme.of(context).colorScheme.primary,
             fontSize: 14,
           ),
         ),
@@ -172,15 +172,15 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0.5,
           titleSpacing: 0,
           leading: IconButton(
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_forward_rounded,
-              color: Colors.black87,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
             onPressed: () => Navigator.pop(context),
           ),
@@ -202,27 +202,31 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                 style: GoogleFonts.tajawal(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
           ),
           actions: [
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert_rounded, color: Colors.black87),
+              icon: Icon(
+                Icons.more_vert_rounded,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               onSelected: (value) {
                 if (value == 'search') {
                   setState(() => _isSearching = true);
                 } else if (value == 'mute') {
                   setState(() => _isMuted = !_isMuted);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        _isMuted ? 'تم كتم إشعارات هذه المحادثة' : 'تم تفعيل إشعارات هذه المحادثة',
-                        style: GoogleFonts.tajawal(color: Colors.white),
-                      ),
-                      backgroundColor: ShamsColors.textGray,
-                      behavior: SnackBarBehavior.floating,
+                      SnackBar(
+                        content: Text(
+                          _isMuted ? 'تم كتم إشعارات هذه المحادثة' : 'تم تفعيل إشعارات هذه المحادثة',
+                          style: GoogleFonts.tajawal(),
+                        ),
+                        backgroundColor:
+                            Theme.of(context).colorScheme.inverseSurface,
+                        behavior: SnackBarBehavior.floating,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -265,16 +269,16 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                   value: 'clear',
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.delete_outline_rounded,
                         size: 20,
-                        color: ShamsColors.dangerRed,
+                        color: Theme.of(context).colorScheme.error,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         'مسح المحادثة',
                         style: GoogleFonts.tajawal(
-                          color: ShamsColors.dangerRed,
+                          color: Theme.of(context).colorScheme.error,
                         ),
                       ),
                     ],
@@ -322,7 +326,9 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
                       child: Text(
                         'لا توجد نتائج لـ "$_searchQuery"',
                         style: GoogleFonts.tajawal(
-                          color: ShamsColors.textHint,
+                          color: Theme.of(context)
+                              .extension<ShamsExtendedColors>()!
+                              .textHint,
                           fontSize: 16,
                         ),
                       ),
@@ -395,12 +401,14 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             'مسح المحادثة',
             style: GoogleFonts.tajawal(
               fontWeight: FontWeight.bold,
-              color: ShamsColors.dangerRed,
+              color: Theme.of(context).colorScheme.error,
             ),
           ),
           content: Text(
             'هل أنت متأكد أنك تريد مسح جميع الرسائل في هذه المحادثة؟',
-            style: GoogleFonts.tajawal(color: ShamsColors.textGray),
+            style: GoogleFonts.tajawal(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
           actions: [
             TextButton(
@@ -416,7 +424,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
               child: Text(
                 'مسح',
                 style: GoogleFonts.tajawal(
-                  color: ShamsColors.dangerRed,
+                  color: Theme.of(context).colorScheme.error,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -435,7 +443,10 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
           Icon(
             Icons.chat_bubble_outline_rounded,
             size: 60,
-            color: ShamsColors.primaryBlue.withValues(alpha: 0.15),
+            color: Theme.of(context)
+                .colorScheme
+                .primary
+                .withValues(alpha: 0.15),
           ),
           const SizedBox(height: 16),
           Text(
@@ -443,7 +454,7 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             style: GoogleFonts.tajawal(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: ShamsColors.textGray,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 6),
@@ -451,7 +462,9 @@ class _ChatConversationScreenState extends State<ChatConversationScreen> {
             'ابدأ المحادثة الآن!',
             style: GoogleFonts.tajawal(
               fontSize: 13,
-              color: ShamsColors.textHint,
+              color: Theme.of(context)
+                  .extension<ShamsExtendedColors>()!
+                  .textHint,
             ),
           ),
         ],
@@ -475,33 +488,35 @@ class _DateDivider extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Divider(
               thickness: 1,
-              color: ShamsColors.dividerLight,
+              color: Theme.of(context).extension<ShamsExtendedColors>()!.dividerLight,
               endIndent: 12,
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: ShamsColors.backgroundLight,
+              color: Theme.of(context).extension<ShamsExtendedColors>()!.backgroundLight,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: ShamsColors.borderLight),
+              border: Border.all(
+                color: Theme.of(context).extension<ShamsExtendedColors>()!.borderLight,
+              ),
             ),
             child: Text(
               label,
               style: GoogleFonts.tajawal(
                 fontSize: 11.5,
-                color: ShamsColors.textHint,
+                color: Theme.of(context).extension<ShamsExtendedColors>()!.textHint,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          const Expanded(
+          Expanded(
             child: Divider(
               thickness: 1,
-              color: ShamsColors.dividerLight,
+              color: Theme.of(context).extension<ShamsExtendedColors>()!.dividerLight,
               indent: 12,
             ),
           ),
