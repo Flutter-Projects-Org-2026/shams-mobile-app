@@ -72,23 +72,3 @@ lib/
 
 ---
 
-## 🗄️ Supabase Database & Security | قاعدة البيانات والحماية
-The application database relies on PostgreSQL on Supabase. SQL setup scripts are provided in the root directory:
-- **[supabase_chats_setup.sql](file:///d:/projects/flutter-projects/shams-mobile-app/supabase_chats_setup.sql)**: Setting up chats, messages, and participants with Row Level Security (RLS) policies and RPC functions (like `create_new_chat`).
-- **[supabase_notifications_setup.sql](file:///d:/projects/flutter-projects/shams-mobile-app/supabase_notifications_setup.sql)**: Realtime notifications table configuration, RLS, and trigger options.
-
-### Storage Buckets Used:
-- `avatars`: Stores user profile pictures.
-- `workshops`: Stores workshop logos, covers, and portfolio images.
-- `posts`: Stores images uploaded within feed posts.
-
----
-
-## 📖 Deep-Dive Documentation | التوثيق التفصيلي للهيكلية
-For an in-depth explanation of the application flow, sequence diagrams, database tables, and native configurations, please refer to the Arabic documentation file:
-- **[PROJECT_STRUCTURE_AR.md](file:///d:/projects/flutter-projects/shams-mobile-app/PROJECT_STRUCTURE_AR.md)**
-
----
-
-   flutter run
-   ```
