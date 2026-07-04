@@ -90,25 +90,5 @@ For an in-depth explanation of the application flow, sequence diagrams, database
 
 ---
 
-## 🚀 Getting Started | كيف تبدأ
-
-### Prerequisites
-- Flutter SDK (Recommended: `^3.10.0`)
-- Dart SDK
-
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd shams-mobile-app
-   ```
-2. Install dependencies:
-   ```bash
-   flutter pub get
-   ```
-3. Setup Environment:
-   Ensure your Supabase project contains the tables matching the models. Apply `supabase_chats_setup.sql` and `supabase_notifications_setup.sql` in your Supabase SQL Editor.
-4. Run the project:
-   ```bash
    flutter run
    ```
